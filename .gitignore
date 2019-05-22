@@ -1,7 +1,6 @@
 
 node_modules
 .idea
-dist/
 publid/dist
 *.log
 coverage/
@@ -11,3 +10,4 @@ view/antd.min.css
 credentials
 .env-secure.yml
 .fusebox
+rootkey.csv

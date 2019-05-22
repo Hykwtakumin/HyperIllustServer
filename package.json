@@ -4,13 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "fmt": "prettier $PRETTIER_TARGET --write"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "aws-sdk": "^2.452.0",
+    "aws-sdk": "^2.453.0",
     "axios": "^0.18.0",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.4",
@@ -19,8 +20,10 @@
     "express-session": "^1.16.1",
     "helmet": "^3.18.0",
     "mongodb": "^3.2.4",
+    "multer": "^1.4.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
+    "s3rver": "^3.0.3",
     "typescript": "^3.4.5",
     "uuid": "^3.3.2"
   },
@@ -36,6 +39,7 @@
     "@types/react-dom": "^16.8.4",
     "@types/uuid": "^3.4.4",
     "jest": "^24.8.0",
+    "prettier": "^1.17.0",
     "ts-jest": "^24.0.2",
     "ts-node": "^8.1.0",
     "ts-node-dev": "^1.0.0-pre.38"
