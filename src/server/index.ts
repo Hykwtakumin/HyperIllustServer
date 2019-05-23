@@ -11,5 +11,7 @@ app.get("/", (req, res) => {
 app.post("/upload/:hicId", (req, res) => {
   const hicId: string = req.params.hicId;
   const mime: string = "image/svg+xml";
-  configuredS3();
+  const body = req.body;
+  console.dir({ hicId, mime, body });
+  //configuredS3();
 });
