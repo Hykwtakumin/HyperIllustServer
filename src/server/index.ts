@@ -1,8 +1,11 @@
 import * as express from "express";
+import * as cors from "cors";
 import { configuredS3 } from "./aws";
 
 const app = express();
 app.listen(process.env.PORT || 3000);
+
+app.use(cors());
 
 app.get("/", (req, res) => {
   res.json({ message: "hello!" });
