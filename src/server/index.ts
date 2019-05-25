@@ -1,5 +1,6 @@
 import * as express from "express";
 import * as cors from "cors";
+import * as multer from "multer";
 import { configuredS3 } from "./aws";
 
 const app = express();
