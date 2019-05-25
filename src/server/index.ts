@@ -8,16 +8,16 @@ const app = express();
 app.listen(process.env.PORT || 3000);
 
 app.use(cors());
-console.log(__dirname);
 app.use(express.static(__dirname + "/public"));
-app.set("views", path.join(__dirname, "/views"));
-//app.set("view engine", "html");
+app.set("views", path.resolve(__dirname, "../../views"));
+app.set("view engine", "html");
+
+console.log(path.resolve(__dirname, "../../views"));
 
 app.get("/", (req, res) => {
   //res.json({ message: "hello!" });
   //res.render("index.html");
-  console.log(path.resolve(__dirname, "./views/index.html"));
-  res.sendFile(path.resolve(__dirname, "index.html"));
+  res.sendFile(path.resolve(__dirname, "../../views/index.html"));
 });
 
 app.post("/upload/:hicId", (req, res) => {

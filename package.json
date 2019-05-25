@@ -9,6 +9,8 @@
     "build": "tsc",
     "run-server": "node ./dist/server/index.js",
     "start": "npm run build && npm run run-server",
+    "d": "DEBUG=* ts-node-dev src/server/index.ts --port 3000",
+    "r": "ts-node src/server/index.ts --port 3000",
     "w": "yarn watch",
     "watch": "webpack -w",
     "analyze": "webpack --json | webpack-bundle-size-analyzer"
