@@ -1,0 +1,68 @@
+.svgCanvas {
+  background-color: white;
+}
+
+.current-path {
+  stroke: turquoise;
+}
+
+#root {
+  background-color: rgba(0, 0, 0, 0.5);
+  width: 100vw;
+  height: 100vh;
+  touch-action: none;
+}
+
+.toolBar {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 5px;
+}
+
+.modalTextArea {
+  width: 100%;
+}
+
+.modalImageList {
+  width: 90%;
+  height: 70%;
+  overflow: scroll;
+}
+
+.modalButtons {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+}
+
+.toolButton {
+  padding: 0 4px 0 0;
+}
+
+.leftButton {
+  margin-left: auto;
+  color: #fff;
+  background-color: #41bf8b;
+  border-color: #3aac7d;
+}
+
+.button {
+  display: inline-block;
+  margin-bottom: 0;
+  font-weight: normal;
+  text-align: center;
+  vertical-align: middle;
+  touch-action: manipulation;
+  cursor: pointer;
+  background-image: none;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  padding: 6px 12px;
+  font-size: 14px;
+  line-height: 1.42857;
+  border-radius: 4px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
