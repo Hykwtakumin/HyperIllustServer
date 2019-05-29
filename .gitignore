@@ -11,3 +11,4 @@ credentials
 .env-secure.yml
 .fusebox
 rootkey.csv
+.cache
