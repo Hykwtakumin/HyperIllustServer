@@ -34,13 +34,5 @@ app.use(
 );
 app.use(cookieParser());
 
+//app.use("/api/", apiRouter);
 app.use("/", hicRouter);
-app.use("/api", apiRouter);
-
-// app.post("/upload/:hicId", (req, res) => {
-//   const hicId: string = req.params.hicId;
-//   const mime: string = "image/svg+xml";
-//   const body = req.body;
-//   console.dir({ hicId, mime, body });
-//   //configuredS3();
-// });

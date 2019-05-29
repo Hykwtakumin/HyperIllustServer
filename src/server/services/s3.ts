@@ -4,10 +4,14 @@ import * as fs from "fs";
 import { promisify } from "util";
 dotenv.config();
 
-const { region, accessKeyId, secretAccessKey } = process.env;
+const { AWSRegion, AWSAccessKeyId, AWSSecretKey } = process.env;
 const Bucket = process.env.S3_BUCKET || "hyper-illust-creator";
 
-AWS.config.update({ accessKeyId, secretAccessKey, region });
+new AWS.Config({
+  accessKeyId: AWSAccessKeyId,
+  secretAccessKey: AWSSecretKey,
+  region: AWSRegion
+});
 const bucket = new AWS.S3({
   s3ForcePathStyle: true
 });
@@ -16,13 +20,13 @@ export const uploadFile = async ({ Key, Body, ContentType }): Promise<any> => {
   return await bucket.upload({ Bucket, Key, Body, ContentType }).promise();
 };
 
-export const deleteFile = async (key: string) => {
-  const deleteReq = {
-    Bucket: Bucket,
-    key: key
-  };
-  await bucket.deleteObject(deleteReq).promise();
-};
+// export const deleteFile = async (key: string) => {
+//   const deleteReq = {
+//     Bucket: Bucket,
+//     key: key
+//   };
+//   await bucket.deleteObject(deleteReq).promise();
+// };
 
 export const promiseUpload = async (
   hicId: string,
