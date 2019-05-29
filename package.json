@@ -6,10 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "fmt": "prettier $PRETTIER_TARGET --write",
-    "build": "tsc",
-    "build-client": "parcel build ./src/client/index.tsx --out-dir ./public/dist/index.js",
+    "build-server": "tsc",
+    "build-client": "parcel build ./src/client/index.tsx --out-dir ./public/index.js",
     "run-server": "node ./dist/server/index.js",
-    "start": "npm run build && npm run run-server",
+    "start": "npm run build-server && npm run run-server",
     "d": "DEBUG=* ts-node-dev src/server/index.ts --port 3000",
     "r": "ts-node src/server/index.ts --port 3000",
     "w": "npm run watch",
