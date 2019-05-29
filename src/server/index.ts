@@ -8,6 +8,7 @@ import { configuredS3 } from "./aws";
 import * as bodyParser from "body-parser";
 import * as cookieParser from "cookie-parser";
 import * as reactViews from "express-react-views";
+import * as ejs from "ejs";
 import { hicRouter } from "./routes/hic";
 
 export const app: express.Express = express();
@@ -18,8 +19,8 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.static(path.join(__dirname, "../../public")));
 app.set("views", path.join(__dirname, "../../views"));
-app.set("view engine", "tsx");
-app.engine("tsx", reactViews.createEngine());
+app.set("view engine", "html");
+app.engine("html", ejs.renderFile);
 
 server.listen(port, () => {
   console.log(`server listeninig at port : ${port}`);
