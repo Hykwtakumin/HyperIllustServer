@@ -6,9 +6,7 @@ publid/dist
 coverage/
 .terraform
 .env
-view/antd.min.css
 credentials
 .env-secure.yml
-.fusebox
 rootkey.csv
-.cache
+.cache/
