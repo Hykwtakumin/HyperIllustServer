@@ -13,7 +13,7 @@
     "start": "npm run build-client && npm run r",
     "start-dev": "npm run build-client-dev && npm run d",
     "d": "DEBUG=* ts-node-dev src/server/index.ts --port 3000",
-    "r": "ts-node src/server/index.ts --port 3000",
+    "r": "node ./dist/src/server/index.js --port 3000",
     "w": "npm run watch",
     "watch": "parcel watch ./src/client/index.tsx --out-dir ./public/index.js"
   },
