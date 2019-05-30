@@ -9,6 +9,7 @@ import * as bodyParser from "body-parser";
 import * as cookieParser from "cookie-parser";
 import * as reactViews from "express-react-views";
 import { hicRouter } from "./routes/hic";
+import { apiRouter } from "./routes/api";
 
 export const app: express.Express = express();
 const server: Server = createServer(app);
@@ -33,12 +34,5 @@ app.use(
 );
 app.use(cookieParser());
 
+//app.use("/api/", apiRouter);
 app.use("/", hicRouter);
-
-// app.post("/upload/:hicId", (req, res) => {
-//   const hicId: string = req.params.hicId;
-//   const mime: string = "image/svg+xml";
-//   const body = req.body;
-//   console.dir({ hicId, mime, body });
-//   //configuredS3();
-// });
