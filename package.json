@@ -13,7 +13,7 @@
     "start": "npm run build-client && npm run r",
     "start-dev": "npm run build-client-dev && npm run d",
     "d": "DEBUG=* ts-node-dev src/server/index.ts --port 3000",
-    "r": "ts-node src/server/index.ts --port 3000",
+    "r": "node ./dist/src/server/index.js --port 3000",
     "w": "npm run watch",
     "watch": "parcel watch ./src/client/index.tsx --out-dir ./public/index.js"
   },
@@ -34,7 +34,7 @@
     "@types/react-dom": "^16.8.4",
     "@types/uuid": "^3.4.4",
     "aws-sdk": "^2.453.0",
-    "axios": "^0.18.0",
+    "axios": ">=0.19.0",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.4",
     "cors": "^2.8.5",

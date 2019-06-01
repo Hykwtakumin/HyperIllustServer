@@ -15,7 +15,11 @@ export const BaseLayout: FC<layoutProps> = (props: layoutProps) => {
           name="viewport"
           content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no"
         />
-        <link rel="stylesheet" href="/index.css" />
+        <meta
+          http-equiv="Content-Security-Policy"
+          content="default-src https:"
+        />
+        <link rel="stylesheet" type="text/css" href="/index.css" />
       </head>
       <body>
         <h1>UNDER CONSTRUCTION</h1>
