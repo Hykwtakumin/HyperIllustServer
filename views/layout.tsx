@@ -19,7 +19,7 @@ export const BaseLayout: FC<layoutProps> = (props: layoutProps) => {
         <link rel="stylesheet" type="text/css" href="/index.css" />
       </head>
       <body>
-        <h1>UNDER CONSTRUCTION</h1>
+        <h1>Hyper-Illust-Creator</h1>
         <div id="root" />
         <script type="text/javascript" src="/index.js" />
       </body>

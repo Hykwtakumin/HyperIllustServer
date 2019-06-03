@@ -35,10 +35,10 @@ export const promiseUpload = async (
 ): Promise<any> => {
   return new Promise<any>(async (resolve, reject) => {
     try {
-      const uploaded = await promisify(fs.readFile)(file.path);
+      // const uploaded = await promisify(fs.readFile)(file.path);
       const params = {
         Key: hicId + ".svg",
-        Body: uploaded,
+        Body: file,
         ContentType: mime
       };
 

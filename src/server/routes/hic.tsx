@@ -48,3 +48,20 @@ hicRouter.post(
       });
   }
 );
+
+hicRouter.post(
+  "/api/upload",
+  async (req: express.Request, res: express.Response) => {
+    res.setHeader("Content-Type", "text/plain");
+    const bodyData = req.body.test;
+    console.dir(bodyData);
+    //res.send({ body: req.body.test });
+    try {
+      const upload = await promiseUpload("testtest", bodyData, "image/svg+xml");
+      console.dir(upload);
+      res.send(upload);
+    } catch (e) {
+      res.send(e);
+    }
+  }
+);
