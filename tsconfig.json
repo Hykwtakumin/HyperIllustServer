@@ -1,7 +1,9 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es6",
+    "moduleResolution": "node",
+    "target": "es2015",
+    "skipLibCheck": true,
     "sourceMap": true,
     "outDir": "dist",
     "jsx": "react",
