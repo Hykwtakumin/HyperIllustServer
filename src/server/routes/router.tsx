@@ -3,7 +3,13 @@ import { renderToString } from "react-dom/server";
 import * as React from "react";
 import { app } from "../index";
 import { BaseLayout } from "../../../views/layout";
-import { uploadFile, promiseUpload, putFile } from "../services/s3";
+import {
+  uploadFile,
+  promiseUpload,
+  putFile,
+  asyncReadFile,
+  asyncUnLink
+} from "../services/s3";
 import * as fetchBase64 from "fetch-base64";
 import * as multer from "multer";
 import * as path from "path";
@@ -36,26 +42,6 @@ Router.get("/proxy/:url", (req: express.Request, res: express.Response) => {
     });
 });
 
-const upload = multer({ dest: path.resolve("./public/tmp") });
-Router.post(
-  "/upload/:hicId",
-  upload.single("file"),
-  (req: express.Request, res: express.Response) => {
-    const hicId: string = req.params.hicId;
-    const mime: string = "image/svg+xml";
-
-    promiseUpload(hicId, req.file, mime)
-      .then(data => {
-        //
-        res.send({ hicURL: data.location });
-      })
-      .catch(error => {
-        res.send(error);
-        throw error;
-      });
-  }
-);
-
 Router.post(
   "/api/upload",
   uploader.single("file"),
@@ -64,13 +50,15 @@ Router.post(
     const fileName = `hyperillust_${now}_.svg`;
     const mime: string = "image/svg+xml";
 
-    const rawData = await promisify(fs.readFile)(req.file.path);
+    const rawData = await asyncReadFile(req.file.path);
 
-    const result = await putFile(fileName, rawData, mime);
-    console.dir(result);
-    res.send(result);
-
-    // console.dir(req.file);
-    // res.end();
+    try {
+      const result = await uploadFile(fileName, rawData, mime);
+      const url = result.Location;
+      asyncUnLink(req.file.path);
+      res.send({ url: url });
+    } catch (e) {
+      res.send(e);
+    }
   }
 );

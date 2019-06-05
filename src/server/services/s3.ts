@@ -12,14 +12,17 @@ AWS.config.update({
   credentials: new AWS.Credentials(AWSAccessKeyId, AWSSecretKey)
 });
 
-// new AWS.Config({
-//   accessKeyId: AWSAccessKeyId,
-//   secretAccessKey: AWSSecretKey,
-//   region: AWSRegion
-// });
 const bucket = new AWS.S3({
   s3ForcePathStyle: true
 });
+
+export const asyncReadFile = (path: string): Promise<any> => {
+  return promisify(fs.readFile)(path);
+};
+
+export const asyncUnLink = (path: string): Promise<any> => {
+  return promisify(fs.unlink)(path);
+};
 
 export const putFile = (
   key: string,
@@ -34,25 +37,26 @@ export const putFile = (
       ContentType: contentType,
       ACL: "public-read"
     };
-    console.log({ params });
-    console.log({ AWSRegion, AWSAccessKeyId, AWSSecretKey });
     bucket.putObject(params, (err, data) => {
       if (err) {
         console.log(err);
         reject(err);
       }
       if (data) {
-        console.dir(data);
         resolve(data);
       }
     });
   });
 };
 
-export const uploadFile = async ({ Key, Body, ContentType }): Promise<any> => {
+export const uploadFile = async (
+  Key: string,
+  Body: any,
+  ContentType: string
+): Promise<any> => {
   return new Promise<any>((resolve, reject) => {
     bucket
-      .upload({ Bucket, Key, Body, ContentType })
+      .upload({ Bucket, Key, Body, ContentType, ACL: "public-read" })
       .promise()
       .then(response => resolve(response))
       .catch(e => reject(e));
@@ -81,7 +85,7 @@ export const promiseUpload = async (
         ContentType: mime
       };
 
-      const uploaded2S3 = await uploadFile(params);
+      const uploaded2S3 = await uploadFile(`${hicId}svg`, file, mime);
       resolve(uploaded2S3);
       //await promisify(fs.unlink)(file.path);
     } catch (e) {

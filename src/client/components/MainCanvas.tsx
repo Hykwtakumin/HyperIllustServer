@@ -113,6 +113,10 @@ export const MainCanvas = (): FC<MainCanvasProps> => {
     fetch(`/api/upload`, opt)
       .then(res => {
         console.dir(res);
+        res
+          .json()
+          .then(data => console.log)
+          .catch(e => console.log);
       })
       .catch(error => {
         console.error(error);

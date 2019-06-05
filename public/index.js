@@ -26262,6 +26262,11 @@ exports.MainCanvas = function () {
     };
     fetch("/api/upload", opt).then(function (res) {
       console.dir(res);
+      res.json().then(function (data) {
+        return console.log;
+      }).catch(function (e) {
+        return console.log;
+      });
     }).catch(function (error) {
       console.error(error);
     });
@@ -26359,7 +26364,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "45379" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "40535" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
