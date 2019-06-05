@@ -8,7 +8,7 @@ import { configuredS3 } from "./aws";
 import * as bodyParser from "body-parser";
 import * as cookieParser from "cookie-parser";
 import * as reactViews from "express-react-views";
-import { hicRouter } from "./routes/hic";
+import { Router } from "./routes/router";
 import { apiRouter } from "./routes/api";
 
 export const app: express.Express = express();
@@ -18,7 +18,8 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.set("trust proxy", true);
 app.use(express.static("public"));
-app.set("views", path.join(__dirname, "../../views"));
+app.set("views", "views");
+
 app.set("view engine", "tsx");
 app.engine("tsx", reactViews.createEngine());
 
@@ -35,4 +36,4 @@ app.use(
 app.use(cookieParser());
 
 //app.use("/api/", apiRouter);
-app.use("/", hicRouter);
+app.use("/", Router);
