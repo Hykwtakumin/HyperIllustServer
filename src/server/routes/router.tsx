@@ -3,20 +3,27 @@ import { renderToString } from "react-dom/server";
 import * as React from "react";
 import { app } from "../index";
 import { BaseLayout } from "../../../views/layout";
-import { uploadFile, promiseUpload } from "../services/s3";
+import { uploadFile, promiseUpload, putFile } from "../services/s3";
 import * as fetchBase64 from "fetch-base64";
 import * as multer from "multer";
 import * as path from "path";
-export const hicRouter: express.Router = express.Router();
+import * as AWS from "aws-sdk";
+import * as dotenv from "dotenv";
+import * as moment from "moment";
+import * as fs from "fs";
+import { promisify } from "util";
+export const Router: express.Router = express.Router();
 
-hicRouter.get("/", (req: express.Request, res: express.Response) => {
+const uploader = multer({ dest: "tmp/" });
+
+Router.get("/", (req: express.Request, res: express.Response) => {
   res
     .header("content-type", "text/html")
     .send(renderToString(<BaseLayout title={"Hello"} />))
     .end();
 });
 
-hicRouter.get("/proxy/:url", (req: express.Request, res: express.Response) => {
+Router.get("/proxy/:url", (req: express.Request, res: express.Response) => {
   const imageURL = decodeURIComponent(req.params.url);
   fetchBase64
     .remote(imageURL)
@@ -30,7 +37,7 @@ hicRouter.get("/proxy/:url", (req: express.Request, res: express.Response) => {
 });
 
 const upload = multer({ dest: path.resolve("./public/tmp") });
-hicRouter.post(
+Router.post(
   "/upload/:hicId",
   upload.single("file"),
   (req: express.Request, res: express.Response) => {
@@ -49,19 +56,21 @@ hicRouter.post(
   }
 );
 
-hicRouter.post(
+Router.post(
   "/api/upload",
+  uploader.single("file"),
   async (req: express.Request, res: express.Response) => {
-    res.setHeader("Content-Type", "text/plain");
-    const bodyData = req.body.test;
-    console.dir(bodyData);
-    //res.send({ body: req.body.test });
-    try {
-      const upload = await promiseUpload("testtest", bodyData, "image/svg+xml");
-      console.dir(upload);
-      res.send(upload);
-    } catch (e) {
-      res.send(e);
-    }
+    const now = moment().format("YYYY-MM-DD-HH-mm-ss");
+    const fileName = `hyperillust_${now}_.svg`;
+    const mime: string = "image/svg+xml";
+
+    const rawData = await promisify(fs.readFile)(req.file.path);
+
+    const result = await putFile(fileName, rawData, mime);
+    console.dir(result);
+    res.send(result);
+
+    // console.dir(req.file);
+    // res.end();
   }
 );
