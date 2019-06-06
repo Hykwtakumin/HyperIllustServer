@@ -50,7 +50,6 @@ Router.post(
     const fileName = `hyperillust_${now}_.svg`;
     const mime: string = "image/svg+xml";
 
-    console.dir(req.file);
     const rawData = await asyncReadFile(req.file.path);
 
     try {
