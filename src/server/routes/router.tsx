@@ -56,7 +56,13 @@ Router.post(
       const result = await uploadFile(fileName, rawData, mime);
       const url = result.Location;
       asyncUnLink(req.file.path);
-      res.send({ url: url });
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.send(
+        JSON.stringify({
+          ok: true,
+          url: url
+        })
+      );
     } catch (e) {
       res.send(e);
     }
