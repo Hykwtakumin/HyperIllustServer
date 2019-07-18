@@ -29,7 +29,7 @@ Router.get("/", (req: express.Request, res: express.Response) => {
     .end();
 });
 
-Router.get("/proxy/:url", (req: express.Request, res: express.Response) => {
+Router.get("/api/proxy/:url", (req: express.Request, res: express.Response) => {
   const imageURL = decodeURIComponent(req.params.url);
   fetchBase64
     .remote(imageURL)
@@ -66,5 +66,14 @@ Router.post(
     } catch (e) {
       res.send(e);
     }
+  }
+);
+
+Router.post(
+  "/api/postlayer",
+  uploader.single("file"),
+  async (req: express.Request, res: express.Response) => {
+    //const rawData = await asyncReadFile(req.file.path);
+    res.send({ layerPath: req.file.path });
   }
 );
