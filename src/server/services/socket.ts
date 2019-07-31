@@ -17,17 +17,18 @@ const socketIOHandler = (io: socketIo.Server) => {
 
     /*問題IDが存在する場合*/
     if (socket.handshake.query["hicId"]) {
-      const { hicId } = socket.handshake.query;
+      const { hicId, userId } = socket.handshake.query;
       debug(`roomID : ${hicId}`);
+      debug(`joined userID : ${userId}`);
 
       socket.join(hicId, () => {
         let rooms = Object.keys(socket.rooms);
         debug(`rooms : ${rooms}`);
         io.to(hicId).emit(
           "hic:message",
-          `a new user has joined the room${hicId}`
+          `new user: ${userId} has joined the room ${hicId}`
         );
-        socket.emit("hic:message", `you joined room${hicId}`);
+        socket.emit("hic:message", `you joined room ${hicId}`);
       });
 
       socket.on("disconnect", () => {
