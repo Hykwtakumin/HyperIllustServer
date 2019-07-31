@@ -38,9 +38,12 @@ const socketIOHandler = (io: socketIo.Server) => {
   });
 };
 
-const publishUpdate = (id: string, io: socketIo.Server) => {
-  console.log(`layer ${id} updated!`);
-  io.to(id).emit("hic:message", `layer ${id} updated!`);
+const publishUpdate = (roomId: string, userId: string, io: socketIo.Server) => {
+  console.log(`${roomId} updated!`);
+  io.to(roomId).emit(
+    "hic:message",
+    `layer ${roomId} updated! file is ${userId}`
+  );
 };
 
 export { createSocketIOServer, socketIOHandler, publishUpdate };
