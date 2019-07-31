@@ -10,10 +10,14 @@ import * as cookieParser from "cookie-parser";
 import * as reactViews from "express-react-views";
 import { Router } from "./routes/router";
 import { apiRouter } from "./routes/api";
+import { createSocketIOServer, socketIOHandler } from "./services/socket";
 
 export const app: express.Express = express();
 const server: Server = createServer(app);
 const port = process.env.PORT || 3000;
+
+const io = createSocketIOServer(server);
+socketIOHandler(io);
 
 app.use(cors());
 app.set("trust proxy", true);
@@ -36,4 +40,4 @@ app.use(
 app.use(cookieParser());
 
 //app.use("/api/", apiRouter);
-app.use("/", Router);
+app.use("/", Router(io));
