@@ -4,6 +4,7 @@ import * as redis from "socket.io-redis";
 import * as debug from "debug";
 
 /*socketIOサーバーを立てる*/
+/*TODO スケールアウトできるようにする*/
 function createSocketIOServer(server: HttpServer): socketIo.Server {
   const io = socketIo().listen(server);
   //io.adapter(redis({ host: kRedisHost, port: parseInt(kRedisPort) }));
@@ -15,22 +16,22 @@ const socketIOHandler = (io: socketIo.Server) => {
     debug("user connected");
 
     /*問題IDが存在する場合*/
-    if (socket.handshake.query["quizId"]) {
-      const { quizId } = socket.handshake.query;
-      debug(`roomID : ${quizId}`);
+    if (socket.handshake.query["hicId"]) {
+      const { hicId } = socket.handshake.query;
+      debug(`roomID : ${hicId}`);
 
-      socket.join(quizId, () => {
+      socket.join(hicId, () => {
         let rooms = Object.keys(socket.rooms);
         debug(`rooms : ${rooms}`);
-        io.to(quizId).emit(
+        io.to(hicId).emit(
           "hic:message",
-          `a new user has joined the room${quizId}`
+          `a new user has joined the room${hicId}`
         );
-        socket.emit("hic:message", `you joined room${quizId}`);
+        socket.emit("hic:message", `you joined room${hicId}`);
       });
 
       socket.on("disconnect", () => {
-        socket.leave(quizId);
+        socket.leave(hicId);
       });
     }
   });
