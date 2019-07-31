@@ -92,7 +92,7 @@ export const Router = (io: socketIo.Server): express.Router => {
     async (req: express.Request, res: express.Response) => {
       const rawData = await asyncReadFile(req.file.path);
       res.send({ layerPath: req.file.filename });
-      publishUpdate("scrapbox", io);
+      publishUpdate("scrapbox", req.file.filename, io);
     }
   );
 
