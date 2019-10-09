@@ -15,7 +15,7 @@ import { ImportPotal } from "./ImportPotal";
 
 interface MainCanvasProps {}
 
-export const MainCanvas = (): FC<MainCanvasProps> => {
+export const MainCanvas = (props: MainCanvasProps) => {
   // Declare a new state variable, which we'll call "count"
   const [lastpath, setLastPath] = useState({ null: SVGElement });
   const [penWidth, setPenWidth] = useState(6);
@@ -86,13 +86,13 @@ export const MainCanvas = (): FC<MainCanvasProps> => {
     lastPath = null;
   };
 
+  //<ImportPotal modalSubmit={console.log} />
   return (
     <React.Fragment>
       <div className={"toolBar"}>
         <PenWidthSelector widthChange={onWidthChange} />
         <ColorPicker colorChange={onColorChange} />
         <ModeSelector modeChange={onModeChange} />
-        <ImportPotal modalSubmit={console.log} />
 
         <span>100%</span>
         <input
