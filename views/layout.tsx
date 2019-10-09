@@ -21,7 +21,7 @@ export const BaseLayout: FC<layoutProps> = (props: layoutProps) => {
       <body>
         <h1>Hyper-Illust-Creator</h1>
         <div id="root" />
-        <script type="text/javascript" src="/index.js" />
+        <script type="text/javascript" src="/dist/index.js" />
       </body>
     </html>
   );

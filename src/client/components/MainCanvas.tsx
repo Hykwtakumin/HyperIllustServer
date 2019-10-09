@@ -12,11 +12,10 @@ import { PenWidthSelector } from "./PenWidthSelector";
 import { ColorPicker } from "./ColorPicker";
 import { ModeSelector } from "./ModeSelector";
 import { ImportPotal } from "./ImportPotal";
-import * as moment from "moment";
 
 interface MainCanvasProps {}
 
-export const MainCanvas = (): FC<MainCanvasProps> => {
+export const MainCanvas = (props: MainCanvasProps) => {
   // Declare a new state variable, which we'll call "count"
   const [lastpath, setLastPath] = useState({ null: SVGElement });
   const [penWidth, setPenWidth] = useState(6);
@@ -129,7 +128,6 @@ export const MainCanvas = (): FC<MainCanvasProps> => {
         <PenWidthSelector widthChange={onWidthChange} />
         <ColorPicker colorChange={onColorChange} />
         <ModeSelector modeChange={onModeChange} />
-        <ImportPotal modalSubmit={console.log} />
 
         <span>100%</span>
 
