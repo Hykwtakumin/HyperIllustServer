@@ -86,7 +86,42 @@ export const MainCanvas = (props: MainCanvasProps) => {
     lastPath = null;
   };
 
-  //<ImportPotal modalSubmit={console.log} />
+  const handleUpload = () => {
+    //const now = moment().format("YYYY-MM-DD-HH-mm-ss");
+    //const fileName = `hyperillust_${now}_.svg`;
+    const uploadObject = new XMLSerializer().serializeToString(
+      svgCanvas.current
+    );
+
+    const blobObject: Blob = new Blob(
+      [new XMLSerializer().serializeToString(svgCanvas.current)],
+      { type: "image/svg+xml;charset=utf-8" }
+    );
+
+    const uploadBody = {
+      title: `hyperIllust.svg`,
+      body: blobObject
+    };
+    const formData = new FormData();
+    formData.append(`file`, blobObject);
+
+    const opt = {
+      method: "POST",
+      body: formData
+    };
+    fetch(`/api/upload`, opt)
+      .then(res => {
+        console.dir(res);
+        res
+          .json()
+          .then(data => console.log)
+          .catch(e => console.log);
+      })
+      .catch(error => {
+        console.error(error);
+      });
+  };
+
   return (
     <React.Fragment>
       <div className={"toolBar"}>
@@ -95,10 +130,18 @@ export const MainCanvas = (props: MainCanvasProps) => {
         <ModeSelector modeChange={onModeChange} />
 
         <span>100%</span>
+
         <input
           type={"button"}
-          value={"Upload"}
+          value={"Download"}
+          className={"button toolButton"}
+        />
+
+        <input
+          type={"button"}
+          value={"Uploadする"}
           className={"button toolButton leftButton"}
+          onClick={handleUpload}
         />
       </div>
 
