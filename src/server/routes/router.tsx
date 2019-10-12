@@ -39,10 +39,11 @@ export const Router = (io: socketIo.Server): express.Router => {
   router.get("/", (req: express.Request, res: express.Response) => {
     res
       .header("content-type", "text/html")
-      .send(renderToString(<BaseLayout title={"Hello"} />))
+      .send(renderToString(<BaseLayout title={"DrawWiki"} />))
       .end();
   });
 
+  /*TODO 外部ラスターイメージの読み込みは後でちゃんと作り直す*/
   router.get(
     "/api/proxy/:url",
     (req: express.Request, res: express.Response) => {
@@ -71,13 +72,13 @@ export const Router = (io: socketIo.Server): express.Router => {
 
       try {
         const result = await uploadFile(fileName, rawData, mime);
-        const url = result.Location;
+        const svgURL = await result.Location;
         asyncUnLink(req.file.path);
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.send(
           JSON.stringify({
             ok: true,
-            url: url
+            url: svgURL
           })
         );
       } catch (e) {

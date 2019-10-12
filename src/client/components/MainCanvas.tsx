@@ -12,29 +12,46 @@ import { PenWidthSelector } from "./PenWidthSelector";
 import { ColorPicker } from "./ColorPicker";
 import { ModeSelector } from "./ModeSelector";
 import { ImportPotal } from "./ImportPotal";
+import { BoundingBox } from "./BoundingBox";
+import { createPortal } from "react-dom";
+import { PublishModal } from "./PublishModal";
+import * as usePortal from "react-useportal";
+import useModal from "./share/useModal";
 
 interface MainCanvasProps {}
 
+export enum EditorMode {
+  draw,
+  edit
+}
+
 export const MainCanvas = (props: MainCanvasProps) => {
   // Declare a new state variable, which we'll call "count"
-  const [lastpath, setLastPath] = useState({ null: SVGElement });
-  const [penWidth, setPenWidth] = useState(6);
-  const [color, setColor] = useState("#585858");
-  const [editorMode, setEditorMode] = useState("draw");
+  const [lastpath, setLastPath] = useState<SVGElement>(null);
+  const [penWidth, setPenWidth] = useState<number>(6);
+  const [color, setColor] = useState<string>("#585858");
+  const [editorMode, setEditorMode] = useState<EditorMode>(EditorMode.draw);
   const [canvasSize, setCanvasSize] = useState({
     width: window.innerWidth,
-    height: window.innerHeight * 0.6
+    height: window.innerHeight
   });
-
+  const [showModal, setShowModal] = useState<boolean>(false);
+  //const [isDragging, setIsDragging] = useState<boolean>(false);
   let isDragging: boolean = false;
   let lastPath;
   const svgCanvas = useRef(null);
+
+  /*BoundingBox関連*/
+  const [bbLeft, setBBLeft] = useState<number>(0);
+  const [bbTop, setBBTop] = useState<number>(0);
+  const [bbWidth, setBBWidth] = useState<number>(0);
+  const [bbHeight, setBBHeight] = useState<number>(0);
 
   /*on Canvas Resize*/
   window.onresize = () => {
     setCanvasSize({
       width: window.innerWidth,
-      height: window.innerHeight * 0.6
+      height: window.innerHeight
     });
   };
 
@@ -50,58 +67,133 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
   const onModeChange = (event: React.SyntheticEvent<HTMLSelectElement>) => {
     console.log(`EditorMode changes! : ${event.target.value}`);
-    setEditorMode(event.target.value);
+    if (event.target.value === "edit") {
+      setEditorMode(EditorMode.edit);
+    } else if (event.target.value === "draw") {
+      setEditorMode(EditorMode.draw);
+    }
+  };
+
+  const setCursorStyle = (): string => {
+    if (editorMode === EditorMode.draw) {
+      return "auto";
+    } else if (editorMode === EditorMode.edit) {
+      return "crosshair";
+      /*さらにdrag中か否かでも分岐させる*/
+      // if (isDragging) {
+      //   return "grab";
+      // } else {
+      //   return "crosshair";
+      // }
+    }
+  };
+
+  const setBBVisibility = (): boolean => {
+    if (editorMode === EditorMode.edit) {
+      return true;
+    } else if (editorMode === EditorMode.draw) {
+      return false;
+    }
   };
 
   const handleDown = (event: React.SyntheticEvent<HTMLElement>) => {
     event.persist();
     isDragging = true;
-    const canvas = svgCanvas.current;
-    const point: Points = getPoint(event.pageX, event.pageY, canvas);
-    lastPath = addPath(canvas, point);
-    lastPath.setAttribute("stroke", color);
-    lastPath.setAttribute("stroke-width", `${penWidth}`);
-    lastPath.classList.add("current-path");
-    console.dir(lastPath);
+    if (editorMode === EditorMode.draw) {
+      /*お絵かきモードの場合は線を描く*/
+      const canvas = svgCanvas.current;
+      const point: Points = getPoint(event.pageX, event.pageY, canvas);
+      lastPath = addPath(canvas, point);
+      lastPath.setAttribute("stroke", color);
+      lastPath.setAttribute("stroke-width", `${penWidth}`);
+      lastPath.classList.add("current-path");
+      //console.dir(lastPath);
+    } else if (editorMode === EditorMode.edit) {
+      /*編集モードの場合はバウンディングボックスを召喚する*/
+      const canvas = svgCanvas.current;
+      const point: Points = getPoint(event.pageX, event.pageY, canvas);
+
+      /*既にバウンディングボックスがある場合は消去して新規作成する*/
+      console.log(event.target);
+      if (bbLeft !== 0 && bbTop !== 0) {
+        setBBLeft(0);
+        setBBTop(0);
+        setBBWidth(0);
+        setBBHeight(0);
+
+        setBBLeft(point.x);
+        setBBTop(point.y);
+      } else if (event.target && event.target.id === "BBRect") {
+        /*BB系列の部品はスルー*/
+        alert("このパスを公開します");
+      } else {
+        setBBLeft(point.x);
+        setBBTop(point.y);
+      }
+    }
   };
 
+  //これはhoverも担う?
+  //下の要素がSVGAElementでリンクが設定されている場合は適当なモーダルを表示させる
   const handleMove = (event: React.SyntheticEvent<HTMLElement>) => {
     //event.persist();
     if (isDragging) {
-      if (lastPath) {
-        const canvas = svgCanvas.current;
-        const point: Points = getPoint(event.pageX, event.pageY, canvas);
-        updatePath(lastPath, point);
-        console.dir(lastPath);
-      } else {
-        console.log("something went wrong");
+      if (editorMode === EditorMode.draw) {
+        if (lastPath) {
+          const canvas = svgCanvas.current;
+          const point: Points = getPoint(event.pageX, event.pageY, canvas);
+          updatePath(lastPath, point);
+          //console.dir(lastPath);
+        } else {
+          //console.log("something went wrong");
+        }
+      } else if (editorMode === EditorMode.edit) {
+        /*編集モードの場合はバウンディングボックスのサイズを調整する*/
+        // const canvas = svgCanvas.current;
+        // const point: Points = getPoint(event.pageX, event.pageY, canvas);
+        // setBBWidth(point.x - bbLeft);
+        // setBBHeight(point.y - bbHeight);
       }
+    }
+  };
+
+  //全消去の場合ダイアログを表示するべし
+  const clearCanvas = () => {
+    while (svgCanvas.current.firstChild) {
+      svgCanvas.current.removeChild(svgCanvas.current.firstChild);
     }
   };
 
   const handleUp = (event: React.SyntheticEvent<HTMLElement>) => {
     //event.persist();
     isDragging = false;
-    lastPath.classList.remove("current-path");
-    lastPath = null;
+
+    if (editorMode === EditorMode.draw) {
+      lastPath.classList.remove("current-path");
+      lastPath = null;
+    } else if (editorMode === EditorMode.edit) {
+      /*編集モードの場合はバウンディングボックスのサイズを調整する*/
+      const canvas = svgCanvas.current;
+      const point: Points = getPoint(event.pageX, event.pageY, canvas);
+      setBBWidth(point.x - bbLeft);
+      setBBHeight(point.y - bbHeight);
+    }
   };
 
   const handleUpload = () => {
-    //const now = moment().format("YYYY-MM-DD-HH-mm-ss");
-    //const fileName = `hyperillust_${now}_.svg`;
-    const uploadObject = new XMLSerializer().serializeToString(
-      svgCanvas.current
-    );
-
     const blobObject: Blob = new Blob(
       [new XMLSerializer().serializeToString(svgCanvas.current)],
       { type: "image/svg+xml;charset=utf-8" }
     );
 
-    const uploadBody = {
-      title: `hyperIllust.svg`,
-      body: blobObject
-    };
+    // const uploadObject = new XMLSerializer().serializeToString(
+    //   svgCanvas.current
+    // );
+    // const uploadBody = {
+    //   title: `hyperIllust.svg`,
+    //   body: blobObject
+    // };
+
     const formData = new FormData();
     formData.append(`file`, blobObject);
 
@@ -111,10 +203,11 @@ export const MainCanvas = (props: MainCanvasProps) => {
     };
     fetch(`/api/upload`, opt)
       .then(res => {
-        console.dir(res);
         res
           .json()
-          .then(data => console.log)
+          .then(async data => {
+            console.log(await data);
+          })
           .catch(e => console.log);
       })
       .catch(error => {
@@ -122,20 +215,67 @@ export const MainCanvas = (props: MainCanvasProps) => {
       });
   };
 
+  const handleNameEntered = (name: string) => {};
+
+  const handlePublish = () => {
+    //alert(publishForm.current.value);
+    //setShowModal(true);
+    // const clipedSVG = <svg viewBox={`${bbLeft} ${bbTop} ${bbWidth} ${bbHeight}`} width={bbWidth} height={bbHeight}>
+    // </svg>
+
+    //これlocalhostからではできない
+    //fetch(`https://scrapbox.io/DrawWiki/${publishForm.current.value}?body=""`);
+
+    //将来的にはこの処理はBoundingBoxにやらせる
+    //BoundingBoxの大きさでRectを作る
+    // svgCanvas.current.setAttribute("viewBox", `${bbLeft} ${bbTop} ${bbWidth} ${bbHeight}`);
+    // svgCanvas.current.setAttribute("width", `${bbWidth}`);
+    // svgCanvas.current.setAttribute("height", `${bbHeight}`);
+    const inRect = svgCanvas.current.createSVGRect();
+    inRect.x = bbLeft;
+    inRect.y = bbTop;
+    inRect.width = bbWidth;
+    inRect.height = bbHeight;
+    const list = Array.from(svgCanvas.current.getIntersectionList(inRect, null));
+
+    //Rectの範囲にあるPathを選択する
+    //モーダルを出す
+    //グループ化してリンク貼り付け
+    //Rectの範囲のWidth, Height, ViewBoxを持つSVGを新規作成して選択したPathをぶちこむ
+  };
+
+  const handleImport = () => {
+    //サーバーからScrapboxの全ページを取得
+    //
+  };
+
+  const { openModal, closeModal, isOpen, Modal } = useModal({});
+
+  const publishForm = useRef(null);
+
   return (
-    <React.Fragment>
+    <>
       <div className={"toolBar"}>
         <PenWidthSelector widthChange={onWidthChange} />
         <ColorPicker colorChange={onColorChange} />
         <ModeSelector modeChange={onModeChange} />
 
-        <span>100%</span>
+        <button className={"button toolButton"} onClick={openModal}>
+          Publish
+        </button>
 
-        <input
-          type={"button"}
-          value={"Download"}
-          className={"button toolButton"}
-        />
+        {isOpen &&
+        <Modal>
+            <div style={{border: "1px solid gray", borderRadius: "2px"}}>
+              <h3>以下のページ名で公開します</h3>
+              <input type={"text"} placeholder={"ページ名を入力"} ref={publishForm} />
+              <input type={"button"} value={"OK"} onClick={handlePublish} />
+            </div>
+        </Modal>}
+
+        <button className={"button toolButton"} onClick={handleImport}>
+          Import
+        </button>
 
         <input
           type={"button"}
@@ -155,7 +295,10 @@ export const MainCanvas = (props: MainCanvasProps) => {
         <svg
           ref={svgCanvas}
           className={"svgCanvas"}
+          style={{ cursor: setCursorStyle() }}
           viewBox={`0 0 ${canvasSize.width} ${canvasSize.height}`}
+          width={canvasSize.width}
+          height={canvasSize.height}
           xmlns="http://www.w3.org/2000/svg"
           xmlnsXlink="http://www.w3.org/1999/xlink"
         >
@@ -166,7 +309,25 @@ export const MainCanvas = (props: MainCanvasProps) => {
            ]]>`}</style>
           </defs>
         </svg>
+
+        <BoundingBox
+          left={bbLeft}
+          top={bbTop}
+          width={bbWidth}
+          height={bbHeight}
+          visible={setBBVisibility()}
+          canvasWidth={canvasSize.width}
+          canvasHeight={canvasSize.height}
+          onResized={() => {
+            alert("Resized!");
+          }}
+          onRotated={() => {}}
+          onRemoved={() => {}}
+          onCopied={() => {}}
+          onPublished={() => {}}
+          onAddLink={() => {}}
+        />
       </div>
-    </React.Fragment>
+    </>
   );
 };

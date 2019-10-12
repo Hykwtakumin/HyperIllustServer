@@ -1,5 +1,5 @@
 .svgCanvas {
-  background-color: white;
+  position: absolute;
 }
 
 .current-path {
@@ -36,7 +36,7 @@
 }
 
 .toolButton {
-  padding: 0 4px 0 0;
+  margin: 3px;
 }
 
 .leftButton {
@@ -65,4 +65,8 @@
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+.BBLayer {
+
 }
