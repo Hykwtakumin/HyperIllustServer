@@ -4,17 +4,18 @@ import { useModal, ButtonComponent } from "./share";
 
 export type PublishButtonProps = {
   onUpload: () => any;
-}
-
-export const PublishButton: FC<PublishButtonProps> = (props: PublishButtonProps) => {
-
+};
+/*押すとキャンバスや選択範囲をネット上に公開するモーダルを召喚するボタン*/
+/**/
+export const PublishButton: FC<PublishButtonProps> = (
+  props: PublishButtonProps
+) => {
   const { showModal } = useModal();
 
   const popUpModal = () => {
-    console.log("show modal");
     showModal({
       type: "confirm",
-      title: <h2>{`この内容でアップロードします`}</h2>,
+      title: <h2>{`選択したPathを公開します`}</h2>,
       content: (
         <>
           <div>
@@ -33,11 +34,9 @@ export const PublishButton: FC<PublishButtonProps> = (props: PublishButtonProps)
 
   return (
     <>
-      <ButtonComponent elevate type="primary" onClick={popUpModal}>
+      <ButtonComponent type="primary" onClick={popUpModal}>
         Publish
       </ButtonComponent>
     </>
   );
 };
-
-

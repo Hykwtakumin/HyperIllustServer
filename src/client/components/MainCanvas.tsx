@@ -14,7 +14,8 @@ import { ModeSelector } from "./ModeSelector";
 import { BoundingBox } from "./BoundingBox";
 import { createPortal } from "react-dom";
 import { ButtonComponent, ModalProvider, useModal } from "./share";
-import {PublishButton} from "./PublishButton";
+import { PublishButton } from "./PublishButton";
+import { ImportButton } from "./ImportButton";
 
 interface MainCanvasProps {}
 
@@ -234,7 +235,9 @@ export const MainCanvas = (props: MainCanvasProps) => {
     inRect.y = bbTop;
     inRect.width = bbWidth;
     inRect.height = bbHeight;
-    const list = Array.from(svgCanvas.current.getIntersectionList(inRect, null));
+    const list = Array.from(
+      svgCanvas.current.getIntersectionList(inRect, null)
+    );
 
     //Rectの範囲にあるPathを選択する
     //モーダルを出す
@@ -242,80 +245,73 @@ export const MainCanvas = (props: MainCanvasProps) => {
     //Rectの範囲のWidth, Height, ViewBoxを持つSVGを新規作成して選択したPathをぶちこむ
   };
 
-  const handleImport = () => {
+  const handleImport = (resourceURL: string) => {
     //サーバーからScrapboxの全ページを取得
     //
   };
 
-  const publishForm = useRef(null);
-
   return (
     <>
       <ModalProvider>
-      <div className={"toolBar"}>
-        <PenWidthSelector widthChange={onWidthChange} />
-        <ColorPicker colorChange={onColorChange} />
-        <ModeSelector modeChange={onModeChange} />
+        <div className={"toolBar"}>
+          <PenWidthSelector widthChange={onWidthChange} />
+          <ColorPicker colorChange={onColorChange} />
+          <ModeSelector modeChange={onModeChange} />
 
-        <PublishButton onUpload={handleUpload}/>
+          <PublishButton onUpload={handleUpload} />
+          <ImportButton onSelected={handleImport} />
 
-        <button className={"button toolButton"} onClick={handleImport}>
-          Import
-        </button>
+          <input
+            type={"button"}
+            value={"Uploadする"}
+            className={"button toolButton leftButton"}
+            onClick={handleUpload}
+          />
+        </div>
 
-        <input
-          type={"button"}
-          value={"Uploadする"}
-          className={"button toolButton leftButton"}
-          onClick={handleUpload}
-        />
-
-
-      </div>
-
-      <div
-        className={"drawSection"}
-        onPointerDown={handleDown}
-        onPointerMove={handleMove}
-        onPointerUp={handleUp}
-        onPointerCancel={handleUp}
-      >
-        <svg
-          ref={svgCanvas}
-          className={"svgCanvas"}
-          style={{ cursor: setCursorStyle() }}
-          viewBox={`0 0 ${canvasSize.width} ${canvasSize.height}`}
-          width={canvasSize.width}
-          height={canvasSize.height}
-          xmlns="http://www.w3.org/2000/svg"
-          xmlnsXlink="http://www.w3.org/1999/xlink"
+        <div
+          className={"drawSection"}
+          onPointerDown={handleDown}
+          onPointerMove={handleMove}
+          onPointerUp={handleUp}
+          onPointerCancel={handleUp}
         >
-          <rect width="100%" height="100%" fill="#FFFFFF" />
-          <defs>
-            <style type={"text/css"}>{`<![CDATA[ 
+          <svg
+            ref={svgCanvas}
+            className={"svgCanvas"}
+            style={{ cursor: setCursorStyle() }}
+            viewBox={`0 0 ${canvasSize.width} ${canvasSize.height}`}
+            width={canvasSize.width}
+            height={canvasSize.height}
+            xmlns="http://www.w3.org/2000/svg"
+            xmlnsXlink="http://www.w3.org/1999/xlink"
+          >
+            <rect width="100%" height="100%" fill="#FFFFFF" />
+            <defs>
+              <style type={"text/css"}>{`<![CDATA[ 
             
            ]]>`}</style>
-          </defs>
-        </svg>
+            </defs>
+          </svg>
 
-        <BoundingBox
-          left={bbLeft}
-          top={bbTop}
-          width={bbWidth}
-          height={bbHeight}
-          visible={setBBVisibility()}
-          canvasWidth={canvasSize.width}
-          canvasHeight={canvasSize.height}
-          onResized={() => {
-            alert("Resized!");
-          }}
-          onRotated={() => {}}
-          onRemoved={() => {}}
-          onCopied={() => {}}
-          onPublished={() => {}}
-          onAddLink={() => {}}
-        />
-      </div>
+          <BoundingBox
+            left={bbLeft}
+            top={bbTop}
+            width={bbWidth}
+            height={bbHeight}
+            visible={setBBVisibility()}
+            canvasWidth={canvasSize.width}
+            canvasHeight={canvasSize.height}
+            onResized={() => {
+              alert("Resized!");
+            }}
+            onRotated={() => {}}
+            onRemoved={() => {}}
+            onCopied={() => {}}
+            onPublished={() => {}}
+            onAddLink={() => {}}
+          />
+        </div>
       </ModalProvider>
     </>
   );
