@@ -11,12 +11,10 @@ import {
 import { PenWidthSelector } from "./PenWidthSelector";
 import { ColorPicker } from "./ColorPicker";
 import { ModeSelector } from "./ModeSelector";
-import { ImportPotal } from "./ImportPotal";
 import { BoundingBox } from "./BoundingBox";
 import { createPortal } from "react-dom";
-import { PublishModal } from "./PublishModal";
-import * as usePortal from "react-useportal";
-import useModal from "./share/useModal";
+import { ButtonComponent, ModalProvider, useModal } from "./share";
+import {PublishButton} from "./PublishButton";
 
 interface MainCanvasProps {}
 
@@ -35,8 +33,6 @@ export const MainCanvas = (props: MainCanvasProps) => {
     width: window.innerWidth,
     height: window.innerHeight
   });
-  const [showModal, setShowModal] = useState<boolean>(false);
-  //const [isDragging, setIsDragging] = useState<boolean>(false);
   let isDragging: boolean = false;
   let lastPath;
   const svgCanvas = useRef(null);
@@ -55,6 +51,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
     });
   };
 
+  /*ここらへんの部品も全て別コンポーネントに切り出す*/
   const onWidthChange = (event: React.SyntheticEvent<HTMLSelectElement>) => {
     console.log(`Penwidth changes! : ${event.target.value}`);
     setPenWidth(parseInt(event.target.value));
@@ -228,6 +225,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
     //将来的にはこの処理はBoundingBoxにやらせる
     //BoundingBoxの大きさでRectを作る
+    //単にCanvasサイズとViewBoxを縮めても全体がそのサイズに縮小されるだけで切り抜きはできない!
     // svgCanvas.current.setAttribute("viewBox", `${bbLeft} ${bbTop} ${bbWidth} ${bbHeight}`);
     // svgCanvas.current.setAttribute("width", `${bbWidth}`);
     // svgCanvas.current.setAttribute("height", `${bbHeight}`);
@@ -249,29 +247,17 @@ export const MainCanvas = (props: MainCanvasProps) => {
     //
   };
 
-  const { openModal, closeModal, isOpen, Modal } = useModal({});
-
   const publishForm = useRef(null);
 
   return (
     <>
+      <ModalProvider>
       <div className={"toolBar"}>
         <PenWidthSelector widthChange={onWidthChange} />
         <ColorPicker colorChange={onColorChange} />
         <ModeSelector modeChange={onModeChange} />
 
-        <button className={"button toolButton"} onClick={openModal}>
-          Publish
-        </button>
-
-        {isOpen &&
-        <Modal>
-            <div style={{border: "1px solid gray", borderRadius: "2px"}}>
-              <h3>以下のページ名で公開します</h3>
-              <input type={"text"} placeholder={"ページ名を入力"} ref={publishForm} />
-              <input type={"button"} value={"OK"} onClick={handlePublish} />
-            </div>
-        </Modal>}
+        <PublishButton onUpload={handleUpload}/>
 
         <button className={"button toolButton"} onClick={handleImport}>
           Import
@@ -283,6 +269,8 @@ export const MainCanvas = (props: MainCanvasProps) => {
           className={"button toolButton leftButton"}
           onClick={handleUpload}
         />
+
+
       </div>
 
       <div
@@ -328,6 +316,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
           onAddLink={() => {}}
         />
       </div>
+      </ModalProvider>
     </>
   );
 };
