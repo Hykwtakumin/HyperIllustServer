@@ -15,6 +15,9 @@ export const ExportButton: FC<ExportButtonProps> = (
   const [title, setTitle] = useState<string>("");
   const titleInput = useRef(null);
 
+  /*useModalではuseCallbackを使っているのでローカル変数がそのままでは使えない*/
+  /*古い値が返ってくる問題*/
+  /*なのでrefを使ったりしてなんとか乗り切る*/
   const handelSendTitle = () => {
     props.onExport(titleInput.current.value);
   };

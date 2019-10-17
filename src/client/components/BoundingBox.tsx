@@ -27,7 +27,7 @@ export interface BondingBoxProps {
 /*というか制御用SVGレイヤーごと返す*/
 export const BoundingBox = (props: BondingBoxProps) => {
   const BBLayer = useRef<SVGSVGElement>(null);
-  const BBRect = useRef<SVGRectElement>(null);
+  const BBRect = useRef(null);
   const CLayer = useRef<HTMLDivElement>(null);
 
   const [bbLeft, setBBLeft] = useState<number>(0);
@@ -132,10 +132,10 @@ export const BoundingBox = (props: BondingBoxProps) => {
 
     /*キャンバスにBB情報を返す*/
     props.onResized({
-      left: bbLeft,
-      top: bbTop,
-      width: bbWidth,
-      height: bbHeight
+      left: parseInt(BBRect.current.getAttribute("x")),
+      top: parseInt(BBRect.current.getAttribute("y")),
+      width: parseInt(BBRect.current.getAttribute("width")),
+      height: parseInt(BBRect.current.getAttribute("height"))
     });
   };
 
@@ -175,16 +175,17 @@ export const BoundingBox = (props: BondingBoxProps) => {
           fill="#01bc8c"
           fillOpacity="0.25"
         />
-        <rect
-          id={"BBRectButton"}
-          x={bbLeft + bbWidth / 2}
-          y={bbHeight + 50}
-          width={bbWidth / 2}
-          height={50}
-          fill="gray"
-          fillOpacity="1"
-        />
       </svg>
     </div>
   );
 };
+
+// {/*<rect*/}
+// {/*  id={"BBRectButton"}*/}
+// {/*  x={bbLeft + bbWidth / 2}*/}
+// {/*  y={bbHeight + 50}*/}
+// {/*  width={bbWidth / 2}*/}
+// {/*  height={50}*/}
+// {/*  fill="gray"*/}
+// {/*  fillOpacity="1"*/}
+// {/*/>*/}

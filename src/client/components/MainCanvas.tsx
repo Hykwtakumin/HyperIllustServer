@@ -37,7 +37,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
   });
   let isDragging: boolean = false;
   let lastPath;
-  const svgCanvas = useRef(null);
+  const svgCanvas = useRef<SVGSVGElement>(null);
 
   /*on Canvas Resize*/
   window.onresize = () => {
@@ -64,20 +64,6 @@ export const MainCanvas = (props: MainCanvasProps) => {
       setEditorMode(EditorMode.edit);
     } else if (event.target.value === "draw") {
       setEditorMode(EditorMode.draw);
-    }
-  };
-
-  const setCursorStyle = (): string => {
-    if (editorMode === EditorMode.draw) {
-      return "auto";
-    } else if (editorMode === EditorMode.edit) {
-      return "crosshair";
-      /*さらにdrag中か否かでも分岐させる*/
-      // if (isDragging) {
-      //   return "grab";
-      // } else {
-      //   return "crosshair";
-      // }
     }
   };
 
@@ -220,40 +206,50 @@ export const MainCanvas = (props: MainCanvasProps) => {
   const handleExport = async (title: string) => {
     //新しいタブを開いてScrapboxの書き込みAPIを使う
 
-    console.log(`title : ${title}`);
+    const blobObject: Blob = new Blob(
+      [new XMLSerializer().serializeToString(svgCanvas.current)],
+      { type: "image/svg+xml;charset=utf-8" }
+    );
 
-    // const blobObject: Blob = new Blob(
-    //   [new XMLSerializer().serializeToString(svgCanvas.current)],
-    //   { type: "image/svg+xml;charset=utf-8" }
-    // );
-    //
-    // const formData = new FormData();
-    // formData.append(`file`, blobObject);
-    //
-    // const opt = {
-    //   method: "POST",
-    //   body: formData
-    // };
-    //
-    // try {
-    //   const request = await fetch(`/api/upload`, opt);
-    //   const result = await request.json();
-    //   console.log(result);
-    //   /*TODO APIとかSchemeをきちんと設定する*/
-    //   const imageURL = result.url;
-    //   /*子要素のstateがちゃんと上がってこない*/
-    //   console.log(`title : ${title}`);
-    //   const pageTitle = encodeURI("test");
-    //   const body = encodeURI(`[${imageURL}]`);
-    //   window.open(`https://scrapbox.io/DrawWiki/${pageTitle}?body=${body}`);
-    // } catch (error) {
-    //   console.dir(error);
-    //   alert("何か問題が発生しました!");
-    // }
+    const formData = new FormData();
+    formData.append(`file`, blobObject);
+
+    const opt = {
+      method: "POST",
+      body: formData
+    };
+
+    try {
+      const request = await fetch(`/api/upload`, opt);
+      const result = await request.json();
+      console.log(result);
+      /*TODO APIとかSchemeをきちんと設定する*/
+      const imageURL = result.url;
+      /*子要素のstateがちゃんと上がってこない*/
+      console.log(`title : ${title}`);
+      const pageTitle = encodeURI(title);
+      const body = encodeURI(`[${imageURL}]`);
+      window.open(`https://scrapbox.io/DrawWiki/${pageTitle}?body=${body}`);
+    } catch (error) {
+      console.dir(error);
+      alert("何か問題が発生しました!");
+    }
   };
 
   const handleBBResized = (size: BBSize) => {
     console.dir(size);
+    const interCanvas = svgCanvas.current as SVGSVGElement;
+
+    const inRect = interCanvas.createSVGRect();
+
+    inRect.x = size.left;
+    inRect.y = size.top;
+    inRect.width = size.width;
+    inRect.height = size.height;
+    const list = Array.from(
+      interCanvas.getIntersectionList(inRect, null)
+    );
+    console.dir(list);
   };
 
   return (
@@ -280,7 +276,6 @@ export const MainCanvas = (props: MainCanvasProps) => {
           <svg
             ref={svgCanvas}
             className={"svgCanvas"}
-            style={{ cursor: setCursorStyle() }}
             viewBox={`0 0 ${canvasSize.width} ${canvasSize.height}`}
             width={canvasSize.width}
             height={canvasSize.height}
