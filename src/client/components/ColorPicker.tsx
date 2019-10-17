@@ -6,6 +6,8 @@ interface ColorPickerProps {
 
 /*ペンの太さを変更するコンポーネント*/
 /* TODO SVGにした方が良いかも,selectはかっこよくない */
+/*押すとペンの太さを選べるツールチップを表示するボタン*/
+/*現在の太さも表示する*/
 export const ColorPicker = (props: ColorPickerProps) => {
   const { colorChange } = props;
   return (

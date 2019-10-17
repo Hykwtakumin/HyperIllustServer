@@ -58,7 +58,9 @@ export const uploadFile = async (
     bucket
       .upload({ Bucket, Key, Body, ContentType, ACL: "public-read" })
       .promise()
-      .then(response => resolve(response))
+      .then(response => {
+        resolve(response);
+      })
       .catch(e => reject(e));
   });
 };
