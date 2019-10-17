@@ -6,7 +6,6 @@ export type PublishButtonProps = {
   onUpload: () => any;
 };
 /*押すとキャンバスや選択範囲をネット上に公開するモーダルを召喚するボタン*/
-/**/
 export const PublishButton: FC<PublishButtonProps> = (
   props: PublishButtonProps
 ) => {
@@ -20,6 +19,8 @@ export const PublishButton: FC<PublishButtonProps> = (
         <>
           <div>
             <h3>{`アップロード`}</h3>
+            /*キャンバス又は選択範囲のサムネイルを表示する*/
+            /*ここでも編集できると面白いがそれはまた別に作る...*/
           </div>
         </>
       ),
@@ -33,10 +34,10 @@ export const PublishButton: FC<PublishButtonProps> = (
   };
 
   return (
-    <>
-      <ButtonComponent type="primary" onClick={popUpModal}>
+    <div style={{ padding: "3px" }}>
+      <ButtonComponent type="default" onClick={popUpModal}>
         Publish
       </ButtonComponent>
-    </>
+    </div>
   );
 };

@@ -2,7 +2,7 @@ import * as express from "express";
 import { renderToString } from "react-dom/server";
 import * as React from "react";
 import { app } from "../index";
-import { BaseLayout } from "../../../views/layout";
+import { BaseLayout } from "../../../views/BaseLayout";
 import {
   uploadFile,
   promiseUpload,

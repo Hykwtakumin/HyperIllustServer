@@ -45,10 +45,10 @@ export const ImportButton: FC<ImportButtonProps> = (
   };
 
   return (
-    <>
-      <ButtonComponent type="primary" onClick={popUpModal}>
+    <div style={{ padding: "3px" }}>
+      <ButtonComponent type="default" onClick={popUpModal}>
         Import
       </ButtonComponent>
-    </>
+    </div>
   );
 };

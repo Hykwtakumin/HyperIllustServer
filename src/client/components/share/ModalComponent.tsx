@@ -1,6 +1,6 @@
 import * as React from "react";
 import { StyleSheet, css } from "aphrodite";
-import {ButtonComponent} from "./ButtonComponent";
+import { ButtonComponent } from "./ButtonComponent";
 
 // ______________________________________________________
 //
@@ -162,7 +162,10 @@ export const ModalProvider: React.FC = props => {
               </section>
             )}
             <footer className={css(styles.footer)}>
-              <ButtonComponent className={css(styles.button)} onClick={onClickCancel}>
+              <ButtonComponent
+                className={css(styles.button)}
+                onClick={onClickCancel}
+              >
                 {modal.current.cancelText}
               </ButtonComponent>
               <ButtonComponent
