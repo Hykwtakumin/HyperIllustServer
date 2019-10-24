@@ -5,10 +5,9 @@ import { app } from "../index";
 import { BaseLayout } from "../../../views/BaseLayout";
 import {
   uploadFile,
-  promiseUpload,
-  putFile,
   asyncReadFile,
-  asyncUnLink
+  asyncUnLink,
+  promisePutFile
 } from "../services/s3";
 import * as fetchBase64 from "fetch-base64";
 import * as multer from "multer";
@@ -18,8 +17,18 @@ import * as dotenv from "dotenv";
 import * as moment from "moment";
 import * as fs from "fs";
 import { promisify } from "util";
+const shortid = require("shortid");
 import * as socketIo from "socket.io";
 import { publishUpdate } from "../services/socket";
+import {
+  createHyperIllust,
+  getHyperIllust,
+  getUser,
+  getUsersIllusts
+} from "../HyperIllusts";
+import { HyperIllustUser } from "../services/model";
+import { logger } from "../../share/logger";
+const { debug } = logger("router:index");
 
 export const Router = (io: socketIo.Server): express.Router => {
   const router = express.Router();
@@ -36,14 +45,50 @@ export const Router = (io: socketIo.Server): express.Router => {
   //const uploader = multer({ dest: "tmp/" });
   const uploader = multer({ storage: multerStorage });
 
+  /*新規ユーザーの場合はランダムなidをつけて返す?*/
   router.get("/", (req: express.Request, res: express.Response) => {
-    res
-      .header("content-type", "text/html")
-      .send(renderToString(<BaseLayout title={"DrawWiki"} />))
-      .end();
+    res.redirect(`/${shortid.generate().toString()}`);
   });
 
+  /*TopページにGetでアクセスするとエディタのJSXを返す*/
+  router.get(
+    "/:userName",
+    async (req: express.Request, res: express.Response) => {
+      res
+        .header("content-type", "text/html")
+        .send(renderToString(<BaseLayout title={"DrawWiki"} />))
+        .end();
+    }
+  );
+
+  //ユーザーが持っている画像一覧取得
+  router.get(
+    "/user/:userName",
+    async (req: express.Request, res: express.Response) => {
+      res.send(JSON.stringify(await getUsersIllusts(req.params.userName)));
+    }
+  );
+
+  //イラストidを拡張子付で指定された場合はS3のURLを直に返す?
+  //これで表示できるんだろうか?
+  router.get(
+    "/illust/:illustId.svg",
+    async (req: express.Request, res: express.Response) => {
+      const illust = await getHyperIllust(req.params.illustId);
+      res.send(JSON.stringify(illust.sourceURL));
+    }
+  );
+
+  //イラストidを単に指定された場合はHyperIllustを返す
+  router.get(
+    "/illust/:illustId",
+    async (req: express.Request, res: express.Response) => {
+      res.send(JSON.stringify(await getHyperIllust(req.params.illustId)));
+    }
+  );
+
   /*TODO 外部ラスターイメージの読み込みは後でちゃんと作り直す*/
+  /*ローカルの画像をDnDで読み込む分にはこれは使わなくて良い*/
   router.get(
     "/api/proxy/:url",
     (req: express.Request, res: express.Response) => {
@@ -60,8 +105,12 @@ export const Router = (io: socketIo.Server): express.Router => {
     }
   );
 
+  /*アップロード用API*/
+  /*MultiPartでSVGを受け取る*/
+  /*File名はClientで生成する方が良い?*/
+  /*アップロードが終了したらS3のURLではなくリソースIDを返す*/
   router.post(
-    "/api/upload",
+    "/api/upload/:userName",
     uploader.single("file"),
     async (req: express.Request, res: express.Response) => {
       const now = moment().format("YYYY-MM-DD-HH-mm-ss");
@@ -71,19 +120,49 @@ export const Router = (io: socketIo.Server): express.Router => {
       const rawData = await asyncReadFile(req.file.path);
 
       try {
-        const result = await uploadFile(fileName, rawData, mime);
-        const svgURL = await result.Location;
-        asyncUnLink(req.file.path);
-        res.setHeader("Access-Control-Allow-Origin", "*");
-        res.send(
-          JSON.stringify({
-            ok: true,
-            url: svgURL
-          })
+        //const result = await uploadFile(fileName, rawData, mime);
+        const result = await promisePutFile(fileName, rawData, mime);
+        debug(result);
+        //アップロードしたらS3のリンクとKeyを控えておく
+        const svgURL = result.Location;
+        const svgKey = result.Key;
+
+        //アップロード時にClientはユーザー情報も上げるものとする
+        debug(`userName: ${req.params.userName}`);
+        const owner: HyperIllustUser = await getUser(req.params.userName).catch(
+          e => debug(e)
         );
+        debug(`ownerName : ${owner.name}, ownerId : ${owner.id}`);
+
+        //HyperIllustのデータを作成
+        const newIllust = await createHyperIllust({
+          sourceKey: svgKey,
+          sourceURL: svgURL,
+          name: fileName,
+          desc: "",
+          size: req.file.size,
+          owner: owner,
+          isForked: false,
+          origin: ""
+        });
+
+        //アップロードしたらローカルの一時ファイルは削除
+        await asyncUnLink(req.file.path);
+
+        //CORSを全許可にして返す?
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.send(JSON.stringify(newIllust));
       } catch (e) {
         res.send(e);
       }
+    }
+  );
+
+  //リソース
+  router.get(
+    "/api/:hicId",
+    async (req: express.Request, res: express.Response) => {
+      //
     }
   );
 

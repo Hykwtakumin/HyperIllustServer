@@ -11,6 +11,9 @@ import * as reactViews from "express-react-views";
 import { Router } from "./routes/router";
 import { apiRouter } from "./routes/api";
 import { createSocketIOServer, socketIOHandler } from "./services/socket";
+import { mongoDbSetup } from "./services/db";
+import { logger } from "../share/logger";
+const { debug } = logger("index:index");
 
 export const app: express.Express = express();
 const server: Server = createServer(app);
@@ -19,25 +22,32 @@ const port = process.env.PORT || 3000;
 const io = createSocketIOServer(server);
 socketIOHandler(io);
 
-app.use(cors());
-app.set("trust proxy", true);
-app.use(express.static("public"));
-app.set("views", "views");
+mongoDbSetup()
+  .then(() => {
+    app.use(cors());
+    app.set("trust proxy", true);
+    app.use(express.static("public"));
+    app.set("views", "views");
 
-app.set("view engine", "tsx");
-app.engine("tsx", reactViews.createEngine());
+    app.set("view engine", "tsx");
+    app.engine("tsx", reactViews.createEngine());
 
-server.listen(port, () => {
-  console.log(`server listeninig at port : ${port}`);
-});
+    server.listen(port, () => {
+      console.log(`server listening at port : ${port}`);
+    });
 
-app.use(bodyParser.json());
-app.use(
-  bodyParser.urlencoded({
-    extended: true
+    app.use(bodyParser.json());
+    app.use(
+      bodyParser.urlencoded({
+        extended: true
+      })
+    );
+    app.use(cookieParser());
+
+    //app.use("/api/", apiRouter);
+    app.use("/", Router(io));
   })
-);
-app.use(cookieParser());
-
-//app.use("/api/", apiRouter);
-app.use("/", Router(io));
+  .catch(e => {
+    debug(e);
+    process.exit(1);
+  });

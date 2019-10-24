@@ -17,6 +17,7 @@ import { ButtonComponent, ModalProvider, useModal } from "./share";
 import { PublishButton } from "./PublishButton";
 import { ImportButton } from "./ImportButton";
 import { ExportButton } from "./ExportButton";
+import { HyperIllust } from "../../server/services/model";
 
 interface MainCanvasProps {}
 
@@ -149,7 +150,9 @@ export const MainCanvas = (props: MainCanvasProps) => {
       method: "POST",
       body: formData
     };
-    fetch(`/api/upload`, opt)
+
+    const userName = location.href.split("/")[3];
+    fetch(`/api/upload/${userName}`, opt)
       .then(res => {
         res
           .json()
@@ -220,11 +223,12 @@ export const MainCanvas = (props: MainCanvasProps) => {
     };
 
     try {
-      const request = await fetch(`/api/upload`, opt);
-      const result = await request.json();
+      const userName = location.href.split("/")[3];
+      const request = await fetch(`/api/upload/${userName}`, opt);
+      const result: HyperIllust = await request.json();
       console.log(result);
       /*TODO APIとかSchemeをきちんと設定する*/
-      const imageURL = result.url;
+      const imageURL = result.sourceURL;
       /*子要素のstateがちゃんと上がってこない*/
       console.log(`title : ${title}`);
       const pageTitle = encodeURI(title);
@@ -246,9 +250,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
     inRect.y = size.top;
     inRect.width = size.width;
     inRect.height = size.height;
-    const list = Array.from(
-      interCanvas.getIntersectionList(inRect, null)
-    );
+    const list = Array.from(interCanvas.getIntersectionList(inRect, null));
     console.dir(list);
   };
 

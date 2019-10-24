@@ -2,6 +2,9 @@ import * as AWS from "aws-sdk";
 import * as dotenv from "dotenv";
 import * as fs from "fs";
 import { promisify } from "util";
+import { ManagedUpload } from "aws-sdk/clients/s3";
+import { ManagedAction } from "aws-sdk/clients/elasticbeanstalk";
+import { S3 } from "aws-sdk";
 dotenv.config();
 
 const { AWSRegion, AWSAccessKeyId, AWSSecretKey } = process.env;
@@ -16,37 +19,12 @@ const bucket = new AWS.S3({
   s3ForcePathStyle: true
 });
 
-export const asyncReadFile = (path: string): Promise<any> => {
+export const asyncReadFile = (path: string): Promise<Buffer> => {
   return promisify(fs.readFile)(path);
 };
 
 export const asyncUnLink = (path: string): Promise<any> => {
   return promisify(fs.unlink)(path);
-};
-
-export const putFile = (
-  key: string,
-  body: any,
-  contentType: string
-): Promise<any> => {
-  return new Promise<any>((resolve, reject) => {
-    const params = {
-      Body: body,
-      Bucket: Bucket,
-      Key: key,
-      ContentType: contentType,
-      ACL: "public-read"
-    };
-    bucket.putObject(params, (err, data) => {
-      if (err) {
-        console.log(err);
-        reject(err);
-      }
-      if (data) {
-        resolve(data);
-      }
-    });
-  });
 };
 
 export const uploadFile = async (
@@ -65,13 +43,24 @@ export const uploadFile = async (
   });
 };
 
-// export const deleteFile = async (key: string) => {
-//   const deleteReq = {
-//     Bucket: Bucket,
-//     key: key
-//   };
-//   await bucket.deleteObject(deleteReq).promise();
-// };
+//バケットにSVGをアップロード
+export async function promisePutFile(
+  Key: string,
+  Body: any,
+  ContentType: string
+): Promise<ManagedUpload.SendData> {
+  return await bucket
+    .upload({ Bucket, Key, Body, ContentType, ACL: "public-read" })
+    .promise();
+}
+
+//バケットからSVGを削除
+export async function promiseDeleteFile(
+  Key: string
+): Promise<S3.Types.DeleteObjectOutput> {
+  //
+  return await bucket.deleteObject({ Bucket, Key }).promise();
+}
 
 export const promiseUpload = async (
   hicId: string,
