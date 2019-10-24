@@ -13,6 +13,7 @@ import { apiRouter } from "./routes/api";
 import { createSocketIOServer, socketIOHandler } from "./services/socket";
 import { mongoDbSetup } from "./services/db";
 import { logger } from "../share/logger";
+import { MongoClient } from "mongodb";
 const { debug } = logger("index:index");
 
 export const app: express.Express = express();
@@ -23,7 +24,7 @@ const io = createSocketIOServer(server);
 socketIOHandler(io);
 
 mongoDbSetup()
-  .then(() => {
+  .then((client: MongoClient) => {
     app.use(cors());
     app.set("trust proxy", true);
     app.use(express.static("public"));
@@ -45,7 +46,7 @@ mongoDbSetup()
     app.use(cookieParser());
 
     //app.use("/api/", apiRouter);
-    app.use("/", Router(io));
+    app.use("/", Router(io, client));
   })
   .catch(e => {
     debug(e);

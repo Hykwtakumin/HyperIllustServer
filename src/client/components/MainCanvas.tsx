@@ -206,7 +206,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
     //
   };
 
-  const handleExport = async (title: string) => {
+  const handleExport = async () => {
     //新しいタブを開いてScrapboxの書き込みAPIを使う
 
     const blobObject: Blob = new Blob(
@@ -230,8 +230,8 @@ export const MainCanvas = (props: MainCanvasProps) => {
       /*TODO APIとかSchemeをきちんと設定する*/
       const imageURL = result.sourceURL;
       /*子要素のstateがちゃんと上がってこない*/
-      console.log(`title : ${title}`);
-      const pageTitle = encodeURI(title);
+      console.log(`title : `);
+      const pageTitle = encodeURI("");
       const body = encodeURI(`[${imageURL}]`);
       window.open(`https://scrapbox.io/DrawWiki/${pageTitle}?body=${body}`);
     } catch (error) {

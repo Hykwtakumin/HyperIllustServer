@@ -22,15 +22,20 @@ import * as socketIo from "socket.io";
 import { publishUpdate } from "../services/socket";
 import {
   createHyperIllust,
+  createUser,
   getHyperIllust,
   getUser,
   getUsersIllusts
 } from "../HyperIllusts";
 import { HyperIllustUser } from "../services/model";
 import { logger } from "../../share/logger";
+import { MongoClient } from "mongodb";
 const { debug } = logger("router:index");
 
-export const Router = (io: socketIo.Server): express.Router => {
+export const Router = (
+  io: socketIo.Server,
+  dbClient: MongoClient
+): express.Router => {
   const router = express.Router();
 
   const multerStorage = multer.diskStorage({
@@ -65,7 +70,9 @@ export const Router = (io: socketIo.Server): express.Router => {
   router.get(
     "/user/:userName",
     async (req: express.Request, res: express.Response) => {
-      res.send(JSON.stringify(await getUsersIllusts(req.params.userName)));
+      res.send(
+        JSON.stringify(await getUsersIllusts(req.params.userName, dbClient))
+      );
     }
   );
 
@@ -74,7 +81,7 @@ export const Router = (io: socketIo.Server): express.Router => {
   router.get(
     "/illust/:illustId.svg",
     async (req: express.Request, res: express.Response) => {
-      const illust = await getHyperIllust(req.params.illustId);
+      const illust = await getHyperIllust(req.params.illustId, dbClient);
       res.send(JSON.stringify(illust.sourceURL));
     }
   );
@@ -83,7 +90,9 @@ export const Router = (io: socketIo.Server): express.Router => {
   router.get(
     "/illust/:illustId",
     async (req: express.Request, res: express.Response) => {
-      res.send(JSON.stringify(await getHyperIllust(req.params.illustId)));
+      res.send(
+        JSON.stringify(await getHyperIllust(req.params.illustId, dbClient))
+      );
     }
   );
 
@@ -129,29 +138,66 @@ export const Router = (io: socketIo.Server): express.Router => {
 
         //アップロード時にClientはユーザー情報も上げるものとする
         debug(`userName: ${req.params.userName}`);
-        const owner: HyperIllustUser = await getUser(req.params.userName).catch(
-          e => debug(e)
-        );
-        debug(`ownerName : ${owner.name}, ownerId : ${owner.id}`);
+        // const owner: HyperIllustUser = await getUser(req.params.userName, dbClient).catch(
+        //   e => debug(e)
+        // );
+        getUser(req.params.userName, dbClient)
+          .then((user: HyperIllustUser) => {
+            debug(`ownerName : ${user.name}, ownerId : ${user.id}`);
+            //HyperIllustのデータを作成
+            const newIllust = createHyperIllust(
+              {
+                sourceKey: svgKey,
+                sourceURL: svgURL,
+                name: fileName,
+                desc: "",
+                size: req.file.size,
+                owner: user,
+                isForked: false,
+                origin: ""
+              },
+              dbClient
+            );
 
-        //HyperIllustのデータを作成
-        const newIllust = await createHyperIllust({
-          sourceKey: svgKey,
-          sourceURL: svgURL,
-          name: fileName,
-          desc: "",
-          size: req.file.size,
-          owner: owner,
-          isForked: false,
-          origin: ""
-        });
+            //アップロードしたらローカルの一時ファイルは削除
+            asyncUnLink(req.file.path);
 
-        //アップロードしたらローカルの一時ファイルは削除
-        await asyncUnLink(req.file.path);
+            //CORSを全許可にして返す?
+            res.setHeader("Access-Control-Allow-Origin", "*");
+            res.send(JSON.stringify(newIllust));
+          })
+          .catch(error => {
+            debug(error);
+            createUser(req.params.userName, dbClient)
+              .then((user: HyperIllustUser) => {
+                debug(`ownerName : ${user.name}, ownerId : ${user.id}`);
+                //HyperIllustのデータを作成
+                const newIllust = createHyperIllust(
+                  {
+                    sourceKey: svgKey,
+                    sourceURL: svgURL,
+                    name: fileName,
+                    desc: "",
+                    size: req.file.size,
+                    owner: user,
+                    isForked: false,
+                    origin: ""
+                  },
+                  dbClient
+                );
 
-        //CORSを全許可にして返す?
-        res.setHeader("Access-Control-Allow-Origin", "*");
-        res.send(JSON.stringify(newIllust));
+                //アップロードしたらローカルの一時ファイルは削除
+                asyncUnLink(req.file.path);
+
+                //CORSを全許可にして返す?
+                res.setHeader("Access-Control-Allow-Origin", "*");
+                res.send(JSON.stringify(newIllust));
+              })
+              .catch(error => {
+                debug(error);
+                res.send(error);
+              });
+          });
       } catch (e) {
         res.send(e);
       }

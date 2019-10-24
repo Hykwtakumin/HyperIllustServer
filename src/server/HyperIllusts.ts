@@ -14,23 +14,28 @@ import { logger } from "../share/logger";
 import { ObjectID } from "bson";
 import uuid = require("uuid");
 import shortid = require("shortid");
-import { Collection } from "mongodb";
+import { Collection, InsertOneWriteOpResult, MongoClient } from "mongodb";
 import * as socketIo from "socket.io";
 import { promiseDeleteFile } from "./services/s3";
 
 const { debug } = logger("service:hic");
 
-async function getIllustCollection() {
-  return await getMongoCollection(illustCollectionName).catch(e => debug(e));
-}
-
-async function getUserCollection() {
-  return await getMongoCollection(userCollectionName).catch(e => debug(e));
-}
+// async function getIllustCollection() {
+//   return await getMongoCollection(illustCollectionName).catch(e => debug(e));
+// }
+//
+// async function getUserCollection() {
+//   return await getMongoCollection(userCollectionName).catch(e => debug(e));
+// }
 
 //ハイパーイラストの取得
-export async function getHyperIllust(id: string): Promise<HyperIllust> {
-  const collection: Collection = await getIllustCollection();
+export async function getHyperIllust(
+  id: string,
+  dbClient: MongoClient
+): Promise<HyperIllust> {
+  const collection: Collection = dbClient
+    .db("drawwiki")
+    .collection(illustCollectionName);
   const result = await collection.findOne(ObjectID.createFromHexString(id));
   if (result === null) {
     throw new Error("Document not found");
@@ -39,9 +44,14 @@ export async function getHyperIllust(id: string): Promise<HyperIllust> {
 }
 
 //ハイパーイラストの新規作成
-export async function createHyperIllust(params: HyperIllustParams) {
+export async function createHyperIllust(
+  params: HyperIllustParams,
+  dbClient: MongoClient
+) {
   const now = new Date();
-  const collection: Collection = await getIllustCollection();
+  const collection: Collection = dbClient
+    .db("drawwiki")
+    .collection(illustCollectionName);
   const { ops } = await collection.insertOne(
     Object.assign({ version: 1, updatedAt: now, createdAt: now }, params)
   );
@@ -50,6 +60,36 @@ export async function createHyperIllust(params: HyperIllustParams) {
     throw new Error("Creating HyperIllust is failed");
   }
   return ops[0] as HyperIllust;
+
+  return new Promise<HyperIllust>((resolve, reject) => {
+    const now = new Date();
+    const collection: Collection = dbClient
+      .db("drawwiki")
+      .collection(illustCollectionName);
+    if (collection) {
+      collection
+        .insertOne(
+          Object.assign({ version: 1, updatedAt: now, createdAt: now }, params)
+        )
+        .then((result: InsertOneWriteOpResult) => {
+          const { ops } = result;
+          if (!ops) {
+            debug("Creating HyperIllust is failed");
+            reject(Error("Creating HyperIllust is failed"));
+          } else {
+            debug(`HyperIllust created!`);
+            resolve(ops[0] as HyperIllust);
+          }
+        })
+        .catch(error => {
+          debug(error);
+          reject(error);
+        });
+    } else {
+      debug("collection not found");
+      reject(Error("collection not found"));
+    }
+  });
 }
 
 //ハイパーイラストの更新
@@ -57,7 +97,8 @@ export async function createHyperIllust(params: HyperIllustParams) {
 export async function updateHyperIllust(
   id: string,
   newParams: HyperIllustParams,
-  io: socketIo.Server
+  io: socketIo.Server,
+  dbClient: MongoClient
 ): Promise<HyperIllust> {
   const {
     sourceKey,
@@ -72,7 +113,9 @@ export async function updateHyperIllust(
   //const updatingHyperIllust = await getHyperIllust(id);
   //今の所Permission等は考えていない
   const now = new Date();
-  const collection: Collection = await getIllustCollection();
+  const collection: Collection = dbClient
+    .db("drawwiki")
+    .collection(illustCollectionName);
   const { value } = await collection.findOneAndUpdate(
     {
       _id: ObjectID.createFromHexString(id)
@@ -102,8 +145,13 @@ export async function updateHyperIllust(
 
 //ハイパーイラストの削除
 //findOneAndDeleteの返り値がよくわからん...
-export async function deleteHyperIllust(id: string): Promise<any> {
-  const collection: Collection = await getIllustCollection();
+export async function deleteHyperIllust(
+  id: string,
+  dbClient: MongoClient
+): Promise<any> {
+  const collection: Collection = dbClient
+    .db("drawwiki")
+    .collection(illustCollectionName);
   const deletedIllust = (await collection.findOneAndDelete({
     id: id
   })) as HyperIllust;
@@ -113,60 +161,137 @@ export async function deleteHyperIllust(id: string): Promise<any> {
 }
 
 //ハイパーイラストのフォーク
-export async function forkHyperIllust(id: string): Promise<HyperIllust> {
-  const origin = await getHyperIllust(id);
+export async function forkHyperIllust(
+  id: string,
+  dbClient: MongoClient
+): Promise<HyperIllust> {
+  const origin = await getHyperIllust(id, dbClient);
   return;
 }
 
 //Userの新規作成
 //重複した場合の処理は別の所でやる?
-export async function createUser(params: UserParams): Promise<HyperIllustUser> {
-  const now = new Date();
-  const collection: Collection = await getUserCollection().catch(error =>
-    debug(error)
-  );
+export async function createUser(
+  params: UserParams,
+  dbClient: MongoClient
+): Promise<HyperIllustUser> {
   const { name } = params;
-  if (await getUser(name)) {
-    debug("User already exists");
-    throw new Error("User already exists");
-  }
-  const { ops } = await collection.insertOne(
-    Object.assign({ version: 1, updatedAt: now, createdAt: now }, params)
-  );
-  if (ops === null) {
-    debug("Creating User is failed");
-    throw new Error("Creating User is failed");
-  }
-  return ops[0] as HyperIllustUser;
+
+  return new Promise<HyperIllustUser>((resolve, reject) => {
+    const now = new Date();
+    const collection: Collection = dbClient
+      .db("drawwiki")
+      .collection(userCollectionName);
+    if (collection) {
+      getUser(name, dbClient)
+        .then((user: HyperIllustUser) => {
+          //ユーザーが既にいるのでreject
+          debug("User already exists");
+          reject(Error("User already exists"));
+        })
+        .catch(error => {
+          debug(error);
+          //ユーザーがいないので新規作成
+          debug("ユーザーがいないので新規作成");
+          collection
+            .insertOne(
+              Object.assign(
+                { version: 1, updatedAt: now, createdAt: now },
+                params
+              )
+            )
+            .then((result: InsertOneWriteOpResult) => {
+              const { ops } = result;
+              if (!ops) {
+                debug("Creating User is failed");
+                reject(Error("Creating User is failed"));
+              } else {
+                resolve(ops[0] as HyperIllustUser);
+              }
+            })
+            .catch(error => {
+              debug(error);
+              reject(error);
+            });
+        });
+    } else {
+      debug("collection not found");
+      reject(Error("collection not found"));
+    }
+  });
 }
 
 //Userの取得
 //名前からUserを取得する?
-export async function getUser(name: string): Promise<HyperIllustUser> {
-  const collection: Collection = await getUserCollection().catch(e => debug(e));
-  const result = await collection
-    .findOne({ name: name })
-    .catch(error => debug(error));
-  //存在しない倍は新規作成したユーザーを返す?
-  if (result === null) {
-    return await createUser({ name }).catch(error => debug(error));
-  }
-  return result as HyperIllustUser;
+export async function getUser(
+  name: string,
+  dbClient: MongoClient
+): Promise<HyperIllustUser> {
+  //const collection: Collection = await getUserCollection().catch(e => debug(e));
+  // const collection: Collection = dbClient.db("drawwiki").collection(userCollectionName);
+  // debug(`これからfindOneする`);
+  // let returnUser;
+  // const result = collection.findOne({ name: name }).then((user: HyperIllustUser) => {
+  //   if (!user) {
+  //     debug("userが存在しないので新規作成");
+  //     createUser({ name }, dbClient).catch(error => debug(error));
+  //   }
+  //   debug("userがいる");
+  //   returnUser = result;
+  //   return result;
+  // }).catch(error => {
+  //   debug(error);
+  //   throw new Error(error);
+  // });
+  // debug(`findOneした後`);
+
+  return new Promise<HyperIllustUser>((resolve, reject) => {
+    const collection: Collection = dbClient
+      .db("drawwiki")
+      .collection(userCollectionName);
+    if (collection) {
+      collection.findOne({ name: name }).then((user: HyperIllustUser) => {
+        if (!user) {
+          //見つからない場合はnullが返ってくる
+          //新規作成は別の所でやる
+          debug("user not found");
+          reject(Error("user not found"));
+        } else {
+          debug(`user found! id: ${user.id}, name: ${user.name}`);
+          resolve(user);
+        }
+      });
+    } else {
+      debug("collection not found");
+      reject(Error("collection not found"));
+    }
+  });
 }
 
 //Userの画像取得
 //件数とかオプションで指定できた方が良いかも?
-export async function getUsersIllusts(name: string): Promise<HyperIllust[]> {
-  const user: HyperIllustUser = await getUser(name);
-  const collection: Collection = await getIllustCollection();
+export async function getUsersIllusts(
+  name: string,
+  dbClient: MongoClient
+): Promise<HyperIllust[]> {
+  const user: HyperIllustUser = await getUser(name, dbClient);
+  const collection: Collection = dbClient
+    .db("drawwiki")
+    .collection(illustCollectionName);
   //これで検索できるか?
   return await collection.find({ "owner.id": user.id }).toArray();
 }
 
 //Userの画像件数取得
-export async function getUsersIllustsCount(name: string): Promise<number> {
-  const user: HyperIllustUser = await getUser(name);
-  const collection: Collection = await getIllustCollection();
+export async function getUsersIllustsCount(
+  name: string,
+  dbClient: MongoClient
+): Promise<number> {
+  //const db = dbClient.db("drawwiki").collection(userCollectionName)
+  const user: HyperIllustUser = await getUser(name, dbClient);
+  const collection: Collection = dbClient
+    .db("drawwiki")
+    .collection(illustCollectionName);
   //これで検索できるか?
   return await collection.find({ "owner.id": user.id }).count();
 }
