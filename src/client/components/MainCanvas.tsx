@@ -17,7 +17,7 @@ import { ButtonComponent, ModalProvider, useModal } from "./share";
 import { PublishButton } from "./PublishButton";
 import { ImportButton } from "./ImportButton";
 import { ExportButton } from "./ExportButton";
-import { HyperIllust } from "../../server/services/model";
+import { HyperIllust } from "../../share/model";
 
 interface MainCanvasProps {}
 

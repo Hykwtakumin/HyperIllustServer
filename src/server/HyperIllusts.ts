@@ -9,7 +9,7 @@ import {
   HyperIllustParams,
   HyperIllustUser,
   UserParams
-} from "./services/model";
+} from "../share/model";
 import { logger } from "../share/logger";
 import { ObjectID } from "bson";
 import uuid = require("uuid");

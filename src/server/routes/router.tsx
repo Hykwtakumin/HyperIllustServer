@@ -26,7 +26,7 @@ import {
   getUser,
   getUsersIllusts
 } from "../HyperIllusts";
-import { HyperIllustUser } from "../services/model";
+import { HyperIllustUser } from "../../share/model";
 import { logger } from "../../share/logger";
 const { debug } = logger("router:index");
 

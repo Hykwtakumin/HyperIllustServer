@@ -23,7 +23,8 @@ export const asyncReadFile = (path: string): Promise<Buffer> => {
   return promisify(fs.readFile)(path);
 };
 
-export const asyncUnLink = (path: string): Promise<any> => {
+//S3にアップロードを済ませた一時ファイルの削除様
+export const asyncUnLink = (path: string): Promise<void> => {
   return promisify(fs.unlink)(path);
 };
 
@@ -61,27 +62,3 @@ export async function promiseDeleteFile(
   //
   return await bucket.deleteObject({ Bucket, Key }).promise();
 }
-
-export const promiseUpload = async (
-  hicId: string,
-  file: any,
-  mime: string
-): Promise<any> => {
-  return new Promise<any>(async (resolve, reject) => {
-    try {
-      // const uploaded = await promisify(fs.readFile)(file.path);
-      const params = {
-        Key: hicId + ".svg",
-        Body: file,
-        ContentType: mime
-      };
-
-      const uploaded2S3 = await uploadFile(`${hicId}svg`, file, mime);
-      resolve(uploaded2S3);
-      //await promisify(fs.unlink)(file.path);
-    } catch (e) {
-      reject(e);
-      throw e;
-    }
-  });
-};

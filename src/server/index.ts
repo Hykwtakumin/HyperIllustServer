@@ -9,7 +9,6 @@ import * as bodyParser from "body-parser";
 import * as cookieParser from "cookie-parser";
 import * as reactViews from "express-react-views";
 import { Router } from "./routes/router";
-import { apiRouter } from "./routes/api";
 import { createSocketIOServer, socketIOHandler } from "./services/socket";
 import { mongoDbSetup } from "./services/db";
 import { logger } from "../share/logger";
