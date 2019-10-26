@@ -94,8 +94,11 @@ export const BoundingBox = (props: BondingBoxProps) => {
 
     /*既にバウンディングボックスがある場合は*/
     /*BB自体もしくは制御部品に関するクリックはスルー*/
-    if (bbLeft !== 0 && bbTop !== 0) {
+    if (event.target.id && event.target.id == "BBRect") {
       //もっと上手い方法がある気がする
+      console.log("its BBRect");
+      //return
+    } else if (bbLeft !== 0 && bbTop !== 0) {
       setBBLeft(0);
       setBBTop(0);
       setBBWidth(0);
@@ -128,7 +131,7 @@ export const BoundingBox = (props: BondingBoxProps) => {
     setBBHeight(point.y - bbHeight);
 
     /*イベントリスナーを外す*/
-    DetachEventListeners(CLayer.current);
+    //DetachEventListeners(CLayer.current);
 
     /*キャンバスにBB情報を返す*/
     props.onResized({
@@ -143,6 +146,30 @@ export const BoundingBox = (props: BondingBoxProps) => {
     /*Cancel時の処理は後できちんと実装する*/
     /*pointeroutやpointerleaveも必要?*/
     handleUp(event);
+  };
+
+  //ドラッグにしか使わないかも
+  const handleRectDown = (event: PointerEvent) => {
+    isDragging = true;
+    //event.preventDefault();
+  };
+
+  const handleRectMove = (event: PointerEvent) => {
+    //event.preventDefault();
+    const currentPoint = getPoint(event.pageX, event.pageY, BBLayer.current);
+    if (isDragging) {
+      //setBBLeft(currentPoint.x - bbLeft);
+      //setBBTop(currentPoint.y - bbTop);
+      BBRect.current.setAttribute("x", `${currentPoint.x}`);
+      BBRect.current.setAttribute("y", `${currentPoint.y}`);
+    }
+  };
+
+  const handleRectUp = (event: PointerEvent) => {
+    //event.preventDefault();
+    isDragging = false;
+    setBBLeft(BBRect.current.x);
+    setBBTop(BBRect.current.y);
   };
 
   /*4隅 + 4点(合計8点)のハンドルはループで配置*/
@@ -179,13 +206,3 @@ export const BoundingBox = (props: BondingBoxProps) => {
     </div>
   );
 };
-
-// {/*<rect*/}
-// {/*  id={"BBRectButton"}*/}
-// {/*  x={bbLeft + bbWidth / 2}*/}
-// {/*  y={bbHeight + 50}*/}
-// {/*  width={bbWidth / 2}*/}
-// {/*  height={50}*/}
-// {/*  fill="gray"*/}
-// {/*  fillOpacity="1"*/}
-// {/*/>*/}

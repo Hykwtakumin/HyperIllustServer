@@ -4,7 +4,7 @@ import { useModal, ButtonComponent } from "./share";
 import { PublishButtonProps } from "./PublishButton";
 import { restoreFromLocalStorage } from "./share/localStorage";
 import { HyperIllust } from "../../share/model";
-import {logger} from "../../share/logger";
+import { logger } from "../../share/logger";
 
 /*押すと他のハイパーイラストをインポートできるモーダルを召喚するボタン*/
 
@@ -41,20 +41,22 @@ export const ImportButton: FC<ImportButtonProps> = (
   const debug = logger("client:ImportButton");
 
   const inner = (
-    <div className="ImportModalMenu" >
+    <div className="ImportModalMenu">
       {props.localIllustList.map((item: HyperIllust, index: number) => {
-        return (        <img
-          key={index}
-          className="ImportModalItem"
-          alt={item.id}
-          title={item.id}
-          src={item.sourceURL}
-          width={100}
-          height={80}
-          onClick={() => {
-            handleImageSelect(item.id);
-          }}
-        />)
+        return (
+          <img
+            key={index}
+            className="ImportModalItem"
+            alt={item.id}
+            title={item.id}
+            src={item.sourceURL}
+            width={100}
+            height={80}
+            onClick={() => {
+              handleImageSelect(item.id);
+            }}
+          />
+        );
       })}
     </div>
   );

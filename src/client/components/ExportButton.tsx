@@ -12,29 +12,33 @@ export const ExportButton: FC<ExportButtonProps> = (
   props: ExportButtonProps
 ) => {
   const { showModal } = useModal();
-  const [title, setTitle] = useState<string>("");
-  const titleInput = useRef(null);
+  //const [title, setTitle] = useState<string>("");
+  //const titleInput = useRef(null);
+
+  //アップロードするものによって文言を変えても良い?
+  //キャンバス全体 => キャンバスをアップロード
+  //選択していた場合 => 選択範囲をアップロード
 
   /*useModalではuseCallbackを使っているのでローカル変数がそのままでは使えない*/
-  /*古い値が返ってくる問題*/
-  /*なのでrefを使ったりしてなんとか乗り切る*/
-  const handelSendTitle = () => {
+  const handleSendTitle = () => {
     props.onExport();
   };
 
   const popUpModal = () => {
     showModal({
       type: "confirm",
-      title: <h2>{`アップロードします`}</h2>,
+      title: <h3>{`画像のアップロード`}</h3>,
       content: <></>,
       onOk() {
-        handelSendTitle();
+        props.onExport();
       },
       onCancel() {},
       okText: "アップロード",
       cancelText: "キャンセル"
     });
   };
+
+  const successModal = () => {};
 
   return (
     <div style={{ padding: "3px" }}>

@@ -1,24 +1,30 @@
 import * as React from "react";
-import { useState, useRef, FC, useEffect } from "react";
-import { eventHandler } from "./EventHandler";
+import { useState, useRef, FC, useEffect, createElement } from "react";
 import { Points, getPoint } from "./utils";
 import {
   addPath,
   updatePath,
   setPointerEventsEnableToAllPath,
   setPointerEventsDisableToAllPath
-} from "./PathDrawer";
+} from "./Graphics/PathDrawer";
 import { PenWidthSelector } from "./PenWidthSelector";
 import { ColorPicker } from "./ColorPicker";
 import { ModeSelector } from "./ModeSelector";
 import { BBSize, BoundingBox } from "./BoundingBox";
 import { createPortal } from "react-dom";
-import {ButtonComponent, ModalContext, ModalProvider, ShowModal, useModal} from "./share";
+import {
+  ButtonComponent,
+  ModalContext,
+  ModalProvider,
+  ShowModal,
+  useModal
+} from "./share";
 import { PublishButton } from "./PublishButton";
-import {ImportButton, loadHyperIllusts, SelectedItem} from "./ImportButton";
+import { ImportButton, loadHyperIllusts, SelectedItem } from "./ImportButton";
 import { ExportButton } from "./ExportButton";
 import { HyperIllust } from "../../share/model";
-import {saveToLocalStorage} from "./share/localStorage";
+import { saveToLocalStorage } from "./share/localStorage";
+import { AddLinkButton } from "./AddLinkButton";
 
 interface MainCanvasProps {}
 
@@ -38,7 +44,13 @@ export const MainCanvas = (props: MainCanvasProps) => {
     height: window.innerHeight
   });
 
-  const [localIllustList, setLocalIllustList] = useState<HyperIllust[]>(loadHyperIllusts());
+  //今までアップロードしてきたHyperIllustのリスト(とりあえずlocalStorageに保存している)
+  const [localIllustList, setLocalIllustList] = useState<HyperIllust[]>(
+    loadHyperIllusts()
+  );
+
+  //BBで選択されたPathのリスト
+  const [selectedElms, setSelectedElms] = useState<SVGElement[]>(null);
 
   let isDragging: boolean = false;
   let lastPath;
@@ -205,7 +217,8 @@ export const MainCanvas = (props: MainCanvasProps) => {
   };
 
   const handleExport = async () => {
-
+    //リンクを埋め込んだPathがしっかりクリックできるようにしておく
+    setPointerEventsEnableToAllPath(svgCanvas.current);
     const blobObject: Blob = new Blob(
       [new XMLSerializer().serializeToString(svgCanvas.current)],
       { type: "image/svg+xml;charset=utf-8" }
@@ -241,6 +254,9 @@ export const MainCanvas = (props: MainCanvasProps) => {
       //   </>,
       //   okText: `閉じる`
       // });
+
+      //アップロード後はしっかりpointer-eventsを無効化しておく
+      setPointerEventsDisableToAllPath(svgCanvas.current);
     } catch (error) {
       console.dir(error);
       alert("何か問題が発生しました!");
@@ -257,69 +273,110 @@ export const MainCanvas = (props: MainCanvasProps) => {
     inRect.y = size.top;
     inRect.width = size.width;
     inRect.height = size.height;
+    console.dir(inRect);
+    //getIntersectionList関数はpointer-eventsが有効な要素しかカウントしない!!
+    setPointerEventsEnableToAllPath(interCanvas);
     const list = Array.from(interCanvas.getIntersectionList(inRect, null));
+    //背景の白い四角は除く
+    const backGroundRect = list.shift();
     console.dir(list);
+    setSelectedElms(list);
+    //リストにぶちこんだ後はしっかりpointer-eventsを無効化しておく
+    setPointerEventsDisableToAllPath(interCanvas);
+  };
+
+  /*選択したパスにリンクを追加する処理*/
+  const handleAddLink = (link: string) => {
+    console.log(`link: ${link}`);
+    if (selectedElms && selectedElms.length > 0) {
+      selectedElms.forEach((elm: SVGElement) => {
+        //SVGAElementを新規作成してelmを囲っていく?
+        //グループ化してしまう感じで
+        const linkElm: SVGAElement = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "a"
+        );
+        linkElm.setAttribute("xlink:href", link);
+        linkElm.setAttribute("target", "_blank");
+
+        elm.appendChild(linkElm);
+        elm.parentNode.insertBefore(linkElm, elm);
+
+        const copyPath = svgCanvas.current.removeChild(elm);
+        linkElm.appendChild(copyPath);
+      });
+
+      //setPointerEventsEnableToAllPath();
+      //リンクを貼り終わったらselectedElmsを空にする
+      setSelectedElms([]);
+    }
   };
 
   return (
     <>
       <ModalProvider>
-            <div className={"toolBar"}>
-              <PenWidthSelector widthChange={onWidthChange} />
-              <ColorPicker colorChange={onColorChange} />
-              <ModeSelector modeChange={onModeChange} />
+        <div className={"toolBar"}>
+          <PenWidthSelector widthChange={onWidthChange} />
+          <ColorPicker colorChange={onColorChange} />
+          <ModeSelector modeChange={onModeChange} />
 
-              <PublishButton onUpload={handleUpload} />
-              <ImportButton onSelected={handleImport} localIllustList={localIllustList} />
+          <AddLinkButton
+            onAddLink={handleAddLink}
+            selectedElms={selectedElms}
+          />
 
-              <ExportButton onExport={handleExport} />
-            </div>
+          <ImportButton
+            onSelected={handleImport}
+            localIllustList={localIllustList}
+          />
 
-            <div
-              className={"drawSection"}
-              onPointerDown={handleDown}
-              onPointerMove={handleMove}
-              onPointerUp={handleUp}
-              onPointerCancel={handleUp}
-            >
-              <svg
-                ref={svgCanvas}
-                className={"svgCanvas"}
-                viewBox={`0 0 ${canvasSize.width} ${canvasSize.height}`}
-                width={canvasSize.width}
-                height={canvasSize.height}
-                xmlns="http://www.w3.org/2000/svg"
-                xmlnsXlink="http://www.w3.org/1999/xlink"
-              >
-                <rect width="100%" height="100%" fill="#FFFFFF" />
-                <defs>
-                  <style type={"text/css"}>{`<![CDATA[
+          <ExportButton onExport={handleExport} />
+        </div>
 
+        <div
+          className={"drawSection"}
+          onPointerDown={handleDown}
+          onPointerMove={handleMove}
+          onPointerUp={handleUp}
+          onPointerCancel={handleUp}
+        >
+          <svg
+            ref={svgCanvas}
+            className={"svgCanvas"}
+            viewBox={`0 0 ${canvasSize.width} ${canvasSize.height}`}
+            width={canvasSize.width}
+            height={canvasSize.height}
+            xmlns="http://www.w3.org/2000/svg"
+            xmlnsXlink="http://www.w3.org/1999/xlink"
+          >
+            <rect width="100%" height="100%" fill="#FFFFFF" />
+            <defs>
+              <style type={"text/css"}>{`<![CDATA[
+                a:hover {
+                  fill: dodgerblue;
+                }
+                
+                a:active {
+                  fill: dodgerblue;
+                }
            ]]>`}</style>
-                </defs>
-              </svg>
-            </div>
-            <div className="ControlSection">
-              <BoundingBox
-                visible={setBBVisibility()}
-                canvasWidth={canvasSize.width}
-                canvasHeight={canvasSize.height}
-                onResized={handleBBResized}
-                onRotated={() => {}}
-                onRemoved={() => {}}
-                onCopied={() => {}}
-                onPublished={() => {}}
-                onAddLink={() => {}}
-              />
-            </div>
+            </defs>
+          </svg>
+        </div>
+        <div className="ControlSection">
+          <BoundingBox
+            visible={setBBVisibility()}
+            canvasWidth={canvasSize.width}
+            canvasHeight={canvasSize.height}
+            onResized={handleBBResized}
+            onRotated={() => {}}
+            onRemoved={() => {}}
+            onCopied={() => {}}
+            onPublished={() => {}}
+            onAddLink={() => {}}
+          />
+        </div>
       </ModalProvider>
     </>
   );
 };
-
-// {/*<input*/}
-// {/*  type={"button"}*/}
-// {/*  value={"Uploadする"}*/}
-// {/*  className={"button toolButton leftButton"}*/}
-// {/*  onClick={handleUpload}*/}
-// {/*/>*/}

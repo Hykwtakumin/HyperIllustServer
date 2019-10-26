@@ -71,11 +71,6 @@
 
 }
 
-/*ButtonComponent*/
-.disabled {
-
-}
-
 /*Import用の画像一覧*/
 .ImportModalMenu {
   display: flex;
