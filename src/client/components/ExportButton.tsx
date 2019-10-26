@@ -3,7 +3,7 @@ import { FC, useRef, useState } from "react";
 import { useModal, ButtonComponent } from "./share";
 
 export type ExportButtonProps = {
-  onExport: (title: string) => void;
+  onExport: () => void;
 };
 
 /*スクボに新しいページを作る*/
@@ -12,36 +12,33 @@ export const ExportButton: FC<ExportButtonProps> = (
   props: ExportButtonProps
 ) => {
   const { showModal } = useModal();
-  const [title, setTitle] = useState<string>("");
-  const titleInput = useRef(null);
+  //const [title, setTitle] = useState<string>("");
+  //const titleInput = useRef(null);
+
+  //アップロードするものによって文言を変えても良い?
+  //キャンバス全体 => キャンバスをアップロード
+  //選択していた場合 => 選択範囲をアップロード
 
   /*useModalではuseCallbackを使っているのでローカル変数がそのままでは使えない*/
-  /*古い値が返ってくる問題*/
-  /*なのでrefを使ったりしてなんとか乗り切る*/
-  const handelSendTitle = () => {
-    props.onExport(titleInput.current.value);
+  const handleSendTitle = () => {
+    props.onExport();
   };
 
   const popUpModal = () => {
     showModal({
       type: "confirm",
-      title: <h2>{`新規ページを作成します`}</h2>,
-      content: (
-        <>
-          <div>
-            <h3>{`以下のタイトルのページを作成`}</h3>
-            <input ref={titleInput} type={"text"} />
-          </div>
-        </>
-      ),
+      title: <h3>{`画像のアップロード`}</h3>,
+      content: <></>,
       onOk() {
-        handelSendTitle();
+        props.onExport();
       },
       onCancel() {},
-      okText: "新規作成",
+      okText: "アップロード",
       cancelText: "キャンセル"
     });
   };
+
+  const successModal = () => {};
 
   return (
     <div style={{ padding: "3px" }}>

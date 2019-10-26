@@ -71,7 +71,21 @@
 
 }
 
-/*ButtonComponent*/
-.disabled {
+/*Import用の画像一覧*/
+.ImportModalMenu {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: stretch;
+  align-content: flex-start;
+  scroll-behavior: auto;
+}
 
+.ImportModalItem {
+  filter: grayscale(80%);
+}
+
+.ImportModalItem:focus {
+  filter: grayscale(0%);
 }

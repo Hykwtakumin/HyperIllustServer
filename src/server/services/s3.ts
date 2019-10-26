@@ -23,25 +23,9 @@ export const asyncReadFile = (path: string): Promise<Buffer> => {
   return promisify(fs.readFile)(path);
 };
 
-//S3にアップロードを済ませた一時ファイルの削除様
+//S3にアップロードを済ませた一時ファイルの削除用
 export const asyncUnLink = (path: string): Promise<void> => {
   return promisify(fs.unlink)(path);
-};
-
-export const uploadFile = async (
-  Key: string,
-  Body: any,
-  ContentType: string
-): Promise<any> => {
-  return new Promise<any>((resolve, reject) => {
-    bucket
-      .upload({ Bucket, Key, Body, ContentType, ACL: "public-read" })
-      .promise()
-      .then(response => {
-        resolve(response);
-      })
-      .catch(e => reject(e));
-  });
 };
 
 //バケットにSVGをアップロード
@@ -61,4 +45,11 @@ export async function promiseDeleteFile(
 ): Promise<S3.Types.DeleteObjectOutput> {
   //
   return await bucket.deleteObject({ Bucket, Key }).promise();
+}
+
+//バケット内のSVGを取得
+export async function promiseGetFile(
+  Key: string
+): Promise<S3.Types.GetObjectAclOutput> {
+  return await bucket.getObject({ Bucket, Key }).promise();
 }

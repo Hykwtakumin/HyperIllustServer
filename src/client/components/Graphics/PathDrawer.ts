@@ -1,4 +1,4 @@
-import { Points } from "./utils";
+import { Points } from "../utils";
 
 export const addPath = (canvas: SVGElement, point: Points): SVGPathElement => {
   const pathElm: SVGPathElement = document.createElementNS(
@@ -24,7 +24,6 @@ export const updatePath = (path: SVGPathElement, point: Points) => {
 
 export const setPointerEventsEnableToAllPath = (canvas: SVGElement) => {
   const allPathList = Array.from(canvas.querySelectorAll("path"));
-  console.dir(allPathList);
   allPathList.forEach(path => {
     path.setAttribute("pointer-events", "auto");
   });
@@ -32,7 +31,6 @@ export const setPointerEventsEnableToAllPath = (canvas: SVGElement) => {
 
 export const setPointerEventsDisableToAllPath = (canvas: SVGElement) => {
   const allPathList = Array.from(canvas.querySelectorAll("path"));
-  console.dir(allPathList);
   allPathList.forEach(path => {
     path.setAttribute("pointer-events", "none");
   });
