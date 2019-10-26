@@ -13,11 +13,12 @@ import { ColorPicker } from "./ColorPicker";
 import { ModeSelector } from "./ModeSelector";
 import { BBSize, BoundingBox } from "./BoundingBox";
 import { createPortal } from "react-dom";
-import { ButtonComponent, ModalProvider, useModal } from "./share";
+import {ButtonComponent, ModalContext, ModalProvider, ShowModal, useModal} from "./share";
 import { PublishButton } from "./PublishButton";
-import { ImportButton } from "./ImportButton";
+import {ImportButton, loadHyperIllusts, SelectedItem} from "./ImportButton";
 import { ExportButton } from "./ExportButton";
 import { HyperIllust } from "../../share/model";
+import {saveToLocalStorage} from "./share/localStorage";
 
 interface MainCanvasProps {}
 
@@ -36,9 +37,13 @@ export const MainCanvas = (props: MainCanvasProps) => {
     width: window.innerWidth,
     height: window.innerHeight
   });
+
+  const [localIllustList, setLocalIllustList] = useState<HyperIllust[]>(loadHyperIllusts());
+
   let isDragging: boolean = false;
   let lastPath;
   const svgCanvas = useRef<SVGSVGElement>(null);
+  const { showModal } = useModal();
 
   /*on Canvas Resize*/
   window.onresize = () => {
@@ -195,11 +200,11 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
   const handleImport = (resourceURL: string) => {
     //サーバーからScrapboxの全ページを取得
+    console.log(resourceURL);
     //
   };
 
   const handleExport = async () => {
-    //新しいタブを開いてScrapboxの書き込みAPIを使う
 
     const blobObject: Blob = new Blob(
       [new XMLSerializer().serializeToString(svgCanvas.current)],
@@ -221,8 +226,21 @@ export const MainCanvas = (props: MainCanvasProps) => {
       console.log("アップロードに成功しました!");
       console.log(result);
       /*TODO APIとかSchemeをきちんと設定する*/
-      const imageURL = result.sourceURL;
-      /*子要素のstateがちゃんと上がってこない*/
+
+      const saveResult = await saveToLocalStorage(result.id, result);
+      console.log(`saveResult : ${saveResult}`);
+
+      //再設定
+      setLocalIllustList(loadHyperIllusts());
+
+      // showModal({
+      //   type: "success",
+      //   title: `アップロードに成功しました!`,
+      //   content: <>
+      //     <img src={result.sourceURL} width={200} />
+      //   </>,
+      //   okText: `閉じる`
+      // });
     } catch (error) {
       console.dir(error);
       alert("何か問題が発生しました!");
@@ -246,54 +264,54 @@ export const MainCanvas = (props: MainCanvasProps) => {
   return (
     <>
       <ModalProvider>
-        <div className={"toolBar"}>
-          <PenWidthSelector widthChange={onWidthChange} />
-          <ColorPicker colorChange={onColorChange} />
-          <ModeSelector modeChange={onModeChange} />
+            <div className={"toolBar"}>
+              <PenWidthSelector widthChange={onWidthChange} />
+              <ColorPicker colorChange={onColorChange} />
+              <ModeSelector modeChange={onModeChange} />
 
-          <PublishButton onUpload={handleUpload} />
-          <ImportButton onSelected={handleImport} />
+              <PublishButton onUpload={handleUpload} />
+              <ImportButton onSelected={handleImport} localIllustList={localIllustList} />
 
-          <ExportButton onExport={handleExport} />
-        </div>
+              <ExportButton onExport={handleExport} />
+            </div>
 
-        <div
-          className={"drawSection"}
-          onPointerDown={handleDown}
-          onPointerMove={handleMove}
-          onPointerUp={handleUp}
-          onPointerCancel={handleUp}
-        >
-          <svg
-            ref={svgCanvas}
-            className={"svgCanvas"}
-            viewBox={`0 0 ${canvasSize.width} ${canvasSize.height}`}
-            width={canvasSize.width}
-            height={canvasSize.height}
-            xmlns="http://www.w3.org/2000/svg"
-            xmlnsXlink="http://www.w3.org/1999/xlink"
-          >
-            <rect width="100%" height="100%" fill="#FFFFFF" />
-            <defs>
-              <style type={"text/css"}>{`<![CDATA[
+            <div
+              className={"drawSection"}
+              onPointerDown={handleDown}
+              onPointerMove={handleMove}
+              onPointerUp={handleUp}
+              onPointerCancel={handleUp}
+            >
+              <svg
+                ref={svgCanvas}
+                className={"svgCanvas"}
+                viewBox={`0 0 ${canvasSize.width} ${canvasSize.height}`}
+                width={canvasSize.width}
+                height={canvasSize.height}
+                xmlns="http://www.w3.org/2000/svg"
+                xmlnsXlink="http://www.w3.org/1999/xlink"
+              >
+                <rect width="100%" height="100%" fill="#FFFFFF" />
+                <defs>
+                  <style type={"text/css"}>{`<![CDATA[
 
            ]]>`}</style>
-            </defs>
-          </svg>
-        </div>
-        <div className="ControlSection">
-          <BoundingBox
-            visible={setBBVisibility()}
-            canvasWidth={canvasSize.width}
-            canvasHeight={canvasSize.height}
-            onResized={handleBBResized}
-            onRotated={() => {}}
-            onRemoved={() => {}}
-            onCopied={() => {}}
-            onPublished={() => {}}
-            onAddLink={() => {}}
-          />
-        </div>
+                </defs>
+              </svg>
+            </div>
+            <div className="ControlSection">
+              <BoundingBox
+                visible={setBBVisibility()}
+                canvasWidth={canvasSize.width}
+                canvasHeight={canvasSize.height}
+                onResized={handleBBResized}
+                onRotated={() => {}}
+                onRemoved={() => {}}
+                onCopied={() => {}}
+                onPublished={() => {}}
+                onAddLink={() => {}}
+              />
+            </div>
       </ModalProvider>
     </>
   );

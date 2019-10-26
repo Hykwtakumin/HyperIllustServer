@@ -4,6 +4,7 @@ import { useModal, ButtonComponent } from "./share";
 import { PublishButtonProps } from "./PublishButton";
 import { restoreFromLocalStorage } from "./share/localStorage";
 import { HyperIllust } from "../../share/model";
+import {logger} from "../../share/logger";
 
 /*押すと他のハイパーイラストをインポートできるモーダルを召喚するボタン*/
 
@@ -11,7 +12,8 @@ import { HyperIllust } from "../../share/model";
 /*なのでCORSをクリアしている必要がある*/
 
 export type ImportButtonProps = {
-  onSelected: (item: SelectedItem) => void;
+  onSelected: (itemId: string) => void;
+  localIllustList: HyperIllust[];
 };
 
 export type SelectedItem = {
@@ -36,16 +38,12 @@ export const ImportButton: FC<ImportButtonProps> = (
   props: ImportButtonProps
 ) => {
   const { showModal } = useModal();
-  const [localIllust, setLocalIllust] = useState<HyperIllust[]>(
-    loadHyperIllusts()
-  );
-  const [selectedItem, setSelecteditem] = useState<string>("");
-  const selectedItemref = useRef<SelectedItem>(null);
+  const debug = logger("client:ImportButton");
 
   const inner = (
-    <div className="ImportModalMenu">
-      {localIllust.map((item: HyperIllust, index: number) => {
-        <img
+    <div className="ImportModalMenu" >
+      {props.localIllustList.map((item: HyperIllust, index: number) => {
+        return (        <img
           key={index}
           className="ImportModalItem"
           alt={item.id}
@@ -56,15 +54,13 @@ export const ImportButton: FC<ImportButtonProps> = (
           onClick={() => {
             handleImageSelect(item.id);
           }}
-        />;
+        />)
       })}
     </div>
   );
 
   const handleImageSelect = (key: string) => {
-    setSelecteditem(key);
-    selectedItemref.current.selsectedId = selectedItem;
-    props.onSelected(selectedItemref.current);
+    props.onSelected(key);
   };
 
   const popUpModal = () => {
@@ -79,11 +75,7 @@ export const ImportButton: FC<ImportButtonProps> = (
           </div>
         </>
       ),
-      onOk() {
-        props.onSelected(selectedItemref.current);
-      },
       onCancel() {},
-      okText: "追加する",
       cancelText: "キャンセル"
     });
   };
