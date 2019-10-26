@@ -3,12 +3,7 @@ import { renderToString } from "react-dom/server";
 import * as React from "react";
 import { app } from "../index";
 import { BaseLayout } from "../../../views/BaseLayout";
-import {
-  uploadFile,
-  asyncReadFile,
-  asyncUnLink,
-  promisePutFile
-} from "../services/s3";
+import { asyncReadFile, asyncUnLink, promisePutFile } from "../services/s3";
 import * as fetchBase64 from "fetch-base64";
 import * as multer from "multer";
 import * as path from "path";
@@ -26,7 +21,7 @@ import {
   getUser,
   getUsersIllusts
 } from "../HyperIllusts";
-import { HyperIllustUser } from "../../share/model";
+import { HyperIllust, HyperIllustUser } from "../../share/model";
 import { logger } from "../../share/logger";
 const { debug } = logger("router:index");
 
@@ -120,7 +115,6 @@ export const Router = (io: socketIo.Server): express.Router => {
       const rawData = await asyncReadFile(req.file.path);
 
       try {
-        //const result = await uploadFile(fileName, rawData, mime);
         const result = await promisePutFile(fileName, rawData, mime);
         debug(result);
         //アップロードしたらS3のリンクとKeyを控えておく
@@ -128,23 +122,23 @@ export const Router = (io: socketIo.Server): express.Router => {
         const svgKey = result.Key;
 
         //アップロード時にClientはユーザー情報も上げるものとする
-        debug(`userName: ${req.params.userName}`);
-        const owner: HyperIllustUser = await getUser(req.params.userName).catch(
-          e => debug(e)
-        );
-        debug(`ownerName : ${owner.name}, ownerId : ${owner.id}`);
 
         //HyperIllustのデータを作成
-        const newIllust = await createHyperIllust({
+        const newIllust: HyperIllust = {
+          id: fileName,
           sourceKey: svgKey,
           sourceURL: svgURL,
           name: fileName,
           desc: "",
           size: req.file.size,
-          owner: owner,
+          owner: req.params.userName,
           isForked: false,
-          origin: ""
-        });
+          origin: "",
+          version: 1,
+          createdAt: now,
+          updatedAt: now
+        };
+        //サーバー側は何もせずにただClientにHyperIllustを返すだけ!簡単
 
         //アップロードしたらローカルの一時ファイルは削除
         await asyncUnLink(req.file.path);

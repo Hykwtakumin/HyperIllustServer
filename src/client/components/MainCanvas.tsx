@@ -135,14 +135,6 @@ export const MainCanvas = (props: MainCanvasProps) => {
       { type: "image/svg+xml;charset=utf-8" }
     );
 
-    // const uploadObject = new XMLSerializer().serializeToString(
-    //   svgCanvas.current
-    // );
-    // const uploadBody = {
-    //   title: `hyperIllust.svg`,
-    //   body: blobObject
-    // };
-
     const formData = new FormData();
     formData.append(`file`, blobObject);
 
@@ -206,7 +198,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
     //
   };
 
-  const handleExport = async (title: string) => {
+  const handleExport = async () => {
     //新しいタブを開いてScrapboxの書き込みAPIを使う
 
     const blobObject: Blob = new Blob(
@@ -226,14 +218,11 @@ export const MainCanvas = (props: MainCanvasProps) => {
       const userName = location.href.split("/")[3];
       const request = await fetch(`/api/upload/${userName}`, opt);
       const result: HyperIllust = await request.json();
+      console.log("アップロードに成功しました!");
       console.log(result);
       /*TODO APIとかSchemeをきちんと設定する*/
       const imageURL = result.sourceURL;
       /*子要素のstateがちゃんと上がってこない*/
-      console.log(`title : ${title}`);
-      const pageTitle = encodeURI(title);
-      const body = encodeURI(`[${imageURL}]`);
-      window.open(`https://scrapbox.io/DrawWiki/${pageTitle}?body=${body}`);
     } catch (error) {
       console.dir(error);
       alert("何か問題が発生しました!");

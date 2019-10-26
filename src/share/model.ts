@@ -25,7 +25,7 @@ export type HyperIllust = {
   size?: number;
   createdAt: DateLike;
   updatedAt: DateLike;
-  owner: HyperIllustUser;
+  owner: string;
   isForked: boolean;
   origin?: string;
   version: number;
