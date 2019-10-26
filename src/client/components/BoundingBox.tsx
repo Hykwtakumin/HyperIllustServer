@@ -44,10 +44,6 @@ export const BoundingBox = (props: BondingBoxProps) => {
   };
   let isDragging: boolean = false;
 
-  /*BoundingBoxが作られたか否か*/
-  /*イベントリスナの管理に使う?*/
-  const [created, setCreated] = useState<boolean>(false);
-
   //召喚したBoundingBoxを
   //ドラッグする => 移動(transform?)
   //回転ハンドルを操作 => 回転
@@ -65,11 +61,6 @@ export const BoundingBox = (props: BondingBoxProps) => {
       DetachEventListeners(ControlLayer);
     }
   }, [props.visible]);
-
-  const handleAddLink = () => {
-    //ポータルでダイアログを出す
-    alert("このパスを公開します");
-  };
 
   const AttachEventListeners = (element: HTMLElement) => {
     element.addEventListener(`pointerdown`, handleDown);
@@ -97,8 +88,8 @@ export const BoundingBox = (props: BondingBoxProps) => {
     if (event.target.id && event.target.id == "BBRect") {
       //もっと上手い方法がある気がする
       console.log("its BBRect");
-      //return
-    } else if (bbLeft !== 0 && bbTop !== 0) {
+      return;
+    } else if (bbLeft !== 0 || bbTop !== 0 || bbWidth !== 0 || bbHeight !== 0) {
       setBBLeft(0);
       setBBTop(0);
       setBBWidth(0);
@@ -109,6 +100,8 @@ export const BoundingBox = (props: BondingBoxProps) => {
     } else {
       setBBLeft(point.x);
       setBBTop(point.y);
+      setBBWidth(0);
+      setBBHeight(0);
     }
   };
 
@@ -117,8 +110,10 @@ export const BoundingBox = (props: BondingBoxProps) => {
       /*編集モードの場合はバウンディングボックスのサイズを調整する*/
       const canvas = BBLayer.current;
       const point: Points = getPoint(event.pageX, event.pageY, canvas);
-      setBBWidth(point.x - bbLeft);
-      setBBHeight(point.y - bbHeight);
+      setBBWidth(point.x - parseInt(BBRect.current.getAttribute("x")));
+      setBBHeight(point.y - parseInt(BBRect.current.getAttribute("y")));
+      //BBRect.current.setAttribute("x", `${point.x - bbLeft}`);
+      //BBRect.current.setAttribute("y",`${point.y - bbHeight}`);
     }
   };
 
@@ -127,8 +122,8 @@ export const BoundingBox = (props: BondingBoxProps) => {
     /*編集モードの場合はバウンディングボックスのサイズを調整する*/
     const canvas = BBLayer.current;
     const point: Points = getPoint(event.pageX, event.pageY, canvas);
-    setBBWidth(point.x - bbLeft);
-    setBBHeight(point.y - bbHeight);
+    //setBBWidth(point.x - bbLeft);
+    //setBBHeight(point.y - bbHeight);
 
     /*イベントリスナーを外す*/
     //DetachEventListeners(CLayer.current);
@@ -148,31 +143,89 @@ export const BoundingBox = (props: BondingBoxProps) => {
     handleUp(event);
   };
 
-  //ドラッグにしか使わないかも
-  const handleRectDown = (event: PointerEvent) => {
-    isDragging = true;
-    //event.preventDefault();
-  };
-
-  const handleRectMove = (event: PointerEvent) => {
-    //event.preventDefault();
-    const currentPoint = getPoint(event.pageX, event.pageY, BBLayer.current);
-    if (isDragging) {
-      //setBBLeft(currentPoint.x - bbLeft);
-      //setBBTop(currentPoint.y - bbTop);
-      BBRect.current.setAttribute("x", `${currentPoint.x}`);
-      BBRect.current.setAttribute("y", `${currentPoint.y}`);
-    }
-  };
-
-  const handleRectUp = (event: PointerEvent) => {
-    //event.preventDefault();
-    isDragging = false;
-    setBBLeft(BBRect.current.x);
-    setBBTop(BBRect.current.y);
-  };
-
   /*4隅 + 4点(合計8点)のハンドルはループで配置*/
+
+  const cornerPoint = ["leftTop", "rightTop", "leftBottom", "rightBottom"];
+
+  const corner = (
+    <>
+      {BBRect.current &&
+        cornerPoint.map((value, index) => {
+          if (value === "leftTop") {
+            //左上
+            return (
+              <rect
+                key={index}
+                id="leftTop"
+                x={parseInt(BBRect.current.getAttribute("x")) - 5}
+                y={parseInt(BBRect.current.getAttribute("y")) - 5}
+                width="5px"
+                height="5px"
+                className="BBCorner"
+                style={{ cursor: "nw-resize" }}
+              />
+            );
+          } else if (value === "rightTop") {
+            //右上
+            return (
+              <rect
+                key={index}
+                id="rightTop"
+                x={
+                  parseInt(BBRect.current.getAttribute("width")) +
+                  parseInt(BBRect.current.getAttribute("x"))
+                }
+                y={parseInt(BBRect.current.getAttribute("y")) - 5}
+                width="5px"
+                height="5px"
+                className="BBCorner"
+                style={{ cursor: "ne-resize" }}
+              />
+            );
+          } else if (value === "leftBottom") {
+            //左下
+            return (
+              <rect
+                key={index}
+                id="leftBottom"
+                x={parseInt(BBRect.current.getAttribute("x")) - 5}
+                y={
+                  parseInt(BBRect.current.getAttribute("height")) +
+                  parseInt(BBRect.current.getAttribute("y")) +
+                  5
+                }
+                width="5px"
+                height="5px"
+                className="BBCorner"
+                style={{ cursor: "sw-resize" }}
+              />
+            );
+          } else if (value === "rightBottom") {
+            //右下
+            return (
+              <rect
+                key={index}
+                id="rightBottom"
+                x={
+                  parseInt(BBRect.current.getAttribute("width")) +
+                  parseInt(BBRect.current.getAttribute("x"))
+                }
+                y={
+                  parseInt(BBRect.current.getAttribute("height")) +
+                  parseInt(BBRect.current.getAttribute("y")) +
+                  5
+                }
+                width="5px"
+                height="5px"
+                className="BBCorner"
+                style={{ cursor: "se-resize" }}
+              />
+            );
+          }
+        })}
+    </>
+  );
+
   return (
     <div
       ref={CLayer}
@@ -200,8 +253,12 @@ export const BoundingBox = (props: BondingBoxProps) => {
           width={bbWidth}
           height={bbHeight}
           fill="#01bc8c"
+          style={{
+            cursor: "all-scroll"
+          }}
           fillOpacity="0.25"
         />
+        {corner}
       </svg>
     </div>
   );

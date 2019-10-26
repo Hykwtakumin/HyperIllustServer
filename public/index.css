@@ -71,6 +71,12 @@
 
 }
 
+.BBCorner {
+  stroke: darkslategray;
+  stroke-width: 1px;
+  fill: white;
+}
+
 /*Import用の画像一覧*/
 .ImportModalMenu {
   display: flex;
