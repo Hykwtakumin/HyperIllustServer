@@ -109,7 +109,7 @@ export const Router = (io: socketIo.Server): express.Router => {
     uploader.single("file"),
     async (req: express.Request, res: express.Response) => {
       const now = moment().format("YYYY-MM-DD-HH-mm-ss");
-      const fileName = `hyperillust_${now}_.svg`;
+      const fileName = `hyperillust_${req.params.userName}_${now}_.svg`;
       const mime: string = "image/svg+xml";
 
       const rawData = await asyncReadFile(req.file.path);
