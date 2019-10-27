@@ -10,16 +10,20 @@ export type BBSize = {
   height: number;
 };
 
+export type BBMoveDiff = {
+  diffX: number;
+  diffY: number;
+};
+
 export interface BondingBoxProps {
   visible: boolean;
   canvasWidth: number;
   canvasHeight: number;
   onResized: (bbSize: BBSize) => void;
+  onMoved: (bbSize: BBMoveDiff) => void;
   onRotated: () => void;
   onRemoved: () => void;
   onCopied: () => void;
-  onPublished: () => void;
-  onAddLink: () => void;
 }
 
 /*選択した範囲のSVG要素を弄ったりリンクつけたりするComponent*/
@@ -35,6 +39,10 @@ export const BoundingBox = (props: BondingBoxProps) => {
   const [bbWidth, setBBWidth] = useState<number>(0);
   const [bbHeight, setBBHeight] = useState<number>(0);
 
+  //ドラッグしたときのオフセット等
+  const [xOffset, setXOffset] = useState<number>(0);
+  const [yOffset, setYOffset] = useState<number>(0);
+
   const setVisibility = (): string => {
     if (props.visible) {
       return "block";
@@ -43,6 +51,14 @@ export const BoundingBox = (props: BondingBoxProps) => {
     }
   };
   let isDragging: boolean = false;
+  let isBBDragging: boolean = false;
+  let isBBRHDragging: boolean = false;
+
+  let ox: number;
+  let oy: number;
+
+  let firstX: number;
+  let firstY: number;
 
   //召喚したBoundingBoxを
   //ドラッグする => 移動(transform?)
@@ -76,9 +92,13 @@ export const BoundingBox = (props: BondingBoxProps) => {
     element.removeEventListener(`pointercancel`, handleCancel);
   };
 
-  const handleDown = (event: PointerEvent) => {
-    isDragging = true;
+  //RectのPointer-eventsをつけたりけしたりすれば良い?
 
+  const handleDown = (event: PointerEvent) => {
+    //まずは全フラグをリセット
+    isDragging = false;
+    isBBDragging = false;
+    isBBRHDragging = false;
     /*編集モードの場合はバウンディングボックスを召喚する*/
     const canvas = BBLayer.current;
     const point: Points = getPoint(event.pageX, event.pageY, canvas);
@@ -88,16 +108,44 @@ export const BoundingBox = (props: BondingBoxProps) => {
     if (event.target.id && event.target.id == "BBRect") {
       //もっと上手い方法がある気がする
       console.log("its BBRect");
-      return;
-    } else if (bbLeft !== 0 || bbTop !== 0 || bbWidth !== 0 || bbHeight !== 0) {
+      isDragging = false;
+      isBBDragging = true;
+      isBBRHDragging = false;
+
+      //クリックした地点のOffsetを求める
+      if (BBRect.current) {
+        setXOffset(point.x - parseInt(BBRect.current.getAttribute("x")));
+        setYOffset(point.y - parseInt(BBRect.current.getAttribute("y")));
+        ox = point.x - parseInt(BBRect.current.getAttribute("x"));
+        oy = point.y - parseInt(BBRect.current.getAttribute("y"));
+        //最初のクリックポイントを記録
+        firstX = point.x;
+        firstY = point.y;
+      }
+    }
+    // else if (event.target.id && event.target.id == "leftTop" || "rightTop"|| "leftBottom" || "rightBottom") {
+    //   console.log("its BBResizeHandle");
+    //   isDragging = false;
+    //   isBBDragging = false;
+    //   isBBRHDragging= true;
+    //   return;
+    // }
+    else if (bbLeft !== 0 || bbTop !== 0 || bbWidth !== 0 || bbHeight !== 0) {
+      isDragging = true;
+      isBBDragging = false;
+      isBBRHDragging = false;
+
       setBBLeft(0);
       setBBTop(0);
       setBBWidth(0);
       setBBHeight(0);
-
       setBBLeft(point.x);
       setBBTop(point.y);
     } else {
+      isDragging = true;
+      isBBDragging = false;
+      isBBRHDragging = false;
+
       setBBLeft(point.x);
       setBBTop(point.y);
       setBBWidth(0);
@@ -114,11 +162,28 @@ export const BoundingBox = (props: BondingBoxProps) => {
       setBBHeight(point.y - parseInt(BBRect.current.getAttribute("y")));
       //BBRect.current.setAttribute("x", `${point.x - bbLeft}`);
       //BBRect.current.setAttribute("y",`${point.y - bbHeight}`);
+    } else if (isBBDragging) {
+      //バウンディングボックスそのものを動かす
+      const canvas = BBLayer.current;
+      const point: Points = getPoint(event.pageX, event.pageY, canvas);
+
+      setBBLeft(point.x - ox);
+      setBBTop(point.y - oy);
+
+      //ここではBBのサイズではなく相対的な移動量を渡した方が処理がわかりやすい
+      //まず最初にクリックした点を覚えておいて、その差分を渡す感じ
+      props.onMoved({
+        diffX: point.x - firstX,
+        diffY: point.y - firstY
+      });
+    } else if (isBBRHDragging) {
     }
   };
 
   const handleUp = (event: PointerEvent) => {
     isDragging = false;
+    isBBDragging = false;
+    isBBRHDragging = false;
     /*編集モードの場合はバウンディングボックスのサイズを調整する*/
     const canvas = BBLayer.current;
     const point: Points = getPoint(event.pageX, event.pageY, canvas);

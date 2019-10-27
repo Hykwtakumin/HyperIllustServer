@@ -10,7 +10,7 @@ import {
 import { PenWidthSelector } from "./PenWidthSelector";
 import { ColorPicker } from "./ColorPicker";
 import { ModeSelector } from "./ModeSelector";
-import { BBSize, BoundingBox } from "./BoundingBox";
+import { BBMoveDiff, BBSize, BoundingBox } from "./BoundingBox";
 import { createPortal } from "react-dom";
 import {
   ButtonComponent,
@@ -146,70 +146,6 @@ export const MainCanvas = (props: MainCanvasProps) => {
     }
   };
 
-  const handleUpload = () => {
-    const blobObject: Blob = new Blob(
-      [new XMLSerializer().serializeToString(svgCanvas.current)],
-      { type: "image/svg+xml;charset=utf-8" }
-    );
-
-    const formData = new FormData();
-    formData.append(`file`, blobObject);
-
-    const opt = {
-      method: "POST",
-      body: formData
-    };
-
-    const userName = location.href.split("/")[3];
-    fetch(`/api/upload/${userName}`, opt)
-      .then(res => {
-        res
-          .json()
-          .then(async data => {
-            console.log(await data);
-          })
-          .catch(e => console.log);
-      })
-      .catch(error => {
-        console.error(error);
-      });
-  };
-
-  const handleNameEntered = (name: string) => {};
-
-  /*画像をアップロードする*/
-  /*成功したらURLをクリップボードに貼り付けてメッセージを出す*/
-  /*失敗したらアラートを出す*/
-  const handlePublish = () => {
-    //alert(publishForm.current.value);
-    //setShowModal(true);
-    // const clippedSVG = <svg viewBox={`${bbLeft} ${bbTop} ${bbWidth} ${bbHeight}`} width={bbWidth} height={bbHeight}>
-    // </svg>
-
-    //これlocalhostからではできない
-    //fetch(`https://scrapbox.io/DrawWiki/${publishForm.current.value}?body=""`);
-
-    //将来的にはこの処理はBoundingBoxにやらせる
-    //BoundingBoxの大きさでRectを作る
-    //単にCanvasサイズとViewBoxを縮めても全体がそのサイズに縮小されるだけで切り抜きはできない!
-    // svgCanvas.current.setAttribute("viewBox", `${bbLeft} ${bbTop} ${bbWidth} ${bbHeight}`);
-    // svgCanvas.current.setAttribute("width", `${bbWidth}`);
-    // svgCanvas.current.setAttribute("height", `${bbHeight}`);
-    const inRect = svgCanvas.current.createSVGRect();
-    // inRect.x = bbLeft;
-    // inRect.y = bbTop;
-    // inRect.width = bbWidth;
-    // inRect.height = bbHeight;
-    const list = Array.from(
-      svgCanvas.current.getIntersectionList(inRect, null)
-    );
-
-    //Rectの範囲にあるPathを選択する
-    //モーダルを出す
-    //グループ化してリンク貼り付け
-    //Rectの範囲のWidth, Height, ViewBoxを持つSVGを新規作成して選択したPathをぶちこむ
-  };
-
   const handleImport = (resourceURL: string) => {
     //サーバーからScrapboxの全ページを取得
     console.log(resourceURL);
@@ -283,6 +219,33 @@ export const MainCanvas = (props: MainCanvasProps) => {
     setSelectedElms(list);
     //リストにぶちこんだ後はしっかりpointer-eventsを無効化しておく
     setPointerEventsDisableToAllPath(interCanvas);
+    //そしてグループ要素を作ってすべて投入?
+  };
+
+  const handleBBMoved = (size: BBMoveDiff) => {
+    console.dir(`diffX: ${size.diffX}, diffY: ${size.diffY}`);
+    //選択された要素を変形(平行移動)していく
+    //setPointerEventsEnableToAllPath(svgCanvas.current);
+    if (selectedElms && selectedElms.length > 0) {
+      selectedElms.forEach((elm: SVGElement) => {
+        //item.setAttribute("transform", `translate(${size.diffX},${size.diffY})`);
+        const copyPath = svgCanvas.current.removeChild(elm);
+
+        copyPath.setAttribute(
+          "transform",
+          `translate(${size.diffX},${size.diffY})`
+        );
+        svgCanvas.current.appendChild(copyPath);
+
+        // const itemX = parseInt(elm.getAttribute("x"));
+        // const itemY = parseInt(elm.getAttribute("y"));
+        // elm.setAttribute("x", `${itemX + size.diffX}`);
+        // elm.setAttribute("y", `${itemY + size.diffY}`);
+      });
+    } else {
+      console.log("something went wrong");
+    }
+    //setPointerEventsDisableToAllPath(svgCanvas.current);
   };
 
   /*選択したパスにリンクを追加する処理*/
@@ -330,7 +293,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
             localIllustList={localIllustList}
           />
 
-          <ExportButton onExport={handleExport} />
+          <ExportButton onExport={handleExport} selectedElms={selectedElms} />
         </div>
 
         <div
@@ -369,11 +332,10 @@ export const MainCanvas = (props: MainCanvasProps) => {
             canvasWidth={canvasSize.width}
             canvasHeight={canvasSize.height}
             onResized={handleBBResized}
+            onMoved={handleBBMoved}
             onRotated={() => {}}
             onRemoved={() => {}}
             onCopied={() => {}}
-            onPublished={() => {}}
-            onAddLink={() => {}}
           />
         </div>
       </ModalProvider>

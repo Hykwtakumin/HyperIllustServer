@@ -4,6 +4,7 @@ import { useModal, ButtonComponent } from "./share";
 
 export type ExportButtonProps = {
   onExport: () => void;
+  selectedElms: SVGElement[];
 };
 
 /*スクボに新しいページを作る*/
@@ -19,6 +20,14 @@ export const ExportButton: FC<ExportButtonProps> = (
   //キャンバス全体 => キャンバスをアップロード
   //選択していた場合 => 選択範囲をアップロード
 
+  const renderTitle = (): string => {
+    if (props.selectedElms && props.selectedElms.length > 0) {
+      return "選択した要素をアップロード";
+    } else {
+      return "キャンバスをアップロード";
+    }
+  };
+
   /*useModalではuseCallbackを使っているのでローカル変数がそのままでは使えない*/
   const handleSendTitle = () => {
     props.onExport();
@@ -27,7 +36,7 @@ export const ExportButton: FC<ExportButtonProps> = (
   const popUpModal = () => {
     showModal({
       type: "confirm",
-      title: <h3>{`画像のアップロード`}</h3>,
+      title: <h3>{renderTitle()}</h3>,
       content: <></>,
       onOk() {
         props.onExport();
