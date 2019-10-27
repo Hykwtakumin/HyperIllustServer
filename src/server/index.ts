@@ -21,32 +21,34 @@ const port = process.env.PORT || 3000;
 const io = createSocketIOServer(server);
 socketIOHandler(io);
 
-mongoDbSetup()
-  .then(() => {
-    app.use(cors());
-    app.set("trust proxy", true);
-    app.use(express.static("public"));
-    app.set("views", "views");
+app.use(cors());
+app.set("trust proxy", true);
+app.use(express.static("public"));
+app.set("views", "views");
 
-    app.set("view engine", "tsx");
-    app.engine("tsx", reactViews.createEngine());
+app.set("view engine", "tsx");
+app.engine("tsx", reactViews.createEngine());
 
-    server.listen(port, () => {
-      console.log(`server listening at port : ${port}`);
-    });
+server.listen(port, () => {
+  console.log(`server listening at port : ${port}`);
+});
 
-    app.use(bodyParser.json());
-    app.use(
-      bodyParser.urlencoded({
-        extended: true
-      })
-    );
-    app.use(cookieParser());
-
-    //app.use("/api/", apiRouter);
-    app.use("/", Router(io));
+app.use(bodyParser.json());
+app.use(
+  bodyParser.urlencoded({
+    extended: true
   })
-  .catch(e => {
-    debug(e);
-    process.exit(1);
-  });
+);
+app.use(cookieParser());
+
+//app.use("/api/", apiRouter);
+app.use("/", Router(io));
+
+// mongoDbSetup()
+//   .then(() => {
+//
+//   })
+//   .catch(e => {
+//     debug(e);
+//     process.exit(1);
+//   });
