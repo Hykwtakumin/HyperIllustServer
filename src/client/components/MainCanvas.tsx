@@ -54,6 +54,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
   let isDragging: boolean = false;
   let lastPath;
+  let lastGroup: SVGGElement;
   const svgCanvas = useRef<SVGSVGElement>(null);
   const { showModal } = useModal();
 
@@ -220,32 +221,35 @@ export const MainCanvas = (props: MainCanvasProps) => {
     //リストにぶちこんだ後はしっかりpointer-eventsを無効化しておく
     setPointerEventsDisableToAllPath(interCanvas);
     //そしてグループ要素を作ってすべて投入?
+    const groupElm: SVGGElement = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "g"
+    );
+
+    svgCanvas.current.appendChild(groupElm);
+
+    const newList: SVGElement[] = [];
+
+    list.forEach((elm: SVGElement) => {
+      const copyElm = svgCanvas.current.removeChild(elm);
+      newList.push(copyElm);
+      groupElm.appendChild(copyElm);
+    });
+    setSelectedElms(newList);
+    lastGroup = groupElm;
+
   };
 
   const handleBBMoved = (size: BBMoveDiff) => {
     console.dir(`diffX: ${size.diffX}, diffY: ${size.diffY}`);
     //選択された要素を変形(平行移動)していく
     //setPointerEventsEnableToAllPath(svgCanvas.current);
-    if (selectedElms && selectedElms.length > 0) {
-      selectedElms.forEach((elm: SVGElement) => {
-        //item.setAttribute("transform", `translate(${size.diffX},${size.diffY})`);
-        const copyPath = svgCanvas.current.removeChild(elm);
 
-        copyPath.setAttribute(
-          "transform",
-          `translate(${size.diffX},${size.diffY})`
-        );
-        svgCanvas.current.appendChild(copyPath);
-
-        // const itemX = parseInt(elm.getAttribute("x"));
-        // const itemY = parseInt(elm.getAttribute("y"));
-        // elm.setAttribute("x", `${itemX + size.diffX}`);
-        // elm.setAttribute("y", `${itemY + size.diffY}`);
-      });
+    if (lastGroup) {
+      lastGroup.setAttribute("transform", `translate(${size.diffX},${size.diffY})`);
     } else {
       console.log("something went wrong");
     }
-    //setPointerEventsDisableToAllPath(svgCanvas.current);
   };
 
   /*選択したパスにリンクを追加する処理*/
