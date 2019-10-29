@@ -33,6 +33,19 @@ export const ExportButton: FC<ExportButtonProps> = (
     props.onExport();
   };
 
+  const handleUpload = () => {
+  };
+
+  const showSuccessModal = () => {
+    if (props) {
+
+    }
+  };
+
+  const close = () => {
+
+  };
+
   const popUpModal = () => {
     showModal({
       type: "confirm",

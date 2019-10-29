@@ -194,6 +194,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
       //アップロード後はしっかりpointer-eventsを無効化しておく
       setPointerEventsDisableToAllPath(svgCanvas.current);
+      window.open(result.sourceURL);
     } catch (error) {
       console.dir(error);
       alert("何か問題が発生しました!");
