@@ -238,7 +238,6 @@ export const MainCanvas = (props: MainCanvasProps) => {
     });
     setSelectedElms(newList);
     lastGroup = groupElm;
-
   };
 
   const handleBBMoved = (size: BBMoveDiff) => {
@@ -247,7 +246,10 @@ export const MainCanvas = (props: MainCanvasProps) => {
     //setPointerEventsEnableToAllPath(svgCanvas.current);
 
     if (lastGroup) {
-      lastGroup.setAttribute("transform", `translate(${size.diffX},${size.diffY})`);
+      lastGroup.setAttribute(
+        "transform",
+        `translate(${size.diffX},${size.diffY})`
+      );
     } else {
       console.log("something went wrong");
     }
