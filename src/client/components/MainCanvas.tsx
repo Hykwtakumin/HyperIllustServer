@@ -50,7 +50,8 @@ export const MainCanvas = (props: MainCanvasProps) => {
   );
 
   //BBで選択されたPathのリスト
-  const [selectedElms, setSelectedElms] = useState<SVGElement[]>(null);
+  //const [selectedElms, setSelectedElms] = useState<SVGElement[]>(null);
+  let selectedElms: SVGElement[];
 
   let isDragging: boolean = false;
   let lastPath;
@@ -201,6 +202,29 @@ export const MainCanvas = (props: MainCanvasProps) => {
     }
   };
 
+  //selectedListをg要素の中に突っ込む関数
+  const insertElmsToGroup = () => {
+    if (selectedElms) {
+      //g要素を新規作成
+      const groupElm: SVGGElement = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "g"
+      );
+      //g要素を追加
+      svgCanvas.current.appendChild(groupElm);
+      selectedElms.forEach(elm => {
+        const copyElm = svgCanvas.current.removeChild(elm);
+        groupElm.appendChild(copyElm);
+      });
+      //lastGroupに代入
+      lastGroup = groupElm;
+    } else {
+      console.log("selectedElms is null!");
+    }
+  };
+
+  //BBを作った時点ではグループ化する必要はない
+  //リストは作るがグループ化は変形し始めてからで良い
   const handleBBResized = (size: BBSize) => {
     console.dir(size);
     const interCanvas = svgCanvas.current as SVGSVGElement;
@@ -218,40 +242,33 @@ export const MainCanvas = (props: MainCanvasProps) => {
     //背景の白い四角は除く
     const backGroundRect = list.shift();
     console.dir(list);
-    setSelectedElms(list);
+    //setSelectedElms(Array.from(list));
+    selectedElms = list;
     //リストにぶちこんだ後はしっかりpointer-eventsを無効化しておく
     setPointerEventsDisableToAllPath(interCanvas);
-    //そしてグループ要素を作ってすべて投入?
-    const groupElm: SVGGElement = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "g"
-    );
-
-    svgCanvas.current.appendChild(groupElm);
-
-    const newList: SVGElement[] = [];
-
-    list.forEach((elm: SVGElement) => {
-      const copyElm = svgCanvas.current.removeChild(elm);
-      newList.push(copyElm);
-      groupElm.appendChild(copyElm);
-    });
-    setSelectedElms(newList);
-    lastGroup = groupElm;
+    console.log(`SelectedElms : ${selectedElms}`);
   };
 
+  //もしもlastGroupが設定されていればそのAttributeを操作する
+  //設定されていなければlastListを元にGroupを作成する
+  //lastListもnullだった場合は何もしない
   const handleBBMoved = (size: BBMoveDiff) => {
     console.dir(`diffX: ${size.diffX}, diffY: ${size.diffY}`);
     //選択された要素を変形(平行移動)していく
-    //setPointerEventsEnableToAllPath(svgCanvas.current);
-
     if (lastGroup) {
       lastGroup.setAttribute(
         "transform",
         `translate(${size.diffX},${size.diffY})`
       );
+      return;
     } else {
+      // insertElmsToGroup();
+      // lastGroup.setAttribute(
+      //   "transform",
+      //   `translate(${size.diffX},${size.diffY})`
+      // );
       console.log("something went wrong");
+      insertElmsToGroup();
     }
   };
 
@@ -278,7 +295,9 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
       //setPointerEventsEnableToAllPath();
       //リンクを貼り終わったらselectedElmsを空にする
-      setSelectedElms([]);
+      //空にして良いのだろうか?
+      //setSelectedElms([]);
+      selectedElms = [];
     }
   };
 
@@ -319,18 +338,27 @@ export const MainCanvas = (props: MainCanvasProps) => {
             xmlns="http://www.w3.org/2000/svg"
             xmlnsXlink="http://www.w3.org/1999/xlink"
           >
-            <rect width="100%" height="100%" fill="#FFFFFF" />
             <defs>
               <style type={"text/css"}>{`<![CDATA[
+                path:hover: {
+                  stroke: red;
+                  transition: 0.5s;
+                }
+              
                 a:hover {
                   fill: dodgerblue;
+                  stroke: dodgerblue;
+                  transition: 0.5s;
                 }
                 
                 a:active {
                   fill: dodgerblue;
+                  stroke: dodgerblue;
+                  transition: 0.5s;
                 }
            ]]>`}</style>
             </defs>
+            <rect width="100%" height="100%" fill="#FFFFFF" />
           </svg>
         </div>
         <div className="ControlSection">
