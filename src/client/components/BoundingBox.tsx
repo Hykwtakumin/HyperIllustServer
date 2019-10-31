@@ -10,16 +10,20 @@ export type BBSize = {
   height: number;
 };
 
+export type BBMoveDiff = {
+  diffX: number;
+  diffY: number;
+};
+
 export interface BondingBoxProps {
   visible: boolean;
   canvasWidth: number;
   canvasHeight: number;
   onResized: (bbSize: BBSize) => void;
+  onMoved: (bbSize: BBMoveDiff) => void;
   onRotated: () => void;
   onRemoved: () => void;
   onCopied: () => void;
-  onPublished: () => void;
-  onAddLink: () => void;
 }
 
 /*選択した範囲のSVG要素を弄ったりリンクつけたりするComponent*/
@@ -35,6 +39,10 @@ export const BoundingBox = (props: BondingBoxProps) => {
   const [bbWidth, setBBWidth] = useState<number>(0);
   const [bbHeight, setBBHeight] = useState<number>(0);
 
+  //ドラッグしたときのオフセット等
+  const [xOffset, setXOffset] = useState<number>(0);
+  const [yOffset, setYOffset] = useState<number>(0);
+
   const setVisibility = (): string => {
     if (props.visible) {
       return "block";
@@ -43,10 +51,14 @@ export const BoundingBox = (props: BondingBoxProps) => {
     }
   };
   let isDragging: boolean = false;
+  let isBBDragging: boolean = false;
+  let isBBRHDragging: boolean = false;
 
-  /*BoundingBoxが作られたか否か*/
-  /*イベントリスナの管理に使う?*/
-  const [created, setCreated] = useState<boolean>(false);
+  let ox: number;
+  let oy: number;
+
+  let firstX: number;
+  let firstY: number;
 
   //召喚したBoundingBoxを
   //ドラッグする => 移動(transform?)
@@ -66,11 +78,6 @@ export const BoundingBox = (props: BondingBoxProps) => {
     }
   }, [props.visible]);
 
-  const handleAddLink = () => {
-    //ポータルでダイアログを出す
-    alert("このパスを公開します");
-  };
-
   const AttachEventListeners = (element: HTMLElement) => {
     element.addEventListener(`pointerdown`, handleDown);
     element.addEventListener(`pointermove`, handleMove);
@@ -85,9 +92,13 @@ export const BoundingBox = (props: BondingBoxProps) => {
     element.removeEventListener(`pointercancel`, handleCancel);
   };
 
-  const handleDown = (event: PointerEvent) => {
-    isDragging = true;
+  //RectのPointer-eventsをつけたりけしたりすれば良い?
 
+  const handleDown = (event: PointerEvent) => {
+    //まずは全フラグをリセット
+    isDragging = false;
+    isBBDragging = false;
+    isBBRHDragging = false;
     /*編集モードの場合はバウンディングボックスを召喚する*/
     const canvas = BBLayer.current;
     const point: Points = getPoint(event.pageX, event.pageY, canvas);
@@ -97,18 +108,48 @@ export const BoundingBox = (props: BondingBoxProps) => {
     if (event.target.id && event.target.id == "BBRect") {
       //もっと上手い方法がある気がする
       console.log("its BBRect");
-      //return
-    } else if (bbLeft !== 0 && bbTop !== 0) {
+      isDragging = false;
+      isBBDragging = true;
+      isBBRHDragging = false;
+
+      //クリックした地点のOffsetを求める
+      if (BBRect.current) {
+        setXOffset(point.x - parseInt(BBRect.current.getAttribute("x")));
+        setYOffset(point.y - parseInt(BBRect.current.getAttribute("y")));
+        ox = point.x - parseInt(BBRect.current.getAttribute("x"));
+        oy = point.y - parseInt(BBRect.current.getAttribute("y"));
+        //最初のクリックポイントを記録
+        firstX = point.x;
+        firstY = point.y;
+      }
+    }
+    // else if (event.target.id && event.target.id == "leftTop" || "rightTop"|| "leftBottom" || "rightBottom") {
+    //   console.log("its BBResizeHandle");
+    //   isDragging = false;
+    //   isBBDragging = false;
+    //   isBBRHDragging= true;
+    //   return;
+    // }
+    else if (bbLeft !== 0 || bbTop !== 0 || bbWidth !== 0 || bbHeight !== 0) {
+      isDragging = true;
+      isBBDragging = false;
+      isBBRHDragging = false;
+
       setBBLeft(0);
       setBBTop(0);
       setBBWidth(0);
       setBBHeight(0);
-
       setBBLeft(point.x);
       setBBTop(point.y);
     } else {
+      isDragging = true;
+      isBBDragging = false;
+      isBBRHDragging = false;
+
       setBBLeft(point.x);
       setBBTop(point.y);
+      setBBWidth(0);
+      setBBHeight(0);
     }
   };
 
@@ -117,18 +158,37 @@ export const BoundingBox = (props: BondingBoxProps) => {
       /*編集モードの場合はバウンディングボックスのサイズを調整する*/
       const canvas = BBLayer.current;
       const point: Points = getPoint(event.pageX, event.pageY, canvas);
-      setBBWidth(point.x - bbLeft);
-      setBBHeight(point.y - bbHeight);
+      setBBWidth(point.x - parseInt(BBRect.current.getAttribute("x")));
+      setBBHeight(point.y - parseInt(BBRect.current.getAttribute("y")));
+      //BBRect.current.setAttribute("x", `${point.x - bbLeft}`);
+      //BBRect.current.setAttribute("y",`${point.y - bbHeight}`);
+    } else if (isBBDragging) {
+      //バウンディングボックスそのものを動かす
+      const canvas = BBLayer.current;
+      const point: Points = getPoint(event.pageX, event.pageY, canvas);
+
+      setBBLeft(point.x - ox);
+      setBBTop(point.y - oy);
+
+      //ここではBBのサイズではなく相対的な移動量を渡した方が処理がわかりやすい
+      //まず最初にクリックした点を覚えておいて、その差分を渡す感じ
+      props.onMoved({
+        diffX: point.x - firstX,
+        diffY: point.y - firstY
+      });
+    } else if (isBBRHDragging) {
     }
   };
 
   const handleUp = (event: PointerEvent) => {
     isDragging = false;
+    isBBDragging = false;
+    isBBRHDragging = false;
     /*編集モードの場合はバウンディングボックスのサイズを調整する*/
     const canvas = BBLayer.current;
     const point: Points = getPoint(event.pageX, event.pageY, canvas);
-    setBBWidth(point.x - bbLeft);
-    setBBHeight(point.y - bbHeight);
+    //setBBWidth(point.x - bbLeft);
+    //setBBHeight(point.y - bbHeight);
 
     /*イベントリスナーを外す*/
     //DetachEventListeners(CLayer.current);
@@ -148,31 +208,89 @@ export const BoundingBox = (props: BondingBoxProps) => {
     handleUp(event);
   };
 
-  //ドラッグにしか使わないかも
-  const handleRectDown = (event: PointerEvent) => {
-    isDragging = true;
-    //event.preventDefault();
-  };
-
-  const handleRectMove = (event: PointerEvent) => {
-    //event.preventDefault();
-    const currentPoint = getPoint(event.pageX, event.pageY, BBLayer.current);
-    if (isDragging) {
-      //setBBLeft(currentPoint.x - bbLeft);
-      //setBBTop(currentPoint.y - bbTop);
-      BBRect.current.setAttribute("x", `${currentPoint.x}`);
-      BBRect.current.setAttribute("y", `${currentPoint.y}`);
-    }
-  };
-
-  const handleRectUp = (event: PointerEvent) => {
-    //event.preventDefault();
-    isDragging = false;
-    setBBLeft(BBRect.current.x);
-    setBBTop(BBRect.current.y);
-  };
-
   /*4隅 + 4点(合計8点)のハンドルはループで配置*/
+
+  const cornerPoint = ["leftTop", "rightTop", "leftBottom", "rightBottom"];
+
+  const corner = (
+    <>
+      {BBRect.current &&
+        cornerPoint.map((value, index) => {
+          if (value === "leftTop") {
+            //左上
+            return (
+              <rect
+                key={index}
+                id="leftTop"
+                x={parseInt(BBRect.current.getAttribute("x")) - 5}
+                y={parseInt(BBRect.current.getAttribute("y")) - 5}
+                width="5px"
+                height="5px"
+                className="BBCorner"
+                style={{ cursor: "nw-resize" }}
+              />
+            );
+          } else if (value === "rightTop") {
+            //右上
+            return (
+              <rect
+                key={index}
+                id="rightTop"
+                x={
+                  parseInt(BBRect.current.getAttribute("width")) +
+                  parseInt(BBRect.current.getAttribute("x"))
+                }
+                y={parseInt(BBRect.current.getAttribute("y")) - 5}
+                width="5px"
+                height="5px"
+                className="BBCorner"
+                style={{ cursor: "ne-resize" }}
+              />
+            );
+          } else if (value === "leftBottom") {
+            //左下
+            return (
+              <rect
+                key={index}
+                id="leftBottom"
+                x={parseInt(BBRect.current.getAttribute("x")) - 5}
+                y={
+                  parseInt(BBRect.current.getAttribute("height")) +
+                  parseInt(BBRect.current.getAttribute("y")) +
+                  5
+                }
+                width="5px"
+                height="5px"
+                className="BBCorner"
+                style={{ cursor: "sw-resize" }}
+              />
+            );
+          } else if (value === "rightBottom") {
+            //右下
+            return (
+              <rect
+                key={index}
+                id="rightBottom"
+                x={
+                  parseInt(BBRect.current.getAttribute("width")) +
+                  parseInt(BBRect.current.getAttribute("x"))
+                }
+                y={
+                  parseInt(BBRect.current.getAttribute("height")) +
+                  parseInt(BBRect.current.getAttribute("y")) +
+                  5
+                }
+                width="5px"
+                height="5px"
+                className="BBCorner"
+                style={{ cursor: "se-resize" }}
+              />
+            );
+          }
+        })}
+    </>
+  );
+
   return (
     <div
       ref={CLayer}
@@ -200,8 +318,12 @@ export const BoundingBox = (props: BondingBoxProps) => {
           width={bbWidth}
           height={bbHeight}
           fill="#01bc8c"
+          style={{
+            cursor: "all-scroll"
+          }}
           fillOpacity="0.25"
         />
+        {corner}
       </svg>
     </div>
   );

@@ -2,15 +2,14 @@ import * as React from "react";
 import { FC, useRef, useState } from "react";
 import { useModal, ButtonComponent } from "./share";
 
-export type ExportButtonProps = {
+export type UploadButtonProps = {
   onExport: () => void;
   selectedElms: SVGElement[];
 };
 
-/*スクボに新しいページを作る*/
-
-export const ExportButton: FC<ExportButtonProps> = (
-  props: ExportButtonProps
+/*個別要素ではなくキャンバス全体をアップロードする*/
+export const UploadButton: FC<UploadButtonProps> = (
+  props: UploadButtonProps
 ) => {
   const { showModal } = useModal();
   //const [title, setTitle] = useState<string>("");
@@ -61,7 +60,7 @@ export const ExportButton: FC<ExportButtonProps> = (
   return (
     <div style={{ padding: "3px" }}>
       <ButtonComponent type="default" onClick={popUpModal}>
-        Export
+        Upload
       </ButtonComponent>
     </div>
   );

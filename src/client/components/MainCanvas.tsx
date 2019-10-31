@@ -10,7 +10,7 @@ import {
 import { PenWidthSelector } from "./PenWidthSelector";
 import { ColorPicker } from "./ColorPicker";
 import { ModeSelector } from "./ModeSelector";
-import { BBSize, BoundingBox } from "./BoundingBox";
+import { BBMoveDiff, BBSize, BoundingBox } from "./BoundingBox";
 import { createPortal } from "react-dom";
 import {
   ButtonComponent,
@@ -25,6 +25,7 @@ import { ExportButton } from "./ExportButton";
 import { HyperIllust } from "../../share/model";
 import { saveToLocalStorage } from "./share/localStorage";
 import { AddLinkButton } from "./AddLinkButton";
+import { UploadButton } from "./UploadButton";
 
 interface MainCanvasProps {}
 
@@ -50,10 +51,13 @@ export const MainCanvas = (props: MainCanvasProps) => {
   );
 
   //BBで選択されたPathのリスト
-  const [selectedElms, setSelectedElms] = useState<SVGElement[]>(null);
+  //const [selectedElms, setSelectedElms] = useState<SVGElement[]>(null);
+  let selectedElms: SVGElement[];
 
   let isDragging: boolean = false;
   let lastPath;
+  let lastGroup: SVGGElement;
+  let lastBBSize: BBSize;
   const svgCanvas = useRef<SVGSVGElement>(null);
   const { showModal } = useModal();
 
@@ -146,72 +150,8 @@ export const MainCanvas = (props: MainCanvasProps) => {
     }
   };
 
-  const handleUpload = () => {
-    const blobObject: Blob = new Blob(
-      [new XMLSerializer().serializeToString(svgCanvas.current)],
-      { type: "image/svg+xml;charset=utf-8" }
-    );
-
-    const formData = new FormData();
-    formData.append(`file`, blobObject);
-
-    const opt = {
-      method: "POST",
-      body: formData
-    };
-
-    const userName = location.href.split("/")[3];
-    fetch(`/api/upload/${userName}`, opt)
-      .then(res => {
-        res
-          .json()
-          .then(async data => {
-            console.log(await data);
-          })
-          .catch(e => console.log);
-      })
-      .catch(error => {
-        console.error(error);
-      });
-  };
-
-  const handleNameEntered = (name: string) => {};
-
-  /*画像をアップロードする*/
-  /*成功したらURLをクリップボードに貼り付けてメッセージを出す*/
-  /*失敗したらアラートを出す*/
-  const handlePublish = () => {
-    //alert(publishForm.current.value);
-    //setShowModal(true);
-    // const clippedSVG = <svg viewBox={`${bbLeft} ${bbTop} ${bbWidth} ${bbHeight}`} width={bbWidth} height={bbHeight}>
-    // </svg>
-
-    //これlocalhostからではできない
-    //fetch(`https://scrapbox.io/DrawWiki/${publishForm.current.value}?body=""`);
-
-    //将来的にはこの処理はBoundingBoxにやらせる
-    //BoundingBoxの大きさでRectを作る
-    //単にCanvasサイズとViewBoxを縮めても全体がそのサイズに縮小されるだけで切り抜きはできない!
-    // svgCanvas.current.setAttribute("viewBox", `${bbLeft} ${bbTop} ${bbWidth} ${bbHeight}`);
-    // svgCanvas.current.setAttribute("width", `${bbWidth}`);
-    // svgCanvas.current.setAttribute("height", `${bbHeight}`);
-    const inRect = svgCanvas.current.createSVGRect();
-    // inRect.x = bbLeft;
-    // inRect.y = bbTop;
-    // inRect.width = bbWidth;
-    // inRect.height = bbHeight;
-    const list = Array.from(
-      svgCanvas.current.getIntersectionList(inRect, null)
-    );
-
-    //Rectの範囲にあるPathを選択する
-    //モーダルを出す
-    //グループ化してリンク貼り付け
-    //Rectの範囲のWidth, Height, ViewBoxを持つSVGを新規作成して選択したPathをぶちこむ
-  };
-
+  //Importは
   const handleImport = (resourceURL: string) => {
-    //サーバーからScrapboxの全ページを取得
     console.log(resourceURL);
     //
   };
@@ -245,29 +185,102 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
       //再設定
       setLocalIllustList(loadHyperIllusts());
-
-      // showModal({
-      //   type: "success",
-      //   title: `アップロードに成功しました!`,
-      //   content: <>
-      //     <img src={result.sourceURL} width={200} />
-      //   </>,
-      //   okText: `閉じる`
-      // });
-
       //アップロード後はしっかりpointer-eventsを無効化しておく
       setPointerEventsDisableToAllPath(svgCanvas.current);
+      window.open(result.sourceURL);
     } catch (error) {
       console.dir(error);
       alert("何か問題が発生しました!");
     }
   };
 
+  //部分Export
+  const handleClippedExport = async () => {
+    if (!lastGroup) {
+      insertElmsToGroup();
+    }
+
+    setPointerEventsEnableToAllPath(svgCanvas.current);
+    const clipped: SVGElement = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "svg"
+    );
+    clipped.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    clipped.setAttribute("width", `${lastBBSize.width}`);
+    clipped.setAttribute("height", `${lastBBSize.height}`);
+    clipped.setAttribute(
+      "viewBox",
+      `${lastBBSize.left} ${lastBBSize.top} ${lastBBSize.width} ${
+        lastBBSize.height
+      }`
+    );
+    clipped.setAttribute("xmlns:xlink", `http://www.w3.org/1999/xlink`);
+    clipped.appendChild(lastGroup);
+
+    const blobObject: Blob = new Blob(
+      [new XMLSerializer().serializeToString(clipped)],
+      { type: "image/svg+xml;charset=utf-8" }
+    );
+
+    const formData = new FormData();
+    formData.append(`file`, blobObject);
+
+    const opt = {
+      method: "POST",
+      body: formData
+    };
+
+    try {
+      const userName = location.href.split("/")[3];
+      const request = await fetch(`/api/upload/${userName}`, opt);
+      const result: HyperIllust = await request.json();
+      console.log("アップロードに成功しました!");
+      console.log(result);
+
+      const saveResult = await saveToLocalStorage(result.id, result);
+      console.log(`saveResult : ${saveResult}`);
+
+      //再設定
+      setLocalIllustList(loadHyperIllusts());
+      //アップロード後はしっかりpointer-eventsを無効化しておく
+      setPointerEventsDisableToAllPath(svgCanvas.current);
+      window.open(result.sourceURL);
+    } catch (error) {
+      console.dir(error);
+      alert("何か問題が発生しました!");
+    }
+  };
+
+  //selectedListをg要素の中に突っ込む関数
+  const insertElmsToGroup = () => {
+    if (selectedElms) {
+      //g要素を新規作成
+      const groupElm: SVGGElement = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "g"
+      );
+      //g要素を追加
+      svgCanvas.current.appendChild(groupElm);
+      selectedElms.forEach(elm => {
+        const copyElm = elm.parentNode.removeChild(elm);
+        groupElm.appendChild(copyElm);
+      });
+      //lastGroupに代入
+      lastGroup = groupElm;
+    } else {
+      console.log("selectedElms is null!");
+    }
+  };
+
+  //BBを作った時点ではグループ化する必要はない
+  //リストは作るがグループ化は変形し始めてからで良い
   const handleBBResized = (size: BBSize) => {
     console.dir(size);
     const interCanvas = svgCanvas.current as SVGSVGElement;
 
     const inRect = interCanvas.createSVGRect();
+
+    lastBBSize = size;
 
     inRect.x = size.left;
     inRect.y = size.top;
@@ -280,15 +293,48 @@ export const MainCanvas = (props: MainCanvasProps) => {
     //背景の白い四角は除く
     const backGroundRect = list.shift();
     console.dir(list);
-    setSelectedElms(list);
+    //setSelectedElms(Array.from(list));
+    selectedElms = list;
     //リストにぶちこんだ後はしっかりpointer-eventsを無効化しておく
     setPointerEventsDisableToAllPath(interCanvas);
+    console.log(`SelectedElms : ${selectedElms}`);
+  };
+
+  //もしもlastGroupが設定されていればそのAttributeを操作する
+  //設定されていなければlastListを元にGroupを作成する
+  //lastListもnullだった場合は何もしない
+  const handleBBMoved = (size: BBMoveDiff) => {
+    console.dir(`diffX: ${size.diffX}, diffY: ${size.diffY}`);
+    //選択された要素を変形(平行移動)していく
+    if (lastGroup) {
+      lastGroup.setAttribute(
+        "transform",
+        `translate(${size.diffX},${size.diffY})`
+      );
+      return;
+    } else {
+      // insertElmsToGroup();
+      // lastGroup.setAttribute(
+      //   "transform",
+      //   `translate(${size.diffX},${size.diffY})`
+      // );
+      console.log("something went wrong");
+      insertElmsToGroup();
+    }
   };
 
   /*選択したパスにリンクを追加する処理*/
+  /*この時点でグループ化してしまっても良いはず*/
   const handleAddLink = (link: string) => {
     console.log(`link: ${link}`);
     if (selectedElms && selectedElms.length > 0) {
+      const groupElm: SVGGElement = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "g"
+      );
+      //g要素を追加
+      svgCanvas.current.appendChild(groupElm);
+
       selectedElms.forEach((elm: SVGElement) => {
         //SVGAElementを新規作成してelmを囲っていく?
         //グループ化してしまう感じで
@@ -304,11 +350,17 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
         const copyPath = svgCanvas.current.removeChild(elm);
         linkElm.appendChild(copyPath);
+        groupElm.appendChild(linkElm);
       });
+
+      //lastGroupに代入
+      lastGroup = groupElm;
 
       //setPointerEventsEnableToAllPath();
       //リンクを貼り終わったらselectedElmsを空にする
-      setSelectedElms([]);
+      //空にして良いのだろうか?
+      //setSelectedElms([]);
+      selectedElms = [];
     }
   };
 
@@ -320,17 +372,22 @@ export const MainCanvas = (props: MainCanvasProps) => {
           <ColorPicker colorChange={onColorChange} />
           <ModeSelector modeChange={onModeChange} />
 
-          <AddLinkButton
-            onAddLink={handleAddLink}
-            selectedElms={selectedElms}
-          />
+          {/*<AddLinkButton*/}
+          {/*  onAddLink={handleAddLink}*/}
+          {/*  selectedElms={selectedElms}*/}
+          {/*/>*/}
 
           <ImportButton
-            onSelected={handleImport}
+            onSelected={handleAddLink}
             localIllustList={localIllustList}
           />
 
-          <ExportButton onExport={handleExport} />
+          <ExportButton
+            onExport={handleClippedExport}
+            selectedElms={selectedElms}
+          />
+
+          <UploadButton onExport={handleExport} selectedElms={selectedElms} />
         </div>
 
         <div
@@ -349,18 +406,27 @@ export const MainCanvas = (props: MainCanvasProps) => {
             xmlns="http://www.w3.org/2000/svg"
             xmlnsXlink="http://www.w3.org/1999/xlink"
           >
-            <rect width="100%" height="100%" fill="#FFFFFF" />
             <defs>
               <style type={"text/css"}>{`<![CDATA[
+                path:hover: {
+                  stroke: red;
+                  transition: 0.5s;
+                }
+              
                 a:hover {
                   fill: dodgerblue;
+                  stroke: dodgerblue;
+                  transition: 0.5s;
                 }
                 
                 a:active {
                   fill: dodgerblue;
+                  stroke: dodgerblue;
+                  transition: 0.5s;
                 }
            ]]>`}</style>
             </defs>
+            <rect width="100%" height="100%" fill="#FFFFFF" />
           </svg>
         </div>
         <div className="ControlSection">
@@ -369,11 +435,10 @@ export const MainCanvas = (props: MainCanvasProps) => {
             canvasWidth={canvasSize.width}
             canvasHeight={canvasSize.height}
             onResized={handleBBResized}
+            onMoved={handleBBMoved}
             onRotated={() => {}}
             onRemoved={() => {}}
             onCopied={() => {}}
-            onPublished={() => {}}
-            onAddLink={() => {}}
           />
         </div>
       </ModalProvider>

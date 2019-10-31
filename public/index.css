@@ -2,8 +2,23 @@
   position: absolute;
 }
 
+/*現在描画中のパスはわかりやすいように色をつける*/
 .current-path {
   stroke: turquoise;
+}
+
+/*リンクが埋め込まれたパス*/
+.linkedPath:hover:focus {
+  stroke: dodgerblue;
+  transition: 0.5s;
+}
+
+/*関連画像から選択されたパス*/
+.focusedLinkedPath{
+  stroke: dodgerblue;
+  transform-origin: center;
+  transform: scale(1.2);
+  transition: 0.5s;
 }
 
 #root {
@@ -69,6 +84,19 @@
 
 .BBLayer {
 
+}
+
+.BBCorner {
+  stroke: darkslategray;
+  stroke-width: 1px;
+  fill: white;
+}
+
+/*画像一覧用コンテナ*/
+.ImportModalMenuContainer {
+  max-height: 150px;
+  max-width: 100%;
+  overflow: scroll;
 }
 
 /*Import用の画像一覧*/

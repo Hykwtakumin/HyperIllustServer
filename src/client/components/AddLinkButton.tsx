@@ -45,11 +45,7 @@ export const AddLinkButton: FC<AddLinkButtonProps> = (
 
   return (
     <div style={{ padding: "3px" }}>
-      <ButtonComponent
-        type="default"
-        onClick={popUpModal}
-        disabled={setAbility()}
-      >
+      <ButtonComponent type="default" onClick={popUpModal}>
         AddLink
       </ButtonComponent>
     </div>

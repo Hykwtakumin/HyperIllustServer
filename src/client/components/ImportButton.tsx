@@ -41,23 +41,25 @@ export const ImportButton: FC<ImportButtonProps> = (
   const debug = logger("client:ImportButton");
 
   const inner = (
-    <div className="ImportModalMenu">
-      {props.localIllustList.map((item: HyperIllust, index: number) => {
-        return (
-          <img
-            key={index}
-            className="ImportModalItem"
-            alt={item.id}
-            title={item.id}
-            src={item.sourceURL}
-            width={100}
-            height={80}
-            onClick={() => {
-              handleImageSelect(item.id);
-            }}
-          />
-        );
-      })}
+    <div className="ImportModalMenuContainer">
+      <div className="ImportModalMenu">
+        {props.localIllustList.map((item: HyperIllust, index: number) => {
+          return (
+            <img
+              key={index}
+              className="ImportModalItem"
+              alt={item.id}
+              title={item.id}
+              src={item.sourceURL}
+              width={100}
+              height={80}
+              onClick={() => {
+                handleImageSelect(item.id);
+              }}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 
@@ -85,7 +87,7 @@ export const ImportButton: FC<ImportButtonProps> = (
   return (
     <div style={{ padding: "3px" }}>
       <ButtonComponent type="default" onClick={popUpModal}>
-        Import
+        AddLink
       </ButtonComponent>
     </div>
   );

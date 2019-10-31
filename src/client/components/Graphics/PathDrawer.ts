@@ -7,7 +7,7 @@ export const addPath = (canvas: SVGElement, point: Points): SVGPathElement => {
   );
   const initialPoint = `M ${Math.floor(point.x)} ${Math.floor(point.y)} `;
   pathElm.setAttribute("d", initialPoint);
-  pathElm.setAttribute("fill", "none");
+  pathElm.setAttribute("fill", "rgba(0,0,0,0)");
   pathElm.setAttribute("pointer-events", "none");
   pathElm.setAttribute("stroke-linecap", "round");
   pathElm.setAttribute("stroke-linejoin", "round");
