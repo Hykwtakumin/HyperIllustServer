@@ -87,7 +87,7 @@ export const ImportButton: FC<ImportButtonProps> = (
   return (
     <div style={{ padding: "3px" }}>
       <ButtonComponent type="default" onClick={popUpModal}>
-        Import
+        AddLink
       </ButtonComponent>
     </div>
   );
