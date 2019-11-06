@@ -47,7 +47,7 @@ export const ImportButton: FC<ImportButtonProps> = (
           return (
             <img
               key={index}
-              className="ImportModalItem"
+              className={"ImportModalItem"}
               alt={item.id}
               title={item.id}
               src={item.sourceURL}

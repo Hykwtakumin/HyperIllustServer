@@ -114,6 +114,37 @@
   filter: grayscale(80%);
 }
 
+.ImportModalItem:active {
+  filter: grayscale(0%);
+  border-width: 3px;
+  border-style: solid;
+  border-color: #3aac7d;
+  transform: scale(0.9);
+  transition: 0.1s;
+}
+
 .ImportModalItem:focus {
   filter: grayscale(0%);
+  border-width: 3px;
+  border-style: solid;
+  border-color: #3aac7d;
+  transform: scale(0.9);
+  transition: 0.1s;
 }
+
+/* .ImportModalItemSelected {
+  filter: grayscale(0%);
+  border-width: 3px;
+  border-style: solid;
+  border-color: #3aac7d;
+  transform: scale(0.9);
+  transition: 0.1s;
+} */
+
+/* .ImportModalItem:hover {
+  filter: grayscale(0%);
+  border-width: 1px;
+  border-style: solid;
+  border-color: #3aac7d;
+  transition: 0.5s;
+} */
