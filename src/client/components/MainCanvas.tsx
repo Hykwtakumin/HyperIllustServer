@@ -22,10 +22,11 @@ import {
 import { PublishButton } from "./PublishButton";
 import { ImportButton, loadHyperIllusts, SelectedItem } from "./ImportButton";
 import { ExportButton } from "./ExportButton";
-import { HyperIllust } from "../../share/model";
+import { HyperIllust, HyperIllustUser } from "../../share/model";
 import { saveToLocalStorage } from "./share/localStorage";
 import { AddLinkButton } from "./AddLinkButton";
 import { UploadButton } from "./UploadButton";
+import { loadUserInfo, setUserInfo } from "./share/UserSetting";
 
 interface MainCanvasProps {}
 
@@ -49,6 +50,28 @@ export const MainCanvas = (props: MainCanvasProps) => {
   const [localIllustList, setLocalIllustList] = useState<HyperIllust[]>(
     loadHyperIllusts()
   );
+
+  //一度UserIdを発行されたら基本的にそれを使い続ける感じで
+  const [user, setUser] = useState<HyperIllustUser>(null);
+
+  useEffect(() => {
+    const user = loadUserInfo();
+    if (user) {
+      /*設定されている*/
+      setUser(user);
+      if (location.href.split("/")[3] !== user.name) {
+        window.history.replaceState(null, null, `/${user.name}`);
+      }
+    } else {
+      /*設定されていない*/
+      setUserInfo();
+      const newUser = loadUserInfo();
+      if (newUser) {
+        setUser(newUser);
+        window.history.replaceState(null, null, `/${newUser.name}`);
+      }
+    }
+  }, []);
 
   //BBで選択されたPathのリスト
   //const [selectedElms, setSelectedElms] = useState<SVGElement[]>(null);
@@ -173,7 +196,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
     };
 
     try {
-      const userName = location.href.split("/")[3];
+      const userName = user.name;
       const request = await fetch(`/api/upload/${userName}`, opt);
       const result: HyperIllust = await request.json();
       console.log("アップロードに成功しました!");
