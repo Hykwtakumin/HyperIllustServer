@@ -20,13 +20,14 @@ import {
   useModal
 } from "./share";
 import { PublishButton } from "./PublishButton";
-import { ImportButton, loadHyperIllusts, SelectedItem } from "./ImportButton";
+import { AddLinkButton, loadHyperIllusts, SelectedItem } from "./ImportButton";
 import { ExportButton } from "./ExportButton";
 import { HyperIllust, HyperIllustUser } from "../../share/model";
 import { saveToLocalStorage } from "./share/localStorage";
 import { AddLinkButton } from "./AddLinkButton";
 import { UploadButton } from "./UploadButton";
 import { loadUserInfo, setUserInfo } from "./share/UserSetting";
+import { AddInnerLinkButton } from "./AddInnerLinkButton";
 
 interface MainCanvasProps {}
 
@@ -400,7 +401,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
           {/*  selectedElms={selectedElms}*/}
           {/*/>*/}
 
-          <ImportButton
+          <AddInnerLinkButton
             onSelected={handleAddLink}
             localIllustList={localIllustList}
           />
