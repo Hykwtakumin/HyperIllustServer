@@ -8,7 +8,7 @@ import { HyperIllustUser } from "../../../share/model";
 export function loadUserInfo(): HyperIllustUser {
   if (window.localStorage) {
     for (let key in localStorage) {
-      if (key && key.includes("hyperillust-user")) {
+      if (key && key.includes("draw-wiki-user")) {
         const restoredUser = JSON.parse(
           localStorage.getItem(key)
         ) as HyperIllustUser;
@@ -29,6 +29,6 @@ export async function setUserInfo() {
       createdAt: now,
       updatedAt: now
     };
-    await saveToLocalStorage<HyperIllustUser>(`hyperillust-user`, setUser);
+    await saveToLocalStorage<HyperIllustUser>(`draw-wiki-user`, setUser);
   }
 }
