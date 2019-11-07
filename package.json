@@ -78,6 +78,5 @@
     "webpack-cli": "^3.3.2"
   },
   "devDependencies": {
-    "uuid": "^3.3.2"
   }
 }
