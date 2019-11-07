@@ -19,6 +19,7 @@ export interface BondingBoxProps {
   visible: boolean;
   canvasWidth: number;
   canvasHeight: number;
+  initialBBSize: BBSize;
   onResized: (bbSize: BBSize) => void;
   onMoved: (bbSize: BBMoveDiff) => void;
   onRotated: () => void;
@@ -34,10 +35,24 @@ export const BoundingBox = (props: BondingBoxProps) => {
   const BBRect = useRef(null);
   const CLayer = useRef<HTMLDivElement>(null);
 
-  const [bbLeft, setBBLeft] = useState<number>(0);
-  const [bbTop, setBBTop] = useState<number>(0);
-  const [bbWidth, setBBWidth] = useState<number>(0);
-  const [bbHeight, setBBHeight] = useState<number>(0);
+  const [bbLeft, setBBLeft] = useState<number>(
+    props.initialBBSize && props.initialBBSize.left
+      ? props.initialBBSize.left
+      : 0
+  );
+  const [bbTop, setBBTop] = useState<number>(
+    props.initialBBSize && props.initialBBSize.top ? props.initialBBSize.top : 0
+  );
+  const [bbWidth, setBBWidth] = useState<number>(
+    props.initialBBSize && props.initialBBSize.width
+      ? props.initialBBSize.width
+      : 0
+  );
+  const [bbHeight, setBBHeight] = useState<number>(
+    props.initialBBSize && props.initialBBSize.height
+      ? props.initialBBSize.height
+      : 0
+  );
 
   //ドラッグしたときのオフセット等
   const [xOffset, setXOffset] = useState<number>(0);

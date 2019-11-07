@@ -45,6 +45,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
     width: window.innerWidth,
     height: window.innerHeight
   });
+  const [initialBBSize, setInitialBBSize] = useState<BBSize>(null);
 
   //今までアップロードしてきたHyperIllustのリスト(とりあえずlocalStorageに保存している)
   const [localIllustList, setLocalIllustList] = useState<HyperIllust[]>(
@@ -180,7 +181,19 @@ export const MainCanvas = (props: MainCanvasProps) => {
       const request = await fetch(`/api/import/${encodeURI(sourceKey)}`);
       const svg = await request.text();
       console.dir(svg);
+      //ロードにはしばらく時間がかかるのでSpinnerとかを表示した方がよいかも?
       svgCanvas.current.insertAdjacentHTML("beforeend", svg);
+      //ロードしたら編集モードに以降する
+      setEditorMode(EditorMode.edit);
+      //BoundigBoxを表示する
+      const lastSVG = svgCanvas.current.lastChild as SVGElement;
+      setInitialBBSize({
+        left: 0,
+        top: 0,
+        width: parseInt(lastSVG.getAttribute("width")),
+        height: parseInt(lastSVG.getAttribute("height"))
+      });
+      //lastPathとかlastGroup相当のlastSVGを設定する
     } catch (error) {
       console.log("failed to import svg!");
       console.log(error);
@@ -403,11 +416,6 @@ export const MainCanvas = (props: MainCanvasProps) => {
           <ColorPicker colorChange={onColorChange} />
           <ModeSelector modeChange={onModeChange} />
 
-          {/*<AddLinkButton*/}
-          {/*  onAddLink={handleAddLink}*/}
-          {/*  selectedElms={selectedElms}*/}
-          {/*/>*/}
-
           <AddInnerLinkButton
             onSelected={handleAddLink}
             localIllustList={localIllustList}
@@ -470,6 +478,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
             visible={setBBVisibility()}
             canvasWidth={canvasSize.width}
             canvasHeight={canvasSize.height}
+            initialBBSize={initialBBSize}
             onResized={handleBBResized}
             onMoved={handleBBMoved}
             onRotated={() => {}}
