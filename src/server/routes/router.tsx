@@ -3,7 +3,12 @@ import { renderToString } from "react-dom/server";
 import * as React from "react";
 import { app } from "../index";
 import { BaseLayout } from "../../../views/BaseLayout";
-import { asyncReadFile, asyncUnLink, promisePutFile } from "../services/s3";
+import {
+  asyncReadFile,
+  asyncUnLink,
+  promiseGetFile,
+  promisePutFile
+} from "../services/s3";
 import * as fetchBase64 from "fetch-base64";
 import * as multer from "multer";
 import * as path from "path";
@@ -22,6 +27,7 @@ import {
   getUsersIllusts
 } from "../HyperIllusts";
 import { HyperIllust, HyperIllustUser } from "../../share/model";
+import * as fetch from "node-fetch";
 import { logger } from "../../share/logger";
 const { debug } = logger("router:index");
 
@@ -97,6 +103,26 @@ export const Router = (io: socketIo.Server): express.Router => {
           res.send(error);
           throw error;
         });
+    }
+  );
+
+  /*他のハイパーイラストをimportする*/
+  router.get(
+    "/api/import/:url",
+    async (req: express.Request, res: express.Response) => {
+      const imageKey = decodeURIComponent(req.params.url);
+      debug(`imageKey: ${imageKey}`);
+      try {
+        const result = await fetch(
+          `https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${imageKey}`
+        );
+        const svg = await result.text();
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.send(svg);
+      } catch (error) {
+        debug(error);
+        res.send(error);
+      }
     }
   );
 

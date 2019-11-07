@@ -11,7 +11,7 @@ import { logger } from "../../share/logger";
 /*サムネはURLを渡すだけ*/
 /*なのでCORSをクリアしている必要がある*/
 
-export type ImportButtonProps = {
+export type AddInnerLinkButtonProps = {
   onSelected: (itemId: string) => void;
   localIllustList: HyperIllust[];
 };
@@ -20,22 +20,8 @@ export type SelectedItem = {
   selsectedId: string;
 };
 
-//localに保存されているhyperIllustを全件取得する
-export function loadHyperIllusts(): Array<HyperIllust> {
-  const localHyperIllusts: HyperIllust[] = [];
-  if (localStorage) {
-    for (let key in localStorage) {
-      if (key && key.includes("hyperillust")) {
-        const restored = JSON.parse(localStorage.getItem(key)) as HyperIllust;
-        localHyperIllusts.push(restored);
-      }
-    }
-  }
-  return localHyperIllusts;
-}
-
-export const ImportButton: FC<ImportButtonProps> = (
-  props: ImportButtonProps
+export const AddInnerLinkButton: FC<AddInnerLinkButtonProps> = (
+  props: AddInnerLinkButtonProps
 ) => {
   const { showModal } = useModal();
   const debug = logger("client:ImportButton");
@@ -54,7 +40,7 @@ export const ImportButton: FC<ImportButtonProps> = (
               width={100}
               height={80}
               onClick={() => {
-                handleImageSelect(item.sourceKey);
+                handleImageSelect(item.id);
               }}
             />
           );
@@ -70,11 +56,11 @@ export const ImportButton: FC<ImportButtonProps> = (
   const popUpModal = () => {
     showModal({
       type: "confirm",
-      title: <h2>{`他のイラストをキャンバスに追加`}</h2>,
+      title: <h2>{`他のイラストと紐付ける`}</h2>,
       content: (
         <>
           <div>
-            <h3>{`以下のリストからインポート`}</h3>
+            <h3>{`以下のリストから選択`}</h3>
             {inner}
           </div>
         </>
@@ -87,7 +73,7 @@ export const ImportButton: FC<ImportButtonProps> = (
   return (
     <div style={{ padding: "3px" }}>
       <ButtonComponent type="default" onClick={popUpModal}>
-        Import
+        AddLink
       </ButtonComponent>
     </div>
   );
