@@ -10,7 +10,6 @@ import * as cookieParser from "cookie-parser";
 import * as reactViews from "express-react-views";
 import { Router } from "./routes/router";
 import { createSocketIOServer, socketIOHandler } from "./services/socket";
-import { mongoDbSetup } from "./services/db";
 import { logger } from "../share/logger";
 const { debug } = logger("index:index");
 
@@ -41,14 +40,4 @@ app.use(
 );
 app.use(cookieParser());
 
-//app.use("/api/", apiRouter);
 app.use("/", Router(io));
-
-// mongoDbSetup()
-//   .then(() => {
-//
-//   })
-//   .catch(e => {
-//     debug(e);
-//     process.exit(1);
-//   });

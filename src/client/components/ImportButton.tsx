@@ -54,7 +54,7 @@ export const ImportButton: FC<ImportButtonProps> = (
               width={100}
               height={80}
               onClick={() => {
-                handleImageSelect(item.id);
+                handleImageSelect(item.sourceKey);
               }}
             />
           );
@@ -87,7 +87,7 @@ export const ImportButton: FC<ImportButtonProps> = (
   return (
     <div style={{ padding: "3px" }}>
       <ButtonComponent type="default" onClick={popUpModal}>
-        AddLink
+        Import
       </ButtonComponent>
     </div>
   );

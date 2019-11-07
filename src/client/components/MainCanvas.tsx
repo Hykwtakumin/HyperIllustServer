@@ -20,11 +20,10 @@ import {
   useModal
 } from "./share";
 import { PublishButton } from "./PublishButton";
-import { AddLinkButton, loadHyperIllusts, SelectedItem } from "./ImportButton";
+import { ImportButton, loadHyperIllusts, SelectedItem } from "./ImportButton";
 import { ExportButton } from "./ExportButton";
 import { HyperIllust, HyperIllustUser } from "../../share/model";
 import { saveToLocalStorage } from "./share/localStorage";
-import { AddLinkButton } from "./AddLinkButton";
 import { UploadButton } from "./UploadButton";
 import { loadUserInfo, setUserInfo } from "./share/UserSetting";
 import { AddInnerLinkButton } from "./AddInnerLinkButton";
@@ -175,9 +174,17 @@ export const MainCanvas = (props: MainCanvasProps) => {
   };
 
   //Importは
-  const handleImport = (resourceURL: string) => {
-    console.log(resourceURL);
-    //
+  const handleImport = async (sourceKey: string) => {
+    console.log(`handleImport: ${sourceKey}`);
+    try {
+      const request = await fetch(`/api/import/${encodeURI(sourceKey)}`);
+      const svg = await request.text();
+      console.dir(svg);
+      svgCanvas.current.insertAdjacentHTML("beforeend", svg);
+    } catch (error) {
+      console.log("failed to import svg!");
+      console.log(error);
+    }
   };
 
   const handleExport = async () => {
@@ -403,6 +410,11 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
           <AddInnerLinkButton
             onSelected={handleAddLink}
+            localIllustList={localIllustList}
+          />
+
+          <ImportButton
+            onSelected={handleImport}
             localIllustList={localIllustList}
           />
 
