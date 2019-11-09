@@ -32,11 +32,11 @@ export const uploadSVG = async (
 //SVGの更新用
 export const updateSVG = async (svg: SVGElement, fileKey: string) => {
   const opt = {
-    method: "POST",
+    method: "PUT",
     body: formDataCreator(svg)
   };
   try {
-    const request = await fetch(`/api/update/${fileKey}`, opt);
+    const request = await fetch(`/api/update/${encodeURI(fileKey)}`, opt);
     return (await request.json()) as HyperIllust;
   } catch (error) {
     console.log(error);

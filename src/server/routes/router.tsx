@@ -181,18 +181,23 @@ export const Router = (io: socketIo.Server): express.Router => {
   //同一keyのドキュメントを更新するAPI
   router.put(
     "/api/update/:key",
+    uploader.single("file"),
     async (req: express.Request, res: express.Response) => {
       try {
         const mime: string = "image/svg+xml";
         const rawData = await asyncReadFile(req.file.path);
         const fileName = req.params.key;
+        console.log(`fileName: ${fileName}`);
         const result = await promisePutFile(fileName, rawData, mime);
         //アップロードしたらローカルの一時ファイルは削除
         await asyncUnLink(req.file.path);
         //CORSを全許可にして返す?
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.send(JSON.stringify(result.Key));
-      } catch (error) {}
+      } catch (error) {
+        console.log(error);
+        res.send(error);
+      }
     }
   );
 

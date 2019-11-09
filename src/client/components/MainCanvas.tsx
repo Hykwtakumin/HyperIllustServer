@@ -27,7 +27,7 @@ import { saveToLocalStorage } from "./share/localStorage";
 import { UploadButton } from "./UploadButton";
 import { loadUserInfo, setUserInfo } from "./share/UserSetting";
 import { AddInnerLinkButton } from "./AddInnerLinkButton";
-import { uploadSVG } from "./share/API";
+import { updateSVG, uploadSVG } from "./share/API";
 
 interface MainCanvasProps {}
 
@@ -184,12 +184,27 @@ export const MainCanvas = (props: MainCanvasProps) => {
   };
 
   const handleUpSert = async () => {
+    setPointerEventsEnableToAllPath(svgCanvas.current);
     if (!itemURL) {
       //アップロードする
-      const uploaded = await handleExport();
+      const result = await uploadSVG(svgCanvas.current, user.name);
+      console.log(result);
+      //ローカルに保存
+      const saveResult = await saveToLocalStorage(result.id, result);
+      console.log(`saveResult : ${saveResult}`);
+
+      //再設定
+      setLocalIllustList(loadHyperIllusts());
+      //itemURLを設定
+      setItemURL(result.sourceKey);
     } else {
       //既にSVGはあるので上書きさせる
+      //アップロードする
+      const result = await updateSVG(svgCanvas.current, itemURL);
+      console.log(result);
     }
+    //アップロード後はしっかりpointer-eventsを無効化しておく
+    setPointerEventsDisableToAllPath(svgCanvas.current);
   };
 
   //Importは
@@ -203,7 +218,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
       svgCanvas.current.insertAdjacentHTML("beforeend", svg);
       //ロードしたら編集モードに以降する
       setEditorMode(EditorMode.edit);
-      //BoundigBoxを表示する
+      //BoundingBoxを表示する
       const lastSVG = svgCanvas.current.lastChild as SVGElement;
       setInitialBBSize({
         left: 0,
@@ -221,13 +236,13 @@ export const MainCanvas = (props: MainCanvasProps) => {
   const handleExport = async () => {
     //リンクを埋め込んだPathがしっかりクリックできるようにしておく
     setPointerEventsEnableToAllPath(svgCanvas.current);
-
     try {
       const result = await uploadSVG(svgCanvas.current, user.name);
       console.log("アップロードに成功しました!");
       console.log(result);
       /*TODO APIとかSchemeをきちんと設定する*/
 
+      //ローカルに保存
       const saveResult = await saveToLocalStorage(result.id, result);
       console.log(`saveResult : ${saveResult}`);
 
