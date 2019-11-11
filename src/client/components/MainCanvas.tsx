@@ -197,6 +197,12 @@ export const MainCanvas = (props: MainCanvasProps) => {
       setLocalIllustList(loadHyperIllusts());
       //itemURLを設定
       setItemURL(result.sourceKey);
+      //URLを変更する
+      window.history.replaceState(
+        null,
+        null,
+        `/${user.name}/${result.sourceKey}`
+      );
     } else {
       //既にSVGはあるので上書きさせる
       //アップロードする

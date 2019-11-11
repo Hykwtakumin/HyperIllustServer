@@ -62,6 +62,31 @@ export const Router = (io: socketIo.Server): express.Router => {
     }
   );
 
+  /*Topページにリソース付きでアクセスするとeditとセットで返す*/
+  router.get(
+    "/:userName/:fileKey",
+    async (req: express.Request, res: express.Response) => {
+      //
+      const username = decodeURIComponent(req.params.userName);
+      const imageKey = decodeURIComponent(req.params.url);
+      debug(`imageKey: ${imageKey}`);
+
+      const result = await fetch(
+        `https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${imageKey}`
+      );
+      const svg = await result.text();
+
+      if (result) {
+        res
+          .header("content-type", "text/html")
+          .send(renderToString(<BaseLayout title={"DrawWiki"} />))
+          .end();
+      } else {
+        res.redirect(`/${username}`);
+      }
+    }
+  );
+
   //ユーザーが持っている画像一覧取得
   router.get(
     "/user/:userName",
