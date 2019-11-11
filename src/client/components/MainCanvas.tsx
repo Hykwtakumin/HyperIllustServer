@@ -29,6 +29,8 @@ import { loadUserInfo, setUserInfo } from "./share/UserSetting";
 import { AddInnerLinkButton } from "./AddInnerLinkButton";
 import { updateSVG, uploadSVG } from "./share/API";
 
+//サーバー側から与えられたSVGを引き継いだり
+//SVGをレイヤーとして読みこむ
 interface MainCanvasProps {}
 
 export enum EditorMode {
