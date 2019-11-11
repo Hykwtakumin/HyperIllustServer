@@ -27,6 +27,7 @@ import { saveToLocalStorage } from "./share/localStorage";
 import { UploadButton } from "./UploadButton";
 import { loadUserInfo, setUserInfo } from "./share/UserSetting";
 import { AddInnerLinkButton } from "./AddInnerLinkButton";
+import { updateSVG, uploadSVG } from "./share/API";
 
 interface MainCanvasProps {}
 
@@ -51,6 +52,10 @@ export const MainCanvas = (props: MainCanvasProps) => {
   const [localIllustList, setLocalIllustList] = useState<HyperIllust[]>(
     loadHyperIllusts()
   );
+
+  //一度編集したらkeyを設定する
+  //以後編集される度にkeyを設定する
+  const [itemURL, setItemURL] = useState<string>("");
 
   //一度UserIdを発行されたら基本的にそれを使い続ける感じで
   const [user, setUser] = useState<HyperIllustUser>(null);
@@ -139,7 +144,9 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
   //これはhoverも担う?
   //下の要素がSVGAElementでリンクが設定されている場合は適当なモーダルを表示させる
-  const handleMove = (event: React.SyntheticEvent<HTMLElement>) => {
+  const handleMove = (
+    event: React.SyntheticEvent<HTMLElement, PointerEvent>
+  ) => {
     //event.persist();
     if (isDragging) {
       if (editorMode === EditorMode.draw) {
@@ -172,6 +179,38 @@ export const MainCanvas = (props: MainCanvasProps) => {
       lastPath = null;
     } else if (editorMode === EditorMode.edit) {
     }
+    //PointerEventによらずアップロードしたい
+    handleUpSert();
+  };
+
+  const handleUpSert = async () => {
+    setPointerEventsEnableToAllPath(svgCanvas.current);
+    if (!itemURL) {
+      //アップロードする
+      const result = await uploadSVG(svgCanvas.current, user.name);
+      console.log(result);
+      //ローカルに保存
+      const saveResult = await saveToLocalStorage(result.id, result);
+      console.log(`saveResult : ${saveResult}`);
+
+      //再設定
+      setLocalIllustList(loadHyperIllusts());
+      //itemURLを設定
+      setItemURL(result.sourceKey);
+      //URLを変更する
+      window.history.replaceState(
+        null,
+        null,
+        `/${user.name}/${result.sourceKey}`
+      );
+    } else {
+      //既にSVGはあるので上書きさせる
+      //アップロードする
+      const result = await updateSVG(svgCanvas.current, itemURL);
+      console.log(result);
+    }
+    //アップロード後はしっかりpointer-eventsを無効化しておく
+    setPointerEventsDisableToAllPath(svgCanvas.current);
   };
 
   //Importは
@@ -185,7 +224,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
       svgCanvas.current.insertAdjacentHTML("beforeend", svg);
       //ロードしたら編集モードに以降する
       setEditorMode(EditorMode.edit);
-      //BoundigBoxを表示する
+      //BoundingBoxを表示する
       const lastSVG = svgCanvas.current.lastChild as SVGElement;
       setInitialBBSize({
         left: 0,
@@ -203,27 +242,13 @@ export const MainCanvas = (props: MainCanvasProps) => {
   const handleExport = async () => {
     //リンクを埋め込んだPathがしっかりクリックできるようにしておく
     setPointerEventsEnableToAllPath(svgCanvas.current);
-    const blobObject: Blob = new Blob(
-      [new XMLSerializer().serializeToString(svgCanvas.current)],
-      { type: "image/svg+xml;charset=utf-8" }
-    );
-
-    const formData = new FormData();
-    formData.append(`file`, blobObject);
-
-    const opt = {
-      method: "POST",
-      body: formData
-    };
-
     try {
-      const userName = user.name;
-      const request = await fetch(`/api/upload/${userName}`, opt);
-      const result: HyperIllust = await request.json();
+      const result = await uploadSVG(svgCanvas.current, user.name);
       console.log("アップロードに成功しました!");
       console.log(result);
       /*TODO APIとかSchemeをきちんと設定する*/
 
+      //ローカルに保存
       const saveResult = await saveToLocalStorage(result.id, result);
       console.log(`saveResult : ${saveResult}`);
 

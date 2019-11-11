@@ -62,6 +62,31 @@ export const Router = (io: socketIo.Server): express.Router => {
     }
   );
 
+  /*Topページにリソース付きでアクセスするとeditとセットで返す*/
+  router.get(
+    "/:userName/:fileKey",
+    async (req: express.Request, res: express.Response) => {
+      //
+      const username = decodeURIComponent(req.params.userName);
+      const imageKey = decodeURIComponent(req.params.url);
+      debug(`imageKey: ${imageKey}`);
+
+      const result = await fetch(
+        `https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${imageKey}`
+      );
+      const svg = await result.text();
+
+      if (result) {
+        res
+          .header("content-type", "text/html")
+          .send(renderToString(<BaseLayout title={"DrawWiki"} />))
+          .end();
+      } else {
+        res.redirect(`/${username}`);
+      }
+    }
+  );
+
   //ユーザーが持っている画像一覧取得
   router.get(
     "/user/:userName",
@@ -178,11 +203,26 @@ export const Router = (io: socketIo.Server): express.Router => {
     }
   );
 
-  //リソース
-  router.get(
-    "/api/:hicId",
+  //同一keyのドキュメントを更新するAPI
+  router.put(
+    "/api/update/:key",
+    uploader.single("file"),
     async (req: express.Request, res: express.Response) => {
-      //
+      try {
+        const mime: string = "image/svg+xml";
+        const rawData = await asyncReadFile(req.file.path);
+        const fileName = req.params.key;
+        console.log(`fileName: ${fileName}`);
+        const result = await promisePutFile(fileName, rawData, mime);
+        //アップロードしたらローカルの一時ファイルは削除
+        await asyncUnLink(req.file.path);
+        //CORSを全許可にして返す?
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.send(JSON.stringify(result.Key));
+      } catch (error) {
+        console.log(error);
+        res.send(error);
+      }
     }
   );
 
