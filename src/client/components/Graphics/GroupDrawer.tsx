@@ -1,16 +1,7 @@
 import * as React from "react";
 import { FC } from "react";
 import { StrokeDrawer } from "./StrokeDrawer";
-import { PointerEvents, Stroke } from "../share/utils";
-
-//グループ化について
-export type Group = {
-  id: string;
-  href: string;
-  strokes: Stroke[];
-  style: string;
-  transform: string;
-};
+import {Group, PointerEvents} from "../share/utils";
 
 export type GroupDrawerProps = {
   groupElms: Group[];

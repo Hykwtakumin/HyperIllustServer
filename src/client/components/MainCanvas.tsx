@@ -10,18 +10,11 @@ import {
   drawPoint,
   Size
 } from "./share/utils";
-import {
-  addPath,
-  updatePath,
-  setPointerEventsEnableToAllPath,
-  setPointerEventsDisableToAllPath,
-  PathDrawer
+import {PathDrawer
 } from "./Graphics/PathDrawer";
 import { PenWidthSelector } from "./PenWidthSelector";
 import { ColorPicker } from "./ColorPicker";
 import { ModeSelector } from "./ModeSelector";
-import { BBMoveDiff, BBSize, BoundingBox } from "./BoundingBox";
-import { createPortal } from "react-dom";
 import {
   ButtonComponent,
   ModalContext,
@@ -51,7 +44,6 @@ export const MainCanvas = (props: MainCanvasProps) => {
     width: window.innerWidth,
     height: window.innerHeight
   });
-  const [initialBBSize, setInitialBBSize] = useState<BBSize>(null);
 
   //リアルタイムで描画する座標
   const [points, setPoints] = useState<drawPoint[]>([]);
@@ -261,7 +253,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
   };
 
   const handleUpSert = async () => {
-    setPointerEventsEnableToAllPath(canvasRef.current);
+    setEvents("auto");
     if (!itemURL) {
       //アップロードする
       const result = await uploadSVG(canvasRef.current, user.name);
@@ -287,8 +279,8 @@ export const MainCanvas = (props: MainCanvasProps) => {
       console.log(result);
     }
     //アップロード後はしっかりpointer-eventsを無効化しておく
-    setPointerEventsDisableToAllPath(canvasRef.current);
-  };
+    setEvents("none");
+    };
 
   //Importは
   const handleImport = async (sourceKey: string) => {
@@ -303,12 +295,12 @@ export const MainCanvas = (props: MainCanvasProps) => {
       setEditorMode("edit");
       //BoundingBoxを表示する
       const lastSVG = canvasRef.current.lastChild as SVGElement;
-      setInitialBBSize({
-        left: 0,
-        top: 0,
-        width: parseInt(lastSVG.getAttribute("width")),
-        height: parseInt(lastSVG.getAttribute("height"))
-      });
+      // setInitialBBSize({
+      //   left: 0,
+      //   top: 0,
+      //   width: parseInt(lastSVG.getAttribute("width")),
+      //   height: parseInt(lastSVG.getAttribute("height"))
+      // });
       //lastPathとかlastGroup相当のlastSVGを設定する
     } catch (error) {
       console.log("failed to import svg!");
@@ -318,7 +310,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
   const handleExport = async () => {
     //リンクを埋め込んだPathがしっかりクリックできるようにしておく
-    setPointerEventsEnableToAllPath(canvasRef.current);
+    setEvents("auto");
     try {
       const result = await uploadSVG(canvasRef.current, user.name);
       console.log("アップロードに成功しました!");
@@ -332,7 +324,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
       //再設定
       setLocalIllustList(loadHyperIllusts());
       //アップロード後はしっかりpointer-eventsを無効化しておく
-      setPointerEventsDisableToAllPath(canvasRef.current);
+      setEvents("none");
       window.open(result.sourceURL);
     } catch (error) {
       console.dir(error);
@@ -394,8 +386,9 @@ export const MainCanvas = (props: MainCanvasProps) => {
   // };
 
   //リンクの追加
-  const handleAddLink = event => {
+  const handleAddLink = (itemId: string) => {
     if (selectedElms) {
+      console.log(`itemId: ${itemId}`);
       //新しいGroupを作成し、そこに追加する
       const selectedStrokes = strokes.reduce((prev, curr) => {
         if (selectedElms.includes(curr.id)) {
