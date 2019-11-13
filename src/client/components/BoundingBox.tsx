@@ -1,6 +1,6 @@
 import * as React from "react";
 import { FC, useState, useRef, useEffect } from "react";
-import { getPoint, Points } from "./utils";
+import { getPoint, Points } from "./share/utils";
 import { PublishButton } from "./PublishButton";
 
 export type BBSize = {
