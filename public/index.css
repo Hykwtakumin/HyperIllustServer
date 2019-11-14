@@ -8,8 +8,14 @@
 }
 
 /*リンクが埋め込まれたパス*/
-.linkedPath:hover:focus {
+.linkedPath:hover {
   stroke: dodgerblue;
+  stroke-width: 12;
+  transition: 0.5s;
+}
+.linkedPath:focus {
+  stroke: dodgerblue;
+  stroke-width: 120%;
   transition: 0.5s;
 }
 
@@ -162,3 +168,5 @@
   align-items: center;
   justify-content: center;
 }
+
+/*リンク付きのPath*/

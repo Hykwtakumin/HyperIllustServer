@@ -21,7 +21,7 @@ export const GroupDrawer: FC<GroupDrawerProps> = props => {
         return (
           <a id={group.id} key={index} href={group.href} target={"blank"}>
             <g transform={group.transform} pointerEvents={props.events}>
-              <StrokeDrawer strokes={group.strokes} events={props.events} />
+              <StrokeDrawer strokes={group.strokes} events={props.events} style={"linkedPath"} />
             </g>
           </a>
         );
