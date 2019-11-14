@@ -24,6 +24,34 @@ export type titleImageMap = {
 
 export type EditorMode = "draw" | "edit";
 
+export type PointerEvents = "none" | "auto";
+
+export type drawPoint = {
+  x: number;
+  y: number;
+};
+
+export type Stroke = {
+  id: string;
+  points: drawPoint[];
+  isSelected: boolean;
+};
+
+export type Size = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+};
+
+export type Group = {
+  id: string;
+  href: string;
+  strokes: Stroke[];
+  style?: string;
+  transform?: string;
+};
+
 export type OpeType =
   | "draw"
   | "remove"

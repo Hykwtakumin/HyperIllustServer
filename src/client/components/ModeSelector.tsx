@@ -1,23 +1,21 @@
 import * as React from "react";
+import { FC } from "react";
+import { ButtonComponent } from "./share";
 
-interface ModeSelectorProps {
-  modeChange: (e: React.SyntheticEvent<HTMLSelectElement>) => void;
-}
+type ModeSelectorProps = {
+  text: string;
+  modeChange: () => void;
+};
 
 /*そもそも編集モードとかはあまりよくないのではないか?*/
-export const ModeSelector = (props: ModeSelectorProps) => {
-  const { modeChange } = props;
-
+export const ModeSelector: FC<ModeSelectorProps> = (
+  props: ModeSelectorProps
+) => {
   return (
-    <React.Fragment>
-      <select
-        className={"toolSelectMenu"}
-        defaultValue={"draw"}
-        onChange={modeChange}
-      >
-        <option value={"draw"}>お絵かき</option>
-        <option value={"edit"}>編集</option>
-      </select>
-    </React.Fragment>
+    <div style={{ padding: "3px" }}>
+      <ButtonComponent type={"default"} onClick={props.modeChange}>
+        {props.text}
+      </ButtonComponent>
+    </div>
   );
 };

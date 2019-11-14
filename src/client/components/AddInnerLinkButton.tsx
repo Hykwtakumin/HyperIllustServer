@@ -12,7 +12,7 @@ import { logger } from "../../share/logger";
 /*なのでCORSをクリアしている必要がある*/
 
 export type AddInnerLinkButtonProps = {
-  onSelected: (itemId: string) => void;
+  onSelected: (item: HyperIllust) => void;
   localIllustList: HyperIllust[];
 };
 
@@ -40,7 +40,7 @@ export const AddInnerLinkButton: FC<AddInnerLinkButtonProps> = (
               width={100}
               height={80}
               onClick={() => {
-                handleImageSelect(item.id);
+                handleImageSelect(item);
               }}
             />
           );
@@ -49,8 +49,8 @@ export const AddInnerLinkButton: FC<AddInnerLinkButtonProps> = (
     </div>
   );
 
-  const handleImageSelect = (key: string) => {
-    props.onSelected(key);
+  const handleImageSelect = (item: HyperIllust) => {
+    props.onSelected(item);
   };
 
   const popUpModal = () => {
