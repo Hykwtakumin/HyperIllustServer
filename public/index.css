@@ -8,8 +8,14 @@
 }
 
 /*リンクが埋め込まれたパス*/
-.linkedPath:hover:focus {
+.linkedPath:hover {
   stroke: dodgerblue;
+  stroke-width: 12;
+  transition: 0.5s;
+}
+.linkedPath:focus {
+  stroke: dodgerblue;
+  stroke-width: 120%;
   transition: 0.5s;
 }
 
@@ -22,7 +28,7 @@
 }
 
 #root {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.35);
   width: 100vw;
   height: 100vh;
   touch-action: none;
@@ -148,3 +154,19 @@
   border-color: #3aac7d;
   transition: 0.5s;
 } */
+
+/*モーダル背景用*/
+.overLay {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.25);
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/*リンク付きのPath*/
