@@ -1,5 +1,6 @@
 import * as React from "react";
 import { FC } from "react";
+import { ButtonComponent } from "./share";
 
 type ModeSelectorProps = {
   text: string;
@@ -11,8 +12,10 @@ export const ModeSelector: FC<ModeSelectorProps> = (
   props: ModeSelectorProps
 ) => {
   return (
-    <>
-      <input type={"button"} value={props.text} onClick={props.modeChange} />
-    </>
+    <div style={{ padding: "3px" }}>
+      <ButtonComponent type={"default"} onClick={props.modeChange}>
+        {props.text}
+      </ButtonComponent>
+    </div>
   );
 };

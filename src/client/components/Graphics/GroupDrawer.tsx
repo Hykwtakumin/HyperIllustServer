@@ -1,7 +1,7 @@
 import * as React from "react";
 import { FC } from "react";
 import { StrokeDrawer } from "./StrokeDrawer";
-import {Group, PointerEvents} from "../share/utils";
+import { Group, PointerEvents } from "../share/utils";
 
 export type GroupDrawerProps = {
   groupElms: Group[];

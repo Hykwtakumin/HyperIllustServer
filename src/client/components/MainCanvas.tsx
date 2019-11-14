@@ -10,8 +10,7 @@ import {
   drawPoint,
   Size
 } from "./share/utils";
-import {PathDrawer
-} from "./Graphics/PathDrawer";
+import { PathDrawer } from "./Graphics/PathDrawer";
 import { PenWidthSelector } from "./PenWidthSelector";
 import { ColorPicker } from "./ColorPicker";
 import { ModeSelector } from "./ModeSelector";
@@ -33,6 +32,7 @@ import { AddInnerLinkButton } from "./AddInnerLinkButton";
 import { updateSVG, uploadSVG } from "./share/API";
 import { StrokeDrawer } from "./Graphics/StrokeDrawer";
 import { GroupDrawer } from "./Graphics/GroupDrawer";
+import { ResetDialog } from "./ResetDialog";
 
 interface MainCanvasProps {}
 
@@ -280,7 +280,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
     }
     //アップロード後はしっかりpointer-eventsを無効化しておく
     setEvents("none");
-    };
+  };
 
   //Importは
   const handleImport = async (sourceKey: string) => {
@@ -386,9 +386,9 @@ export const MainCanvas = (props: MainCanvasProps) => {
   // };
 
   //リンクの追加
-  const handleAddLink = (itemId: string) => {
+  const handleAddLink = (item: HyperIllust) => {
     if (selectedElms) {
-      console.log(`itemId: ${itemId}`);
+      console.log(`itemId: ${item.id}`);
       //新しいGroupを作成し、そこに追加する
       const selectedStrokes = strokes.reduce((prev, curr) => {
         if (selectedElms.includes(curr.id)) {
@@ -399,7 +399,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
       }, []);
       const newGroup: Group = {
         id: `${Date.now()}`,
-        href: "https://github.com/Hykwtakumin/HyperIllustServer",
+        href: item.sourceURL,
         strokes: selectedStrokes,
         transform: ""
       };
@@ -428,6 +428,23 @@ export const MainCanvas = (props: MainCanvasProps) => {
           <ColorPicker colorChange={onColorChange} />
           <ModeSelector text={editorMode} modeChange={onModeChange} />
 
+          <div style={{ padding: "3px" }}>
+            <ButtonComponent type={"default"} onClick={handleUndo}>
+              {"元に戻す"}
+            </ButtonComponent>
+          </div>
+
+          <div style={{ padding: "3px" }}>
+            <ButtonComponent
+              type={"default"}
+              onClick={() => {
+                setIsOpen(true);
+              }}
+            >
+              {"リセット"}
+            </ButtonComponent>
+          </div>
+
           <AddInnerLinkButton
             onSelected={handleAddLink}
             localIllustList={localIllustList}
@@ -444,6 +461,14 @@ export const MainCanvas = (props: MainCanvasProps) => {
           {/*/>*/}
 
           {/*<UploadButton onExport={handleExport} selectedElms={selectedElms} />*/}
+
+          <ResetDialog
+            isShow={isOpen}
+            onOk={handleAllClear}
+            onCancel={() => {
+              setIsOpen(false);
+            }}
+          />
         </div>
 
         <svg

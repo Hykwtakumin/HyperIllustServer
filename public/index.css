@@ -148,3 +148,17 @@
   border-color: #3aac7d;
   transition: 0.5s;
 } */
+
+/*モーダル背景用*/
+.overLay {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.25);
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
