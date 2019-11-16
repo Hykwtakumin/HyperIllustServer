@@ -1,12 +1,13 @@
 import * as React from "react";
-import { useState, useRef, FC, useEffect } from "react";
+import { FC } from "react";
 
 export type layoutProps = {
   title: string;
+  hydratedSVG?: SVGElement;
 };
 
 export const BaseLayout: FC<layoutProps> = (props: layoutProps) => {
-  const { title } = props;
+  const { title, hydratedSVG } = props;
   return (
     <html>
       <head>
@@ -20,6 +21,8 @@ export const BaseLayout: FC<layoutProps> = (props: layoutProps) => {
       </head>
       <body>
         <div id="root" />
+        <div id="hydration-data" style={{display: "none"}} data-data={hydratedSVG} >
+        </div>
         <script type="text/javascript" src="/dist/index.js" />
       </body>
     </html>
