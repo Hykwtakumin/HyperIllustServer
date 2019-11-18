@@ -29,19 +29,17 @@ import { saveToLocalStorage } from "./share/localStorage";
 import { UploadButton } from "./UploadButton";
 import { loadUserInfo, setUserInfo } from "./share/UserSetting";
 import { AddInnerLinkButton } from "./AddInnerLinkButton";
-import { updateSVG, uploadStrokes, uploadSVG } from "./share/API";
+import { updateSVG, uploadSVG } from "./share/API";
 import { StrokeDrawer } from "./Graphics/StrokeDrawer";
 import { GroupDrawer } from "./Graphics/GroupDrawer";
 import { ResetDialog } from "./ResetDialog";
 
-//サーバー側から与えられたSVGを引き継いだり
-//SVGをレイヤーとして読みこむ
-export type MainCanvasProps = {
-  hydratedStrokes?: Stroke[];
-  hydratedGroups?: Group[];
-};
+interface MainCanvasProps {
+  loadedStrokes?: Stroke[];
+  loadedGroups?: Group[];
+}
 
-export const MainCanvas: FC<MainCanvasProps> = props => {
+export const MainCanvas = (props: MainCanvasProps) => {
   const [penWidth, setPenWidth] = useState<number>(6);
   const [color, setColor] = useState<string>("#585858");
   const [editorMode, setEditorMode] = useState<EditorMode>("draw");
@@ -53,9 +51,9 @@ export const MainCanvas: FC<MainCanvasProps> = props => {
   //リアルタイムで描画する座標
   const [points, setPoints] = useState<drawPoint[]>([]);
   //通常のストローク
-  const [strokes, setStrokes] = useState<Stroke[]>(props.hydratedStrokes || []);
+  const [strokes, setStrokes] = useState<Stroke[]>(props.loadedStrokes || []);
   //グループ化した要素たち
-  const [groups, setGroups] = useState<Group[]>(props.hydratedGroups || []);
+  const [groups, setGroups] = useState<Group[]>(props.loadedGroups || []);
   //ドラッグ中のboolean
   const [isDragging, setIsDragging] = useState<boolean>(false);
   //要素のpointer-events
@@ -247,12 +245,7 @@ export const MainCanvas: FC<MainCanvasProps> = props => {
       setPoints([]);
 
       //PointerEventによらずアップロードしたい
-      //handleUpSert();
-
-      console.log(`strokes: ${strokes.length}`);
-      console.dir(strokes);
-      console.log(`groups: ${groups.length}`);
-      console.dir(groups);
+      handleUpSert();
     } else {
       handleBBUp(event);
     }
@@ -264,7 +257,6 @@ export const MainCanvas: FC<MainCanvasProps> = props => {
 
   const handleUpSert = async () => {
     setEvents("auto");
-    console.dir(canvasRef.current);
     if (!itemURL) {
       //アップロードする
       const result = await uploadSVG(canvasRef.current, user.name);
@@ -466,23 +458,6 @@ export const MainCanvas: FC<MainCanvasProps> = props => {
             localIllustList={localIllustList}
           />
 
-          <div style={{ padding: "3px" }}>
-            <ButtonComponent
-              type={"primary"}
-              onClick={async () => {
-                const result = await uploadStrokes(
-                  canvasSize.width,
-                  canvasSize.height,
-                  strokes,
-                  groups
-                );
-                console.log(await result);
-              }}
-            >
-              {"SSR"}
-            </ButtonComponent>
-          </div>
-
           {/*<ExportButton*/}
           {/*  onExport={handleClippedExport}*/}
           {/*  selectedElms={selectedElms}*/}
@@ -512,6 +487,11 @@ export const MainCanvas: FC<MainCanvasProps> = props => {
           xmlns="http://www.w3.org/2000/svg"
           xmlnsXlink="http://www.w3.org/1999/xlink"
         >
+          <desc
+            stroke-data={JSON.stringify(strokes)}
+            group-data={JSON.stringify(groups)}
+          />
+
           <defs>
             <style type={"text/css"}>{`<![CDATA[
                 path:hover: {
