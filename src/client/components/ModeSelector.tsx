@@ -13,7 +13,10 @@ export const ModeSelector: FC<ModeSelectorProps> = (
 ) => {
   return (
     <div style={{ padding: "3px" }}>
-      <ButtonComponent type={"default"} onClick={props.modeChange}>
+      <ButtonComponent
+        type={props.text === "draw" ? "default" : "primary"}
+        onClick={props.modeChange}
+      >
         {props.text}
       </ButtonComponent>
     </div>

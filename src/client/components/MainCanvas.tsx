@@ -83,6 +83,12 @@ export const MainCanvas = (props: MainCanvasProps) => {
   //一度UserIdを発行されたら基本的にそれを使い続ける感じで
   const [user, setUser] = useState<HyperIllustUser>(null);
 
+  //長押し判定用タイマー
+  const timerId = useRef<number>(null);
+
+  //リンク付けるようモーダルの表示非表示
+  const [isShow, setIsShow] = useState<boolean>(false);
+
   useEffect(() => {
     const user = loadUserInfo();
     if (user) {
@@ -164,12 +170,16 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
   //全部消去
   const handleAllClear = () => {
+    setPoints([]);
     setStrokes([]);
+    setSelectedElms([]);
+    setGroups([]);
     setIsOpen(false);
   };
 
   const handleDown = (event: React.PointerEvent<SVGSVGElement>) => {
     setIsDragging(true);
+    console.log("onPointerDown!");
     if (editorMode === "draw") {
       const now = getPoint(event.pageX, event.pageY, canvasRef.current);
 
@@ -183,9 +193,29 @@ export const MainCanvas = (props: MainCanvasProps) => {
       //編集モードのときはBBやパスの操作ということにする
       handleBBDown(event);
     }
+
+    //タイマーをセット
+    timerId.current = window.setTimeout(() => {
+      console.log("300ms elapsed!");
+      if (editorMode === "edit") {
+        //BBを消す
+        setInrectSize({
+          left: 0,
+          top: 0,
+          width: 0,
+          height: 0
+        });
+      } else {
+        //描画点を消す
+        setPoints([]);
+      }
+      onModeChange();
+    }, 300);
   };
 
   const handleBBDown = (event: React.PointerEvent<SVGSVGElement>) => {
+    //selectedListが設定されている場合はリセットする
+    setSelectedElms([]);
     const now = getPoint(event.pageX, event.pageY, canvasRef.current);
     setInrectSize({
       left: Math.floor(now.x),
@@ -196,8 +226,10 @@ export const MainCanvas = (props: MainCanvasProps) => {
   };
 
   const handleMove = (event: React.PointerEvent<SVGSVGElement>) => {
-    //if (isDragging.current) {
+    //タイマーをリセットする
+    timerId.current && clearTimeout(timerId.current);
     if (isDragging) {
+      console.log("onPointerMove!");
       if (editorMode === "draw") {
         const now = getPoint(event.pageX, event.pageY, canvasRef.current);
         const newPoint: drawPoint = {
@@ -228,6 +260,9 @@ export const MainCanvas = (props: MainCanvasProps) => {
   };
 
   const handleUp = (event: React.PointerEvent<SVGSVGElement>) => {
+    console.log("onPointerUp!");
+    //タイマーをリセットする
+    timerId.current && clearTimeout(timerId.current);
     setIsDragging(false);
     if (editorMode === "draw") {
       const newStroke: Stroke = {
@@ -242,7 +277,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
       setPoints([]);
 
       //PointerEventによらずアップロードしたい
-      handleUpSert();
+      //handleUpSert();
     } else {
       handleBBUp(event);
     }
@@ -250,6 +285,9 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
   const handleBBUp = (event: React.PointerEvent<SVGSVGElement>) => {
     updateInterSections();
+    if (selectedElms && selectedElms.length > 0) {
+      popUpModal();
+    }
   };
 
   const handleUpSert = async () => {
@@ -420,72 +458,113 @@ export const MainCanvas = (props: MainCanvasProps) => {
     }
   };
 
+  const inner = (
+    <div className="ImportModalMenuContainer">
+      <div className="ImportModalMenu">
+        {localIllustList.map((item: HyperIllust, index: number) => {
+          return (
+            <img
+              key={index}
+              className={"ImportModalItem"}
+              alt={item.id}
+              title={item.id}
+              src={item.sourceURL}
+              width={100}
+              height={80}
+              onClick={() => {
+                handleAddLink(item);
+              }}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const popUpModal = () => {
+    showModal({
+      type: "confirm",
+      title: <h2>{`他のイラストと紐付ける`}</h2>,
+      content: (
+        <>
+          <div>
+            <h3>{`以下のリストから選択`}</h3>
+            {inner}
+          </div>
+        </>
+      ),
+      onCancel() {},
+      cancelText: "キャンセル"
+    });
+  };
+
+  const { showModal } = useModal();
+
   return (
     <>
-      <ModalProvider>
-        <div className={"toolBar"}>
-          <PenWidthSelector widthChange={onWidthChange} />
-          <ColorPicker colorChange={onColorChange} />
-          <ModeSelector text={editorMode} modeChange={onModeChange} />
+      <div className={"toolBar"}>
+        <PenWidthSelector widthChange={onWidthChange} />
+        <ColorPicker colorChange={onColorChange} />
+        <ModeSelector text={editorMode} modeChange={onModeChange} />
 
-          <div style={{ padding: "3px" }}>
-            <ButtonComponent type={"default"} onClick={handleUndo}>
-              {"元に戻す"}
-            </ButtonComponent>
-          </div>
-
-          <div style={{ padding: "3px" }}>
-            <ButtonComponent
-              type={"default"}
-              onClick={() => {
-                setIsOpen(true);
-              }}
-            >
-              {"リセット"}
-            </ButtonComponent>
-          </div>
-
-          <AddInnerLinkButton
-            onSelected={handleAddLink}
-            localIllustList={localIllustList}
-          />
-
-          <ImportButton
-            onSelected={handleImport}
-            localIllustList={localIllustList}
-          />
-
-          {/*<ExportButton*/}
-          {/*  onExport={handleClippedExport}*/}
-          {/*  selectedElms={selectedElms}*/}
-          {/*/>*/}
-
-          {/*<UploadButton onExport={handleExport} selectedElms={selectedElms} />*/}
-
-          <ResetDialog
-            isShow={isOpen}
-            onOk={handleAllClear}
-            onCancel={() => {
-              setIsOpen(false);
-            }}
-          />
+        <div style={{ padding: "3px" }}>
+          <ButtonComponent type={"default"} onClick={handleUndo}>
+            {"元に戻す"}
+          </ButtonComponent>
         </div>
 
-        <svg
-          ref={canvasRef}
-          className={"svgCanvas"}
-          viewBox={`0 0 ${canvasSize.width} ${canvasSize.height}`}
-          width={canvasSize.width}
-          height={canvasSize.height}
-          onPointerDown={handleDown}
-          onPointerMove={handleMove}
-          onPointerUp={handleUp}
-          onPointerCancel={handleUp}
-          xmlns="http://www.w3.org/2000/svg"
-          xmlnsXlink="http://www.w3.org/1999/xlink"
-        >
-          <defs>
-            <style type={"text/css"}>{`<![CDATA[
+        <div style={{ padding: "3px" }}>
+          <ButtonComponent
+            type={"default"}
+            onClick={() => {
+              setIsOpen(true);
+            }}
+          >
+            {"リセット"}
+          </ButtonComponent>
+        </div>
+
+        <AddInnerLinkButton
+          onSelected={handleAddLink}
+          localIllustList={localIllustList}
+        />
+
+        <ImportButton
+          onSelected={handleImport}
+          localIllustList={localIllustList}
+        />
+
+        {/*<ExportButton*/}
+        {/*  onExport={handleClippedExport}*/}
+        {/*  selectedElms={selectedElms}*/}
+        {/*/>*/}
+
+        {/*<UploadButton onExport={handleExport} selectedElms={selectedElms} />*/}
+
+        <ResetDialog
+          isShow={isOpen}
+          onOk={handleAllClear}
+          onCancel={() => {
+            setIsOpen(false);
+          }}
+        />
+      </div>
+
+      <svg
+        ref={canvasRef}
+        className={"svgCanvas"}
+        viewBox={`0 0 ${canvasSize.width} ${canvasSize.height}`}
+        width={canvasSize.width}
+        height={canvasSize.height}
+        onPointerDown={handleDown}
+        onPointerMove={handleMove}
+        onPointerUp={handleUp}
+        onPointerCancel={handleUp}
+        xmlns="http://www.w3.org/2000/svg"
+        xmlnsXlink="http://www.w3.org/1999/xlink"
+      >
+        <defs>
+          <style type={"text/css"}>{`<![CDATA[
                 path:hover: {
                   stroke: red;
                   transition: 0.5s;
@@ -503,25 +582,24 @@ export const MainCanvas = (props: MainCanvasProps) => {
                   transition: 0.5s;
                 }
            ]]>`}</style>
-          </defs>
-          <rect width="100%" height="100%" fill="#FFFFFF" />
-          <PathDrawer points={points} />
-          <StrokeDrawer strokes={strokes} events={events} />
-          <GroupDrawer groupElms={groups} events={events} />
-          <rect
-            display={editorMode === "draw" ? "none" : ""}
-            ref={inRectRef}
-            x={inRectSize.left}
-            y={inRectSize.top}
-            width={inRectSize.width}
-            height={inRectSize.height}
-            stroke="none"
-            fill="#01bc8c"
-            fillOpacity="0.25"
-            pointerEvents={events}
-          />
-        </svg>
-      </ModalProvider>
+        </defs>
+        <rect width="100%" height="100%" fill="#FFFFFF" />
+        <PathDrawer points={points} />
+        <StrokeDrawer strokes={strokes} events={events} />
+        <GroupDrawer groupElms={groups} events={events} />
+        <rect
+          display={editorMode === "draw" ? "none" : ""}
+          ref={inRectRef}
+          x={inRectSize.left}
+          y={inRectSize.top}
+          width={inRectSize.width}
+          height={inRectSize.height}
+          stroke="none"
+          fill="#01bc8c"
+          fillOpacity="0.25"
+          pointerEvents={events}
+        />
+      </svg>
     </>
   );
 };
