@@ -89,7 +89,8 @@ export const ButtonComponent: React.FC<Props> = props => {
       color: params().txtNormal,
       backgroundColor: params().bgcNormal,
       boxShadow: props.elevate ? "0 0 4px #999" : "0",
-      outline: "none"
+      outline: "none",
+      userSelect: "none"
     },
     ripple: {
       backgroundPosition: "center",

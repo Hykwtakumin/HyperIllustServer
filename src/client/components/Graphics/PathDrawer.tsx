@@ -18,6 +18,7 @@ export const PathDrawer: FC<PathDrawerProps> = props => {
 
   return (
     <path
+      id={"strokeDrawer"}
       strokeLinejoin={"round"}
       strokeLinecap={"round"}
       stroke={"#585858"}

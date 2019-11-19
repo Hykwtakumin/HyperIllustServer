@@ -1,5 +1,6 @@
 .svgCanvas {
   position: absolute;
+  user-select: none;
 }
 
 /*現在描画中のパスはわかりやすいように色をつける*/
@@ -38,6 +39,9 @@
   display: flex;
   justify-content: flex-start;
   margin-bottom: 5px;
+  position: fixed;
+  user-select: none;
+  background-color: darkslategray;
 }
 
 .modalTextArea {
@@ -103,6 +107,7 @@
   max-height: 150px;
   max-width: 100%;
   overflow: scroll;
+  user-select: none;
 }
 
 /*Import用の画像一覧*/
@@ -114,6 +119,7 @@
   align-items: stretch;
   align-content: flex-start;
   scroll-behavior: auto;
+  user-select: none;
 }
 
 .ImportModalItem {
@@ -167,6 +173,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  user-select: none;
 }
 
 /*リンク付きのPath*/

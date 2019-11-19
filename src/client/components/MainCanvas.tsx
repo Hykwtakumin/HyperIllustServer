@@ -61,6 +61,8 @@ export const MainCanvas = (props: MainCanvasProps) => {
   const canvasRef = useRef<SVGSVGElement>(null);
   //BB判定用Rectのref
   const inRectRef = useRef<SVGRectElement>(null);
+  //描画用レイヤーのref
+  const pointsRect = useRef<SVGElement>(null);
   //BBの寸法
   const [inRectSize, setInrectSize] = useState<Size>({
     left: 0,
@@ -88,6 +90,9 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
   //リンク付けるようモーダルの表示非表示
   const [isShow, setIsShow] = useState<boolean>(false);
+
+  //PointerDownしたときの座標
+  const [initialPoint, setInitialPoint] = useState<Points>({ x: 0, y: 0 });
 
   useEffect(() => {
     const user = loadUserInfo();
@@ -179,10 +184,13 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
   const handleDown = (event: React.PointerEvent<SVGSVGElement>) => {
     setIsDragging(true);
-    console.log("onPointerDown!");
-    if (editorMode === "draw") {
-      const now = getPoint(event.pageX, event.pageY, canvasRef.current);
 
+    const now = getPoint(event.pageX, event.pageY, canvasRef.current);
+
+    //PointerDownしたときの初期座標を設定
+    setInitialPoint({ x: Math.floor(now.x), y: Math.floor(now.y) });
+
+    if (editorMode === "draw") {
       const newPoint: drawPoint = {
         x: Math.floor(now.x),
         y: Math.floor(now.y)
@@ -197,18 +205,8 @@ export const MainCanvas = (props: MainCanvasProps) => {
     //タイマーをセット
     timerId.current = window.setTimeout(() => {
       console.log("300ms elapsed!");
-      if (editorMode === "edit") {
-        //BBを消す
-        setInrectSize({
-          left: 0,
-          top: 0,
-          width: 0,
-          height: 0
-        });
-      } else {
-        //描画点を消す
-        setPoints([]);
-      }
+      //描画点を消す
+      setPoints([]);
       onModeChange();
     }, 300);
   };
@@ -223,13 +221,13 @@ export const MainCanvas = (props: MainCanvasProps) => {
       width: 0,
       height: 0
     });
+    //
   };
 
   const handleMove = (event: React.PointerEvent<SVGSVGElement>) => {
     //タイマーをリセットする
-    timerId.current && clearTimeout(timerId.current);
+    //pointsのgetBoundingBoxが一定サイズ以下の場合に限りタイマーをリセットする
     if (isDragging) {
-      console.log("onPointerMove!");
       if (editorMode === "draw") {
         const now = getPoint(event.pageX, event.pageY, canvasRef.current);
         const newPoint: drawPoint = {
@@ -237,6 +235,15 @@ export const MainCanvas = (props: MainCanvasProps) => {
           y: Math.floor(now.y)
         };
         setPoints([...points, newPoint]);
+
+        const strokeDrawer = document.getElementById("strokeDrawer");
+        if (strokeDrawer) {
+          const drawingRect = strokeDrawer.getBoundingClientRect();
+          if (drawingRect.height > 5 && drawingRect.width > 5) {
+            console.log("動いているのでタイマーをリセット");
+            timerId.current && clearTimeout(timerId.current);
+          }
+        }
       } else {
         handleBBMove(event);
       }
@@ -245,17 +252,25 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
   const handleBBMove = (event: React.PointerEvent<SVGSVGElement>) => {
     const now = getPoint(event.pageX, event.pageY, canvasRef.current);
+
+    console.dir(inRectSize.left);
+    console.dir(inRectSize.top);
     if (
       Math.floor(now.x) > inRectSize.left &&
       Math.floor(now.y) > inRectSize.top
     ) {
       setInrectSize({
-        left: inRectSize.left,
-        top: inRectSize.top,
-        width: Math.floor(now.x) - inRectSize.left,
-        height: Math.floor(now.y) - inRectSize.top
+        left: initialPoint.x,
+        top: initialPoint.y,
+        width: Math.floor(now.x) - initialPoint.x,
+        height: Math.floor(now.y) - initialPoint.y
       });
       updateInterSections();
+    }
+
+    if (inRectSize.height > 5 && inRectSize.width > 5) {
+      //動いているのでタイマーをリセット
+      timerId.current && clearTimeout(timerId.current);
     }
   };
 
@@ -286,7 +301,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
   const handleBBUp = (event: React.PointerEvent<SVGSVGElement>) => {
     updateInterSections();
     if (selectedElms && selectedElms.length > 0) {
-      popUpModal();
+      popUpAddLinkModal();
     }
   };
 
@@ -481,7 +496,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
     </div>
   );
 
-  const popUpModal = () => {
+  const popUpAddLinkModal = () => {
     showModal({
       type: "confirm",
       title: <h2>{`他のイラストと紐付ける`}</h2>,
@@ -502,54 +517,6 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
   return (
     <>
-      <div className={"toolBar"}>
-        <PenWidthSelector widthChange={onWidthChange} />
-        <ColorPicker colorChange={onColorChange} />
-        <ModeSelector text={editorMode} modeChange={onModeChange} />
-
-        <div style={{ padding: "3px" }}>
-          <ButtonComponent type={"default"} onClick={handleUndo}>
-            {"元に戻す"}
-          </ButtonComponent>
-        </div>
-
-        <div style={{ padding: "3px" }}>
-          <ButtonComponent
-            type={"default"}
-            onClick={() => {
-              setIsOpen(true);
-            }}
-          >
-            {"リセット"}
-          </ButtonComponent>
-        </div>
-
-        <AddInnerLinkButton
-          onSelected={handleAddLink}
-          localIllustList={localIllustList}
-        />
-
-        <ImportButton
-          onSelected={handleImport}
-          localIllustList={localIllustList}
-        />
-
-        {/*<ExportButton*/}
-        {/*  onExport={handleClippedExport}*/}
-        {/*  selectedElms={selectedElms}*/}
-        {/*/>*/}
-
-        {/*<UploadButton onExport={handleExport} selectedElms={selectedElms} />*/}
-
-        <ResetDialog
-          isShow={isOpen}
-          onOk={handleAllClear}
-          onCancel={() => {
-            setIsOpen(false);
-          }}
-        />
-      </div>
-
       <svg
         ref={canvasRef}
         className={"svgCanvas"}
@@ -600,6 +567,54 @@ export const MainCanvas = (props: MainCanvasProps) => {
           pointerEvents={events}
         />
       </svg>
+
+      <div className="toolBar">
+        <PenWidthSelector widthChange={onWidthChange} />
+        <ColorPicker colorChange={onColorChange} />
+        <ModeSelector text={editorMode} modeChange={onModeChange} />
+
+        <div style={{ padding: "3px" }}>
+          <ButtonComponent type={"default"} onClick={handleUndo}>
+            {"元に戻す"}
+          </ButtonComponent>
+        </div>
+
+        <div style={{ padding: "3px" }}>
+          <ButtonComponent
+            type={"default"}
+            onClick={() => {
+              setIsOpen(true);
+            }}
+          >
+            {"リセット"}
+          </ButtonComponent>
+        </div>
+
+        <AddInnerLinkButton
+          onSelected={handleAddLink}
+          localIllustList={localIllustList}
+        />
+
+        <ImportButton
+          onSelected={handleImport}
+          localIllustList={localIllustList}
+        />
+
+        {/*<ExportButton*/}
+        {/*  onExport={handleClippedExport}*/}
+        {/*  selectedElms={selectedElms}*/}
+        {/*/>*/}
+
+        {/*<UploadButton onExport={handleExport} selectedElms={selectedElms} />*/}
+
+        <ResetDialog
+          isShow={isOpen}
+          onOk={handleAllClear}
+          onCancel={() => {
+            setIsOpen(false);
+          }}
+        />
+      </div>
     </>
   );
 };
