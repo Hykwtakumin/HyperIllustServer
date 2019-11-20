@@ -4,6 +4,8 @@ import { drawPoint } from "../share/utils";
 
 export type PathDrawerProps = {
   points: drawPoint[];
+  color: string;
+  width: string;
 };
 
 //リアルタイム描画用Component
@@ -21,8 +23,8 @@ export const PathDrawer: FC<PathDrawerProps> = props => {
       id={"strokeDrawer"}
       strokeLinejoin={"round"}
       strokeLinecap={"round"}
-      stroke={"#585858"}
-      strokeWidth={"6"}
+      stroke={props.color}
+      strokeWidth={props.width}
       pointerEvents={"none"}
       fill={"rgba(0,0,0,0)"}
       d={`M ${initialPoint.x} ${initialPoint.y} ${LineToPoints}`}

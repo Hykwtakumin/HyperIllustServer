@@ -58,6 +58,7 @@
   background-color: rgba(0, 0, 0, 0.15);
   border-radius: 5px;
   pointer-events: auto;
+  margin-top: 4px;
 }
 
 .modalTextArea {
@@ -193,3 +194,21 @@
 }
 
 /*リンク付きのPath*/
+
+/*カラーパレット*/
+.collorPalletContainer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+  align-items: center;
+  align-content: center;
+  user-select: none;
+}
+
+/*カラーパレットのボタン*/
+.colorPalletButton {
+  width: 36px;
+  height: 36px;
+  margin: 0px 2px;
+}

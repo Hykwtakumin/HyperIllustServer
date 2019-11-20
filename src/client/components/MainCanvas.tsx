@@ -33,6 +33,7 @@ import { updateSVG, uploadSVG } from "./share/API";
 import { StrokeDrawer } from "./Graphics/StrokeDrawer";
 import { GroupDrawer } from "./Graphics/GroupDrawer";
 import { ResetDialog } from "./ResetDialog";
+import { DrawPreset, DrawPresets } from "./DrawPresets";
 
 interface MainCanvasProps {}
 
@@ -94,6 +95,9 @@ export const MainCanvas = (props: MainCanvasProps) => {
   //PointerDownしたときの座標
   const [initialPoint, setInitialPoint] = useState<Points>({ x: 0, y: 0 });
 
+  //4種類の描画プリセット
+  const [preset, setPreset] = useState<DrawPreset>("narrow");
+
   useEffect(() => {
     const user = loadUserInfo();
     if (user) {
@@ -112,6 +116,24 @@ export const MainCanvas = (props: MainCanvasProps) => {
       }
     }
   }, []);
+
+  //プリセットによってペンの色や幅を変える
+  useEffect(() => {
+    console.log(`preset changed! : ${preset}`);
+    if (preset === "bold") {
+      setPenWidth(10);
+      setColor("#585858");
+    } else if (preset === "shadow") {
+      setPenWidth(6);
+      setColor("rgba(0,0,0,.25)");
+    } else if (preset === "highLight") {
+      setPenWidth(6);
+      setColor("rgba(255,141,60,0.8)");
+    } else {
+      setPenWidth(6);
+      setColor("#585858");
+    }
+  }, [preset]);
 
   /*on Canvas Resize*/
   window.onresize = () => {
@@ -280,6 +302,8 @@ export const MainCanvas = (props: MainCanvasProps) => {
       const newStroke: Stroke = {
         id: `${Math.floor(event.pageX)}-${Math.floor(event.pageY)}`,
         points: points,
+        color: color,
+        width: `${penWidth}`,
         isSelected: false
       };
 
@@ -548,7 +572,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
            ]]>`}</style>
         </defs>
         <rect width="100%" height="100%" fill="#FFFFFF" />
-        <PathDrawer points={points} />
+        <PathDrawer points={points} color={color} width={`${penWidth}`} />
         <StrokeDrawer strokes={strokes} events={events} />
         <GroupDrawer groupElms={groups} events={events} />
         <rect
@@ -567,9 +591,15 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
       <div className="toolBarContainer">
         <div className="toolBar">
-          <PenWidthSelector widthChange={onWidthChange} />
-          <ColorPicker colorChange={onColorChange} />
           <ModeSelector text={editorMode} modeChange={onModeChange} />
+
+          <DrawPresets
+            preset={preset}
+            onPresetChange={(preset: DrawPreset) => {
+              console.dir(preset);
+              setPreset(preset);
+            }}
+          />
 
           <div style={{ padding: "3px" }}>
             <ButtonComponent type={"default"} onClick={handleUndo}>
