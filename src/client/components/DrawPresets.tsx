@@ -1,7 +1,6 @@
 import * as React from "react";
-import { FC, useRef, useState, ReactNode } from "react";
-
-export type DrawPreset = "narrow" | "bold" | "shadow" | "highLight";
+import { FC, ReactNode } from "react";
+import { DrawPreset } from "./share/utils";
 
 type DrawPresetsProps = {
   preset: DrawPreset;
@@ -49,7 +48,7 @@ export const DrawPresets: FC<DrawPresetsProps> = props => {
 
   return (
     <div className="collorPalletContainer">
-      {outerRect("narrow", <circle cx="18" cy="18" r="6" fill="#585858" />)}
+      {outerRect("normal", <circle cx="18" cy="18" r="6" fill="#585858" />)}
       {outerRect("bold", <circle cx="18" cy="18" r="10" fill="#585858" />)}
       {outerRect(
         "shadow",

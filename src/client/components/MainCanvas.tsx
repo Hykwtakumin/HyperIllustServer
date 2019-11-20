@@ -8,11 +8,10 @@ import {
   Group,
   Stroke,
   drawPoint,
-  Size
+  Size,
+  DrawPreset
 } from "./share/utils";
 import { PathDrawer } from "./Graphics/PathDrawer";
-import { PenWidthSelector } from "./PenWidthSelector";
-import { ColorPicker } from "./ColorPicker";
 import { ModeSelector } from "./ModeSelector";
 import {
   ButtonComponent,
@@ -33,7 +32,7 @@ import { updateSVG, uploadSVG } from "./share/API";
 import { StrokeDrawer } from "./Graphics/StrokeDrawer";
 import { GroupDrawer } from "./Graphics/GroupDrawer";
 import { ResetDialog } from "./ResetDialog";
-import { DrawPreset, DrawPresets } from "./DrawPresets";
+import { DrawPresets } from "./DrawPresets";
 
 interface MainCanvasProps {}
 
@@ -65,7 +64,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
   //描画用レイヤーのref
   const pointsRect = useRef<SVGElement>(null);
   //BBの寸法
-  const [inRectSize, setInrectSize] = useState<Size>({
+  const [inRectSize, setInRectSize] = useState<Size>({
     left: 0,
     top: 0,
     width: 0,
@@ -96,7 +95,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
   const [initialPoint, setInitialPoint] = useState<Points>({ x: 0, y: 0 });
 
   //4種類の描画プリセット
-  const [preset, setPreset] = useState<DrawPreset>("narrow");
+  const [preset, setPreset] = useState<DrawPreset>("normal");
 
   useEffect(() => {
     const user = loadUserInfo();
@@ -143,17 +142,6 @@ export const MainCanvas = (props: MainCanvasProps) => {
     });
   };
 
-  /*ここらへんの部品も全て別コンポーネントに切り出す*/
-  const onWidthChange = (event: React.SyntheticEvent<HTMLSelectElement>) => {
-    console.log(`Penwidth changes!`);
-    setPenWidth(parseInt(event.target.value));
-  };
-
-  const onColorChange = (event: React.SyntheticEvent<HTMLInputElement>) => {
-    console.log(`Color changes!`);
-    setColor(event.target.value);
-  };
-
   const onModeChange = () => {
     //編集モードとPointerEventsの切り替え
     if (editorMode === "draw") {
@@ -166,6 +154,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
   };
 
   //BBがリサイズされたときに走る
+  //ここはuseEffectを使うべき
   const updateInterSections = () => {
     const list = Array.from(
       canvasRef.current.getIntersectionList(inRectRef.current.getBBox(), null)
@@ -237,7 +226,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
     //selectedListが設定されている場合はリセットする
     setSelectedElms([]);
     const now = getPoint(event.pageX, event.pageY, canvasRef.current);
-    setInrectSize({
+    setInRectSize({
       left: Math.floor(now.x),
       top: Math.floor(now.y),
       width: 0,
@@ -278,7 +267,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
       Math.floor(now.x) > inRectSize.left &&
       Math.floor(now.y) > inRectSize.top
     ) {
-      setInrectSize({
+      setInRectSize({
         left: initialPoint.x,
         top: initialPoint.y,
         width: Math.floor(now.x) - initialPoint.x,
