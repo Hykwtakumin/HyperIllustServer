@@ -34,7 +34,10 @@ import { GroupDrawer } from "./Graphics/GroupDrawer";
 import { ResetDialog } from "./ResetDialog";
 import { DrawPresets } from "./DrawPresets";
 
-interface MainCanvasProps {}
+interface MainCanvasProps {
+  loadedStrokes?: Stroke[];
+  loadedGroups?: Group[];
+}
 
 export const MainCanvas = (props: MainCanvasProps) => {
   const [penWidth, setPenWidth] = useState<number>(6);
@@ -48,9 +51,9 @@ export const MainCanvas = (props: MainCanvasProps) => {
   //リアルタイムで描画する座標
   const [points, setPoints] = useState<drawPoint[]>([]);
   //通常のストローク
-  const [strokes, setStrokes] = useState<Stroke[]>([]);
+  const [strokes, setStrokes] = useState<Stroke[]>(props.loadedStrokes || []);
   //グループ化した要素たち
-  const [groups, setGroups] = useState<Group[]>([]);
+  const [groups, setGroups] = useState<Group[]>(props.loadedGroups || []);
   //ドラッグ中のboolean
   const [isDragging, setIsDragging] = useState<boolean>(false);
   //要素のpointer-events
@@ -302,7 +305,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
       setPoints([]);
 
       //PointerEventによらずアップロードしたい
-      //handleUpSert();
+      handleUpSert();
     } else {
       handleBBUp(event);
     }
@@ -540,6 +543,10 @@ export const MainCanvas = (props: MainCanvasProps) => {
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
       >
+        <desc
+          stroke-data={JSON.stringify(strokes)}
+          group-data={JSON.stringify(groups)}
+        />
         <defs>
           <style type={"text/css"}>{`<![CDATA[
                 path:hover: {
@@ -593,7 +600,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
           <div style={{ padding: "3px" }}>
             <ButtonComponent type={"green"} onClick={handleUndo}>
               <img
-                src={"./icons/undo-24px.svg"}
+                src={"../icons/undo-24px.svg"}
                 alt={"元に戻す"}
                 title={"元に戻す"}
                 style={{ transform: "scale(1.5)" }}
@@ -619,7 +626,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
               }}
             >
               <img
-                src={"./icons/share-24px.svg"}
+                src={"../icons/share-24px.svg"}
                 alt={"共有する"}
                 title={"共有する"}
                 style={{ transform: "scale(1.5)" }}
@@ -635,7 +642,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
               }}
             >
               <img
-                src={"./icons/collections-24px.svg"}
+                src={"../icons/collections-24px.svg"}
                 alt={"画像一覧"}
                 title={"画像一覧"}
                 style={{ transform: "scale(1.5)" }}
@@ -651,7 +658,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
               }}
             >
               <img
-                src={"./icons/delete-24px.svg"}
+                src={"../icons/delete-24px.svg"}
                 alt={"リセット"}
                 title={"リセット"}
                 style={{ transform: "scale(1.5)" }}

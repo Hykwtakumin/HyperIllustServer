@@ -1,7 +1,7 @@
 import * as express from "express";
 import { renderToString } from "react-dom/server";
 import * as React from "react";
-import { app } from "../index";
+import { app, wrap } from "../index";
 import { BaseLayout } from "../../../views/BaseLayout";
 import {
   asyncReadFile,
@@ -29,6 +29,7 @@ import {
 import { HyperIllust, HyperIllustUser } from "../../share/model";
 import * as fetch from "node-fetch";
 import { logger } from "../../share/logger";
+import { RenderLayout } from "../../../views/RenderLayout";
 const { debug } = logger("router:index");
 
 export const Router = (io: socketIo.Server): express.Router => {
@@ -68,18 +69,27 @@ export const Router = (io: socketIo.Server): express.Router => {
     async (req: express.Request, res: express.Response) => {
       //
       const username = decodeURIComponent(req.params.userName);
-      const imageKey = decodeURIComponent(req.params.url);
+      const imageKey = decodeURIComponent(req.params.fileKey);
       debug(`imageKey: ${imageKey}`);
 
       const result = await fetch(
-        `https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${imageKey}`
+        `https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${imageKey}`,
+        {
+          method: "GET",
+          mode: "cors"
+        }
       );
+
+      //これはBufferで返ってくる
+      //const result = await promiseGetFile(imageKey);
       const svg = await result.text();
 
       if (result) {
         res
           .header("content-type", "text/html")
-          .send(renderToString(<BaseLayout title={"DrawWiki"} />))
+          .send(
+            renderToString(<BaseLayout title={"DrawWiki"} hydratedSVG={svg} />)
+          )
           .end();
       } else {
         res.redirect(`/${username}`);
@@ -244,6 +254,45 @@ export const Router = (io: socketIo.Server): express.Router => {
       res.setHeader("Content-Type", "image/svg+xml");
       res.send(rawData);
     }
+  );
+
+  //StrokeとGroupを受け取ってSSRしてみる試み
+  router.post(
+    "/api/ssr",
+    wrap(async (req: express.Request, res: express.Response) => {
+      const { width, height, stroke, group } = req.body;
+      debug(`width: ${width}`);
+      debug(`height: ${height}`);
+      debug(`strokes: ${stroke.length}`);
+      debug(`groups: ${group.length}`);
+
+      const rendered = renderToString(
+        <RenderLayout
+          width={width}
+          height={height}
+          strokeList={stroke}
+          groupList={group}
+        />
+      );
+
+      if (rendered) {
+        res
+          .header("Content-Type", "image/svg+xml")
+          .send(
+            renderToString(
+              <RenderLayout
+                width={width}
+                height={height}
+                strokeList={stroke}
+                groupList={group}
+              />
+            )
+          )
+          .end();
+      } else {
+        res.send({ status: "error" });
+      }
+    })
   );
 
   return router;

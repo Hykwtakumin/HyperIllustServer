@@ -48,6 +48,7 @@ export async function promiseDeleteFile(
 }
 
 //バケット内のSVGを取得
+//これはBufferで返ってくる
 export async function promiseGetFile(
   Key: string
 ): Promise<S3.Types.GetObjectAclOutput> {

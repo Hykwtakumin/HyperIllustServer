@@ -88,7 +88,7 @@ export const ImportButton: FC<ImportButtonProps> = (
     <div style={{ padding: "3px" }}>
       <ButtonComponent type="green" onClick={popUpModal}>
         <img
-          src={"./icons/cloud_download-24px.svg"}
+          src={"../icons/cloud_download-24px.svg"}
           alt={"インポート"}
           title={"インポート"}
           style={{ transform: "scale(1.5)" }}
