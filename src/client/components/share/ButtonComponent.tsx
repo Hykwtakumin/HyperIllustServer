@@ -16,7 +16,13 @@ type Props = {
   style?: React.CSSProperties;
 };
 
-type ButtonType = "primary" | "default" | "dashed" | "danger";
+type ButtonType =
+  | "primary"
+  | "default"
+  | "dashed"
+  | "danger"
+  | "green"
+  | "orange";
 
 // ______________________________________________________
 //
@@ -62,6 +68,26 @@ export const ButtonComponent: React.FC<Props> = props => {
           bgcHover: "#ff4d4f",
           bgcActive: "#ff7875",
           bdrNormal: "1px solid lightgrey",
+          bdrHover: "1px solid transparent",
+          txtNormal: "#fff",
+          txtHover: "#fff"
+        };
+      case "green":
+        return {
+          bgcNormal: "rgba(103,150,148,1)",
+          bgcHover: "rgba(103,150,148,0.8)",
+          bgcActive: "rgba(103,150,148,0.6)",
+          bdrNormal: "1px solid transparent",
+          bdrHover: "1px solid transparent",
+          txtNormal: "#fff",
+          txtHover: "#fff"
+        };
+      case "orange":
+        return {
+          bgcNormal: "rgba(255,141,60,1)",
+          bgcHover: "rgba(255,141,60,0.8)",
+          bgcActive: "rgba(255,141,60,0.6)",
+          bdrNormal: "1px solid transparent",
           bdrHover: "1px solid transparent",
           txtNormal: "#fff",
           txtHover: "#fff"

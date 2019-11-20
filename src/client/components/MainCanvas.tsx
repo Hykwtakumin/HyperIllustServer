@@ -145,6 +145,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
     });
   };
 
+  //ここもuseEffectを使えそう
   const onModeChange = () => {
     //編集モードとPointerEventsの切り替え
     if (editorMode === "draw") {
@@ -222,7 +223,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
       //描画点を消す
       setPoints([]);
       onModeChange();
-    }, 300);
+    }, 500);
   };
 
   const handleBBDown = (event: React.PointerEvent<SVGSVGElement>) => {
@@ -254,7 +255,6 @@ export const MainCanvas = (props: MainCanvasProps) => {
         if (strokeDrawer) {
           const drawingRect = strokeDrawer.getBoundingClientRect();
           if (drawingRect.height > 5 && drawingRect.width > 5) {
-            console.log("動いているのでタイマーをリセット");
             timerId.current && clearTimeout(timerId.current);
           }
         }
@@ -594,19 +594,13 @@ export const MainCanvas = (props: MainCanvasProps) => {
           />
 
           <div style={{ padding: "3px" }}>
-            <ButtonComponent type={"default"} onClick={handleUndo}>
-              {"元に戻す"}
-            </ButtonComponent>
-          </div>
-
-          <div style={{ padding: "3px" }}>
-            <ButtonComponent
-              type={"default"}
-              onClick={() => {
-                setIsOpen(true);
-              }}
-            >
-              {"リセット"}
+            <ButtonComponent type={"green"} onClick={handleUndo}>
+              <img
+                src={"./icons/undo-24px.svg"}
+                alt={"元に戻す"}
+                title={"元に戻す"}
+                style={{ transform: "scale(1.5)" }}
+              />
             </ButtonComponent>
           </div>
 
@@ -619,6 +613,54 @@ export const MainCanvas = (props: MainCanvasProps) => {
             onSelected={handleImport}
             localIllustList={localIllustList}
           />
+
+          <div style={{ padding: "3px" }}>
+            <ButtonComponent
+              type={"primary"}
+              onClick={event => {
+                console.log(event);
+              }}
+            >
+              <img
+                src={"./icons/share-24px.svg"}
+                alt={"共有する"}
+                title={"共有する"}
+                style={{ transform: "scale(1.5)" }}
+              />
+            </ButtonComponent>
+          </div>
+
+          <div style={{ padding: "3px" }}>
+            <ButtonComponent
+              type={"primary"}
+              onClick={event => {
+                console.log(event);
+              }}
+            >
+              <img
+                src={"./icons/collections-24px.svg"}
+                alt={"画像一覧"}
+                title={"画像一覧"}
+                style={{ transform: "scale(1.5)" }}
+              />
+            </ButtonComponent>
+          </div>
+
+          <div style={{ padding: "3px" }}>
+            <ButtonComponent
+              type={"danger"}
+              onClick={() => {
+                setIsOpen(true);
+              }}
+            >
+              <img
+                src={"./icons/delete-24px.svg"}
+                alt={"リセット"}
+                title={"リセット"}
+                style={{ transform: "scale(1.5)" }}
+              />
+            </ButtonComponent>
+          </div>
 
           {/*<ExportButton*/}
           {/*  onExport={handleClippedExport}*/}
