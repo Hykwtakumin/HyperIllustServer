@@ -72,8 +72,13 @@ export const AddInnerLinkButton: FC<AddInnerLinkButtonProps> = (
 
   return (
     <div style={{ padding: "3px" }}>
-      <ButtonComponent type="default" onClick={popUpModal}>
-        AddLink
+      <ButtonComponent type="green" onClick={popUpModal}>
+        <img
+          src={"./icons/link-24px.svg"}
+          alt={"リンク付要素を表示"}
+          title={"リンク付要素を表示"}
+          style={{ transform: "scale(1.5)" }}
+        />
       </ButtonComponent>
     </div>
   );
