@@ -20,15 +20,15 @@ const elements: Element[] | SVGElement[] = Array.from(
 
 const svg: Element | SVGElement = elements[0];
 const desc = svg;
-// console.dir(desc);
+console.dir(desc);
 
 const desilializedStroke = JSON.parse(svg.getAttribute("stroke-data"));
 const desilializedGroup = JSON.parse(svg.getAttribute("group-data"));
 
-// console.log("stroke");
-// console.dir(desilializedStroke);
-// console.log("group");
-// console.dir(desilializedGroup);
+console.log("stroke");
+console.dir(desilializedStroke);
+console.log("group");
+console.dir(desilializedGroup);
 
 elements.forEach((item: Element | SVGElement, index: number) => {
   if (item.nodeName == "path") {

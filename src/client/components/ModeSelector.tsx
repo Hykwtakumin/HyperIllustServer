@@ -19,14 +19,14 @@ export const ModeSelector: FC<ModeSelectorProps> = (
       >
         {props.text === "draw" ? (
           <img
-            src={"./icons/brush-24px.svg"}
+            src={"../icons/brush-24px.svg"}
             alt={"描画モード"}
             title={"描画モード"}
             style={{ transform: "scale(1.5)" }}
           />
         ) : (
           <img
-            src={"./icons/crop-24px.svg"}
+            src={"../icons/crop-24px.svg"}
             alt={"編集モード"}
             title={"編集モード"}
             style={{ transform: "scale(1.5)" }}
