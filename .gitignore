@@ -1,7 +1,8 @@
 
 node_modules
 .idea
-publid/dist
+public/dist
+!public/icons
 *.log
 coverage/
 .terraform
