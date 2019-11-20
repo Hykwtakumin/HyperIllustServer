@@ -252,9 +252,6 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
   const handleBBMove = (event: React.PointerEvent<SVGSVGElement>) => {
     const now = getPoint(event.pageX, event.pageY, canvasRef.current);
-
-    console.dir(inRectSize.left);
-    console.dir(inRectSize.top);
     if (
       Math.floor(now.x) > inRectSize.left &&
       Math.floor(now.y) > inRectSize.top
@@ -568,52 +565,54 @@ export const MainCanvas = (props: MainCanvasProps) => {
         />
       </svg>
 
-      <div className="toolBar">
-        <PenWidthSelector widthChange={onWidthChange} />
-        <ColorPicker colorChange={onColorChange} />
-        <ModeSelector text={editorMode} modeChange={onModeChange} />
+      <div className="toolBarContainer">
+        <div className="toolBar">
+          <PenWidthSelector widthChange={onWidthChange} />
+          <ColorPicker colorChange={onColorChange} />
+          <ModeSelector text={editorMode} modeChange={onModeChange} />
 
-        <div style={{ padding: "3px" }}>
-          <ButtonComponent type={"default"} onClick={handleUndo}>
-            {"元に戻す"}
-          </ButtonComponent>
-        </div>
+          <div style={{ padding: "3px" }}>
+            <ButtonComponent type={"default"} onClick={handleUndo}>
+              {"元に戻す"}
+            </ButtonComponent>
+          </div>
 
-        <div style={{ padding: "3px" }}>
-          <ButtonComponent
-            type={"default"}
-            onClick={() => {
-              setIsOpen(true);
+          <div style={{ padding: "3px" }}>
+            <ButtonComponent
+              type={"default"}
+              onClick={() => {
+                setIsOpen(true);
+              }}
+            >
+              {"リセット"}
+            </ButtonComponent>
+          </div>
+
+          <AddInnerLinkButton
+            onSelected={handleAddLink}
+            localIllustList={localIllustList}
+          />
+
+          <ImportButton
+            onSelected={handleImport}
+            localIllustList={localIllustList}
+          />
+
+          {/*<ExportButton*/}
+          {/*  onExport={handleClippedExport}*/}
+          {/*  selectedElms={selectedElms}*/}
+          {/*/>*/}
+
+          {/*<UploadButton onExport={handleExport} selectedElms={selectedElms} />*/}
+
+          <ResetDialog
+            isShow={isOpen}
+            onOk={handleAllClear}
+            onCancel={() => {
+              setIsOpen(false);
             }}
-          >
-            {"リセット"}
-          </ButtonComponent>
+          />
         </div>
-
-        <AddInnerLinkButton
-          onSelected={handleAddLink}
-          localIllustList={localIllustList}
-        />
-
-        <ImportButton
-          onSelected={handleImport}
-          localIllustList={localIllustList}
-        />
-
-        {/*<ExportButton*/}
-        {/*  onExport={handleClippedExport}*/}
-        {/*  selectedElms={selectedElms}*/}
-        {/*/>*/}
-
-        {/*<UploadButton onExport={handleExport} selectedElms={selectedElms} />*/}
-
-        <ResetDialog
-          isShow={isOpen}
-          onOk={handleAllClear}
-          onCancel={() => {
-            setIsOpen(false);
-          }}
-        />
       </div>
     </>
   );
