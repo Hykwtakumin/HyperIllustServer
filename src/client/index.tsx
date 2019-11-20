@@ -1,6 +1,7 @@
 import * as React from "react";
 import { render } from "react-dom";
 import { MainCanvas } from "./components/MainCanvas";
+import { ModalProvider } from "./components/share";
 
 const rootElement = document.getElementById("root");
 
@@ -36,9 +37,11 @@ elements.forEach((item: Element | SVGElement, index: number) => {
 });
 
 render(
-  <MainCanvas
-    loadedStrokes={desilializedStroke}
-    loadedGroups={desilializedGroup}
-  />,
+  <ModalProvider>
+    <MainCanvas
+      loadedStrokes={desilializedStroke}
+      loadedGroups={desilializedGroup}
+    />
+  </ModalProvider>,
   rootElement
 );

@@ -25,7 +25,7 @@ export const StrokeDrawer: FC<StrokeDrawerProps> = props => {
           if (stroke.isSelected) {
             return "red";
           } else {
-            return "#585858";
+            return stroke.color;
           }
         };
 
@@ -34,7 +34,7 @@ export const StrokeDrawer: FC<StrokeDrawerProps> = props => {
             strokeLinejoin={"round"}
             strokeLinecap={"round"}
             stroke={style()}
-            strokeWidth={"6"}
+            strokeWidth={stroke.width}
             className={props.style || ""}
             pointerEvents={props.events}
             fill={"rgba(0,0,0,0)"}

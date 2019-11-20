@@ -8,11 +8,10 @@ import {
   Group,
   Stroke,
   drawPoint,
-  Size
+  Size,
+  DrawPreset
 } from "./share/utils";
 import { PathDrawer } from "./Graphics/PathDrawer";
-import { PenWidthSelector } from "./PenWidthSelector";
-import { ColorPicker } from "./ColorPicker";
 import { ModeSelector } from "./ModeSelector";
 import {
   ButtonComponent,
@@ -33,6 +32,7 @@ import { updateSVG, uploadSVG } from "./share/API";
 import { StrokeDrawer } from "./Graphics/StrokeDrawer";
 import { GroupDrawer } from "./Graphics/GroupDrawer";
 import { ResetDialog } from "./ResetDialog";
+import { DrawPresets } from "./DrawPresets";
 
 interface MainCanvasProps {
   loadedStrokes?: Stroke[];
@@ -64,8 +64,10 @@ export const MainCanvas = (props: MainCanvasProps) => {
   const canvasRef = useRef<SVGSVGElement>(null);
   //BB判定用Rectのref
   const inRectRef = useRef<SVGRectElement>(null);
+  //描画用レイヤーのref
+  const pointsRect = useRef<SVGElement>(null);
   //BBの寸法
-  const [inRectSize, setInrectSize] = useState<Size>({
+  const [inRectSize, setInRectSize] = useState<Size>({
     left: 0,
     top: 0,
     width: 0,
@@ -86,6 +88,18 @@ export const MainCanvas = (props: MainCanvasProps) => {
   //一度UserIdを発行されたら基本的にそれを使い続ける感じで
   const [user, setUser] = useState<HyperIllustUser>(null);
 
+  //長押し判定用タイマー
+  const timerId = useRef<number>(null);
+
+  //リンク付けるようモーダルの表示非表示
+  const [isShow, setIsShow] = useState<boolean>(false);
+
+  //PointerDownしたときの座標
+  const [initialPoint, setInitialPoint] = useState<Points>({ x: 0, y: 0 });
+
+  //4種類の描画プリセット
+  const [preset, setPreset] = useState<DrawPreset>("normal");
+
   useEffect(() => {
     const user = loadUserInfo();
     if (user) {
@@ -105,23 +119,30 @@ export const MainCanvas = (props: MainCanvasProps) => {
     }
   }, []);
 
+  //プリセットによってペンの色や幅を変える
+  useEffect(() => {
+    console.log(`preset changed! : ${preset}`);
+    if (preset === "bold") {
+      setPenWidth(10);
+      setColor("#585858");
+    } else if (preset === "shadow") {
+      setPenWidth(6);
+      setColor("rgba(0,0,0,.25)");
+    } else if (preset === "highLight") {
+      setPenWidth(6);
+      setColor("rgba(255,141,60,0.8)");
+    } else {
+      setPenWidth(6);
+      setColor("#585858");
+    }
+  }, [preset]);
+
   /*on Canvas Resize*/
   window.onresize = () => {
     setCanvasSize({
       width: window.innerWidth,
       height: window.innerHeight
     });
-  };
-
-  /*ここらへんの部品も全て別コンポーネントに切り出す*/
-  const onWidthChange = (event: React.SyntheticEvent<HTMLSelectElement>) => {
-    console.log(`Penwidth changes!`);
-    setPenWidth(parseInt(event.target.value));
-  };
-
-  const onColorChange = (event: React.SyntheticEvent<HTMLInputElement>) => {
-    console.log(`Color changes!`);
-    setColor(event.target.value);
   };
 
   const onModeChange = () => {
@@ -136,6 +157,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
   };
 
   //BBがリサイズされたときに走る
+  //ここはuseEffectを使うべき
   const updateInterSections = () => {
     const list = Array.from(
       canvasRef.current.getIntersectionList(inRectRef.current.getBBox(), null)
@@ -167,15 +189,22 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
   //全部消去
   const handleAllClear = () => {
+    setPoints([]);
     setStrokes([]);
+    setSelectedElms([]);
+    setGroups([]);
     setIsOpen(false);
   };
 
   const handleDown = (event: React.PointerEvent<SVGSVGElement>) => {
     setIsDragging(true);
-    if (editorMode === "draw") {
-      const now = getPoint(event.pageX, event.pageY, canvasRef.current);
 
+    const now = getPoint(event.pageX, event.pageY, canvasRef.current);
+
+    //PointerDownしたときの初期座標を設定
+    setInitialPoint({ x: Math.floor(now.x), y: Math.floor(now.y) });
+
+    if (editorMode === "draw") {
       const newPoint: drawPoint = {
         x: Math.floor(now.x),
         y: Math.floor(now.y)
@@ -186,20 +215,32 @@ export const MainCanvas = (props: MainCanvasProps) => {
       //編集モードのときはBBやパスの操作ということにする
       handleBBDown(event);
     }
+
+    //タイマーをセット
+    timerId.current = window.setTimeout(() => {
+      console.log("300ms elapsed!");
+      //描画点を消す
+      setPoints([]);
+      onModeChange();
+    }, 300);
   };
 
   const handleBBDown = (event: React.PointerEvent<SVGSVGElement>) => {
+    //selectedListが設定されている場合はリセットする
+    setSelectedElms([]);
     const now = getPoint(event.pageX, event.pageY, canvasRef.current);
-    setInrectSize({
+    setInRectSize({
       left: Math.floor(now.x),
       top: Math.floor(now.y),
       width: 0,
       height: 0
     });
+    //
   };
 
   const handleMove = (event: React.PointerEvent<SVGSVGElement>) => {
-    //if (isDragging.current) {
+    //タイマーをリセットする
+    //pointsのgetBoundingBoxが一定サイズ以下の場合に限りタイマーをリセットする
     if (isDragging) {
       if (editorMode === "draw") {
         const now = getPoint(event.pageX, event.pageY, canvasRef.current);
@@ -208,6 +249,15 @@ export const MainCanvas = (props: MainCanvasProps) => {
           y: Math.floor(now.y)
         };
         setPoints([...points, newPoint]);
+
+        const strokeDrawer = document.getElementById("strokeDrawer");
+        if (strokeDrawer) {
+          const drawingRect = strokeDrawer.getBoundingClientRect();
+          if (drawingRect.height > 5 && drawingRect.width > 5) {
+            console.log("動いているのでタイマーをリセット");
+            timerId.current && clearTimeout(timerId.current);
+          }
+        }
       } else {
         handleBBMove(event);
       }
@@ -220,22 +270,32 @@ export const MainCanvas = (props: MainCanvasProps) => {
       Math.floor(now.x) > inRectSize.left &&
       Math.floor(now.y) > inRectSize.top
     ) {
-      setInrectSize({
-        left: inRectSize.left,
-        top: inRectSize.top,
-        width: Math.floor(now.x) - inRectSize.left,
-        height: Math.floor(now.y) - inRectSize.top
+      setInRectSize({
+        left: initialPoint.x,
+        top: initialPoint.y,
+        width: Math.floor(now.x) - initialPoint.x,
+        height: Math.floor(now.y) - initialPoint.y
       });
       updateInterSections();
+    }
+
+    if (inRectSize.height > 5 && inRectSize.width > 5) {
+      //動いているのでタイマーをリセット
+      timerId.current && clearTimeout(timerId.current);
     }
   };
 
   const handleUp = (event: React.PointerEvent<SVGSVGElement>) => {
+    console.log("onPointerUp!");
+    //タイマーをリセットする
+    timerId.current && clearTimeout(timerId.current);
     setIsDragging(false);
     if (editorMode === "draw") {
       const newStroke: Stroke = {
         id: `${Math.floor(event.pageX)}-${Math.floor(event.pageY)}`,
         points: points,
+        color: color,
+        width: `${penWidth}`,
         isSelected: false
       };
 
@@ -245,7 +305,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
       setPoints([]);
 
       //PointerEventによらずアップロードしたい
-      handleUpSert();
+      //handleUpSert();
     } else {
       handleBBUp(event);
     }
@@ -253,6 +313,9 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
   const handleBBUp = (event: React.PointerEvent<SVGSVGElement>) => {
     updateInterSections();
+    if (selectedElms && selectedElms.length > 0) {
+      popUpAddLinkModal();
+    }
   };
 
   const handleUpSert = async () => {
@@ -423,13 +486,112 @@ export const MainCanvas = (props: MainCanvasProps) => {
     }
   };
 
+  const inner = (
+    <div className="ImportModalMenuContainer">
+      <div className="ImportModalMenu">
+        {localIllustList.map((item: HyperIllust, index: number) => {
+          return (
+            <img
+              key={index}
+              className={"ImportModalItem"}
+              alt={item.id}
+              title={item.id}
+              src={item.sourceURL}
+              width={100}
+              height={80}
+              onClick={() => {
+                handleAddLink(item);
+              }}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const popUpAddLinkModal = () => {
+    showModal({
+      type: "confirm",
+      title: <h2>{`他のイラストと紐付ける`}</h2>,
+      content: (
+        <>
+          <div>
+            <h3>{`以下のリストから選択`}</h3>
+            {inner}
+          </div>
+        </>
+      ),
+      onCancel() {},
+      cancelText: "キャンセル"
+    });
+  };
+
+  const { showModal } = useModal();
+
   return (
     <>
-      <ModalProvider>
-        <div className={"toolBar"}>
-          <PenWidthSelector widthChange={onWidthChange} />
-          <ColorPicker colorChange={onColorChange} />
+      <svg
+        ref={canvasRef}
+        className={"svgCanvas"}
+        viewBox={`0 0 ${canvasSize.width} ${canvasSize.height}`}
+        width={canvasSize.width}
+        height={canvasSize.height}
+        onPointerDown={handleDown}
+        onPointerMove={handleMove}
+        onPointerUp={handleUp}
+        onPointerCancel={handleUp}
+        xmlns="http://www.w3.org/2000/svg"
+        xmlnsXlink="http://www.w3.org/1999/xlink"
+      >
+        <defs>
+          <style type={"text/css"}>{`<![CDATA[
+                path:hover: {
+                  stroke: red;
+                  transition: 0.5s;
+                }
+              
+                a:hover {
+                  fill: dodgerblue;
+                  stroke: dodgerblue;
+                  transition: 0.5s;
+                }
+                
+                a:active {
+                  fill: dodgerblue;
+                  stroke: dodgerblue;
+                  transition: 0.5s;
+                }
+           ]]>`}</style>
+        </defs>
+        <rect width="100%" height="100%" fill="#FFFFFF" />
+        <PathDrawer points={points} color={color} width={`${penWidth}`} />
+        <StrokeDrawer strokes={strokes} events={events} />
+        <GroupDrawer groupElms={groups} events={events} />
+        <rect
+          display={editorMode === "draw" ? "none" : ""}
+          ref={inRectRef}
+          x={inRectSize.left}
+          y={inRectSize.top}
+          width={inRectSize.width}
+          height={inRectSize.height}
+          stroke="none"
+          fill="#01bc8c"
+          fillOpacity="0.25"
+          pointerEvents={events}
+        />
+      </svg>
+
+      <div className="toolBarContainer">
+        <div className="toolBar">
           <ModeSelector text={editorMode} modeChange={onModeChange} />
+
+          <DrawPresets
+            preset={preset}
+            onPresetChange={(preset: DrawPreset) => {
+              console.dir(preset);
+              setPreset(preset);
+            }}
+          />
 
           <div style={{ padding: "3px" }}>
             <ButtonComponent type={"default"} onClick={handleUndo}>
@@ -473,63 +635,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
             }}
           />
         </div>
-
-        <svg
-          ref={canvasRef}
-          className={"svgCanvas"}
-          viewBox={`0 0 ${canvasSize.width} ${canvasSize.height}`}
-          width={canvasSize.width}
-          height={canvasSize.height}
-          onPointerDown={handleDown}
-          onPointerMove={handleMove}
-          onPointerUp={handleUp}
-          onPointerCancel={handleUp}
-          xmlns="http://www.w3.org/2000/svg"
-          xmlnsXlink="http://www.w3.org/1999/xlink"
-        >
-          <desc
-            stroke-data={JSON.stringify(strokes)}
-            group-data={JSON.stringify(groups)}
-          />
-
-          <defs>
-            <style type={"text/css"}>{`<![CDATA[
-                path:hover: {
-                  stroke: red;
-                  transition: 0.5s;
-                }
-              
-                a:hover {
-                  fill: dodgerblue;
-                  stroke: dodgerblue;
-                  transition: 0.5s;
-                }
-                
-                a:active {
-                  fill: dodgerblue;
-                  stroke: dodgerblue;
-                  transition: 0.5s;
-                }
-           ]]>`}</style>
-          </defs>
-          <rect width="100%" height="100%" fill="#FFFFFF" />
-          <PathDrawer points={points} />
-          <StrokeDrawer strokes={strokes} events={events} />
-          <GroupDrawer groupElms={groups} events={events} />
-          <rect
-            display={editorMode === "draw" ? "none" : ""}
-            ref={inRectRef}
-            x={inRectSize.left}
-            y={inRectSize.top}
-            width={inRectSize.width}
-            height={inRectSize.height}
-            stroke="none"
-            fill="#01bc8c"
-            fillOpacity="0.25"
-            pointerEvents={events}
-          />
-        </svg>
-      </ModalProvider>
+      </div>
     </>
   );
 };

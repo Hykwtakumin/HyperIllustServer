@@ -1,5 +1,6 @@
 .svgCanvas {
   position: absolute;
+  user-select: none;
 }
 
 /*現在描画中のパスはわかりやすいように色をつける*/
@@ -34,10 +35,30 @@
   touch-action: none;
 }
 
+.toolBarContainer {
+  position: fixed;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .toolBar {
   display: flex;
   justify-content: flex-start;
   margin-bottom: 5px;
+  position: fixed;
+  user-select: none;
+  background-color: rgba(0, 0, 0, 0.15);
+  border-radius: 5px;
+  pointer-events: auto;
+  margin-top: 4px;
 }
 
 .modalTextArea {
@@ -103,6 +124,7 @@
   max-height: 150px;
   max-width: 100%;
   overflow: scroll;
+  user-select: none;
 }
 
 /*Import用の画像一覧*/
@@ -114,6 +136,7 @@
   align-items: stretch;
   align-content: flex-start;
   scroll-behavior: auto;
+  user-select: none;
 }
 
 .ImportModalItem {
@@ -167,6 +190,25 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  user-select: none;
 }
 
 /*リンク付きのPath*/
+
+/*カラーパレット*/
+.collorPalletContainer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+  align-items: center;
+  align-content: center;
+  user-select: none;
+}
+
+/*カラーパレットのボタン*/
+.colorPalletButton {
+  width: 36px;
+  height: 36px;
+  margin: 0px 2px;
+}

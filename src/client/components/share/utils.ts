@@ -34,6 +34,8 @@ export type drawPoint = {
 export type Stroke = {
   id: string;
   points: drawPoint[];
+  color: string;
+  width: string;
   isSelected: boolean;
 };
 
@@ -58,9 +60,11 @@ export type OpeType =
   | "import"
   | "delete"
   | "move"
-  | "transeform";
+  | "transform";
 
 export type OpeStacks = {
   type: OpeType;
   desc: Object;
 };
+
+export type DrawPreset = "normal" | "bold" | "shadow" | "highLight";

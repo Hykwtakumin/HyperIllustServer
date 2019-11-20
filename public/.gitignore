@@ -1,5 +1,5 @@
 !.gitignore
 !index.css
-!icons
+!icons/*
 !dist
 *
