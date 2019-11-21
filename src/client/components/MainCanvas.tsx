@@ -187,28 +187,6 @@ export const MainCanvas = (props: MainCanvasProps) => {
      );
    }, [selectedElms]);
 
-
-  // const updateInterSections = () => {
-  //   const list = Array.from(
-  //     canvasRef.current.getIntersectionList(inRectRef.current.getBBox(), null)
-  //   );
-  //   //選択されたPathのIDを配列に入れていく
-  //   setSelectedElms(
-  //     list.reduce((prev, curr, index) => {
-  //       prev.push(curr.id);
-  //       return prev;
-  //     }, [])
-  //   );
-  //   //StrokeのisSelected要素を入れ替えていく
-  //   setStrokes(
-  //     strokes.reduce((prev, curr, index) => {
-  //       curr.isSelected = selectedElms.includes(curr.id);
-  //       prev.push(curr);
-  //       return prev;
-  //     }, [])
-  //   );
-  // };
-
   //元に戻す
   const handleUndo = event => {
     const newStrokes = strokes.filter((stroke, index) => {
