@@ -147,17 +147,14 @@ export const MainCanvas = (props: MainCanvasProps) => {
     });
   };
 
-  //ここもuseEffectを使えそう
-  const onModeChange = () => {
-    //編集モードとPointerEventsの切り替え
-    if (editorMode === "draw") {
-      setEditorMode("edit");
-      setEvents("auto");
-    } else {
-      setEditorMode("draw");
-      setEvents("none");
-    }
+  const switchEditorMode = () => {
+    editorMode === "draw" ? setEditorMode("edit") : setEditorMode("draw")
   };
+
+  //editorModeが変わるとPointerEventも変わる
+  useEffect(() => {
+    editorMode === "draw" ? setEvents("none") : setEvents("auto")
+  }, [editorMode]);
 
   //BBがリサイズされたときに走る
   //ここはuseEffectを使うべき
@@ -224,7 +221,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
       console.log("300ms elapsed!");
       //描画点を消す
       setPoints([]);
-      onModeChange();
+      switchEditorMode();
     }, 500);
   };
 
@@ -589,7 +586,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
       <div className="toolBarContainer">
         <div className="toolBar">
-          <ModeSelector text={editorMode} modeChange={onModeChange} />
+          <ModeSelector text={editorMode} modeChange={switchEditorMode} />
 
           <DrawPresets
             preset={preset}
