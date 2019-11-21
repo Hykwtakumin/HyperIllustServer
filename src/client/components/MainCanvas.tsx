@@ -157,8 +157,9 @@ export const MainCanvas = (props: MainCanvasProps) => {
   }, [editorMode]);
 
   //BBがリサイズされたときに走る
-  //ここはuseEffectを使うべき
-  const updateInterSections = () => {
+
+  useEffect(() => {
+    //BBがリサイズされる度に交差判定を行う
     const list = Array.from(
       canvasRef.current.getIntersectionList(inRectRef.current.getBBox(), null)
     );
@@ -177,7 +178,29 @@ export const MainCanvas = (props: MainCanvasProps) => {
         return prev;
       }, [])
     );
-  };
+  }, [inRectSize]);
+
+
+  // const updateInterSections = () => {
+  //   const list = Array.from(
+  //     canvasRef.current.getIntersectionList(inRectRef.current.getBBox(), null)
+  //   );
+  //   //選択されたPathのIDを配列に入れていく
+  //   setSelectedElms(
+  //     list.reduce((prev, curr, index) => {
+  //       prev.push(curr.id);
+  //       return prev;
+  //     }, [])
+  //   );
+  //   //StrokeのisSelected要素を入れ替えていく
+  //   setStrokes(
+  //     strokes.reduce((prev, curr, index) => {
+  //       curr.isSelected = selectedElms.includes(curr.id);
+  //       prev.push(curr);
+  //       return prev;
+  //     }, [])
+  //   );
+  // };
 
   //元に戻す
   const handleUndo = event => {
@@ -275,7 +298,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
         width: Math.floor(now.x) - initialPoint.x,
         height: Math.floor(now.y) - initialPoint.y
       });
-      updateInterSections();
+      //updateInterSections();
     }
 
     if (inRectSize.height > 5 && inRectSize.width > 5) {
@@ -311,7 +334,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
   };
 
   const handleBBUp = (event: React.PointerEvent<SVGSVGElement>) => {
-    updateInterSections();
+    //updateInterSections();
     if (selectedElms && selectedElms.length > 0) {
       popUpAddLinkModal();
     }
