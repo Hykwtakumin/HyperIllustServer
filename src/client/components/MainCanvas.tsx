@@ -157,12 +157,16 @@ export const MainCanvas = (props: MainCanvasProps) => {
   }, [editorMode]);
 
   //BBがリサイズされたときに走る
-
   useEffect(() => {
     //BBがリサイズされる度に交差判定を行う
     const list = Array.from(
       canvasRef.current.getIntersectionList(inRectRef.current.getBBox(), null)
     );
+
+    //背景の要素やBB本体は含まない
+    list.shift();
+    list.pop();
+
     //選択されたPathのIDを配列に入れていく
     setSelectedElms(
       list.reduce((prev, curr, index) => {
@@ -170,15 +174,18 @@ export const MainCanvas = (props: MainCanvasProps) => {
         return prev;
       }, [])
     );
-    //StrokeのisSelected要素を入れ替えていく
-    setStrokes(
-      strokes.reduce((prev, curr, index) => {
-        curr.isSelected = selectedElms.includes(curr.id);
-        prev.push(curr);
-        return prev;
-      }, [])
-    );
   }, [inRectSize]);
+
+  //StrokeのisSelected要素を入れ替えていく
+   useEffect(() => {
+     setStrokes(
+       strokes.reduce((prev, curr, index) => {
+         curr.isSelected = selectedElms.includes(curr.id);
+         prev.push(curr);
+         return prev;
+       }, [])
+     );
+   }, [selectedElms]);
 
 
   // const updateInterSections = () => {
@@ -327,7 +334,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
       setPoints([]);
 
       //PointerEventによらずアップロードしたい
-      handleUpSert();
+      //handleUpSert();
     } else {
       handleBBUp(event);
     }
