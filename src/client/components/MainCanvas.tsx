@@ -42,7 +42,9 @@ interface MainCanvasProps {
 export const MainCanvas = (props: MainCanvasProps) => {
   const [penWidth, setPenWidth] = useState<number>(6);
   const [color, setColor] = useState<string>("#585858");
-  const [editorMode, setEditorMode] = useState<EditorMode>("draw");
+  const [editorMode, setEditorMode] = useState<EditorMode>(
+    props.loadedStrokes ? "edit" : "draw"
+  );
   const [canvasSize, setCanvasSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight
