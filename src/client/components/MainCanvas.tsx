@@ -603,6 +603,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
                 src={"../icons/undo-24px.svg"}
                 alt={"元に戻す"}
                 title={"元に戻す"}
+                draggable={false}
                 style={{ transform: "scale(1.5)" }}
               />
             </ButtonComponent>
@@ -629,6 +630,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
                 src={"../icons/share-24px.svg"}
                 alt={"共有する"}
                 title={"共有する"}
+                draggable={false}
                 style={{ transform: "scale(1.5)" }}
               />
             </ButtonComponent>
@@ -645,6 +647,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
                 src={"../icons/collections-24px.svg"}
                 alt={"画像一覧"}
                 title={"画像一覧"}
+                draggable={false}
                 style={{ transform: "scale(1.5)" }}
               />
             </ButtonComponent>
@@ -661,6 +664,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
                 src={"../icons/delete-24px.svg"}
                 alt={"リセット"}
                 title={"リセット"}
+                draggable={false}
                 style={{ transform: "scale(1.5)" }}
               />
             </ButtonComponent>

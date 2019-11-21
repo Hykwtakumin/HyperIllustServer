@@ -39,6 +39,7 @@ export const AddInnerLinkButton: FC<AddInnerLinkButtonProps> = (
               src={item.sourceURL}
               width={100}
               height={80}
+              draggable={false}
               onClick={() => {
                 handleImageSelect(item);
               }}
@@ -77,6 +78,7 @@ export const AddInnerLinkButton: FC<AddInnerLinkButtonProps> = (
           src={"../icons/link-24px.svg"}
           alt={"リンク付要素を表示"}
           title={"リンク付要素を表示"}
+          draggable={false}
           style={{ transform: "scale(1.5)" }}
         />
       </ButtonComponent>

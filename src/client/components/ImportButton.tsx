@@ -91,6 +91,7 @@ export const ImportButton: FC<ImportButtonProps> = (
           src={"../icons/cloud_download-24px.svg"}
           alt={"インポート"}
           title={"インポート"}
+          draggable={false}
           style={{ transform: "scale(1.5)" }}
         />
       </ButtonComponent>

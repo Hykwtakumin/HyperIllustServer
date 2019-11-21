@@ -22,6 +22,7 @@ export const ModeSelector: FC<ModeSelectorProps> = (
             src={"../icons/brush-24px.svg"}
             alt={"描画モード"}
             title={"描画モード"}
+            draggable={false}
             style={{ transform: "scale(1.5)" }}
           />
         ) : (
@@ -29,6 +30,7 @@ export const ModeSelector: FC<ModeSelectorProps> = (
             src={"../icons/crop-24px.svg"}
             alt={"編集モード"}
             title={"編集モード"}
+            draggable={false}
             style={{ transform: "scale(1.5)" }}
           />
         )}
