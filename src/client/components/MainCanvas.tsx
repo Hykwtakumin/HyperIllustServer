@@ -33,6 +33,8 @@ import { StrokeDrawer } from "./Graphics/StrokeDrawer";
 import { GroupDrawer } from "./Graphics/GroupDrawer";
 import { ResetDialog } from "./ResetDialog";
 import { DrawPresets } from "./DrawPresets";
+import {ImportDialog} from "./ImportDialog";
+import {ViewLinkDialog} from "./ViewLinkDialog";
 
 interface MainCanvasProps {
   loadedStrokes?: Stroke[];
@@ -60,8 +62,12 @@ export const MainCanvas = (props: MainCanvasProps) => {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   //要素のpointer-events
   const [events, setEvents] = useState<PointerEvents>("none");
-  //モーダルの表示
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  //クリアモーダルの表示
+  const [isClearModalOpen, setIsClearModalOpen] = useState<boolean>(false);
+  //画像Importモーダルの表示
+  const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
+  //関連画像モーダルの表示
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState<boolean>(false);
   //キャンバスのref
   const canvasRef = useRef<SVGSVGElement>(null);
   //BB判定用Rectのref
@@ -82,6 +88,9 @@ export const MainCanvas = (props: MainCanvasProps) => {
   const [localIllustList, setLocalIllustList] = useState<HyperIllust[]>(
     loadHyperIllusts()
   );
+
+  //引用したHyperIllustのリスト
+  const [ referedIllusts, setReferedIllusts ] = useState<string[]>([]);
 
   //一度編集したらkeyを設定する
   //以後編集される度にkeyを設定する
@@ -147,24 +156,26 @@ export const MainCanvas = (props: MainCanvasProps) => {
     });
   };
 
-  //ここもuseEffectを使えそう
-  const onModeChange = () => {
-    //編集モードとPointerEventsの切り替え
-    if (editorMode === "draw") {
-      setEditorMode("edit");
-      setEvents("auto");
-    } else {
-      setEditorMode("draw");
-      setEvents("none");
-    }
+  const switchEditorMode = () => {
+    editorMode === "draw" ? setEditorMode("edit") : setEditorMode("draw")
   };
 
+  //editorModeが変わるとPointerEventも変わる
+  useEffect(() => {
+    editorMode === "draw" ? setEvents("none") : setEvents("auto")
+  }, [editorMode]);
+
   //BBがリサイズされたときに走る
-  //ここはuseEffectを使うべき
-  const updateInterSections = () => {
+  useEffect(() => {
+    //BBがリサイズされる度に交差判定を行う
     const list = Array.from(
       canvasRef.current.getIntersectionList(inRectRef.current.getBBox(), null)
     );
+
+    //背景の要素やBB本体は含まない
+    list.shift();
+    list.pop();
+
     //選択されたPathのIDを配列に入れていく
     setSelectedElms(
       list.reduce((prev, curr, index) => {
@@ -172,15 +183,30 @@ export const MainCanvas = (props: MainCanvasProps) => {
         return prev;
       }, [])
     );
-    //StrokeのisSelected要素を入れ替えていく
-    setStrokes(
-      strokes.reduce((prev, curr, index) => {
-        curr.isSelected = selectedElms.includes(curr.id);
-        prev.push(curr);
-        return prev;
-      }, [])
-    );
-  };
+  }, [inRectSize]);
+
+  //StrokeのisSelected要素を入れ替えていく
+   useEffect(() => {
+     setStrokes(
+       strokes.reduce((prev, curr, index) => {
+         curr.isSelected = selectedElms.includes(curr.id);
+         prev.push(curr);
+         return prev;
+       }, [])
+     );
+   }, [selectedElms]);
+
+   //引用したイラストのリストを設定する
+  useEffect(() => {
+    console.log(groups.reduce((prev, curr, index) => {
+      prev.push(curr.href);
+      return prev;
+    }, []));
+    setReferedIllusts(groups.reduce((prev, curr, index) => {
+      prev.push(curr.href);
+      return prev;
+    }, []));
+  }, [groups]);
 
   //元に戻す
   const handleUndo = event => {
@@ -196,7 +222,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
     setStrokes([]);
     setSelectedElms([]);
     setGroups([]);
-    setIsOpen(false);
+    setIsClearModalOpen(false);
   };
 
   const handleDown = (event: React.PointerEvent<SVGSVGElement>) => {
@@ -224,7 +250,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
       console.log("300ms elapsed!");
       //描画点を消す
       setPoints([]);
-      onModeChange();
+      switchEditorMode();
     }, 500);
   };
 
@@ -278,7 +304,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
         width: Math.floor(now.x) - initialPoint.x,
         height: Math.floor(now.y) - initialPoint.y
       });
-      updateInterSections();
+      //updateInterSections();
     }
 
     if (inRectSize.height > 5 && inRectSize.width > 5) {
@@ -314,9 +340,8 @@ export const MainCanvas = (props: MainCanvasProps) => {
   };
 
   const handleBBUp = (event: React.PointerEvent<SVGSVGElement>) => {
-    updateInterSections();
     if (selectedElms && selectedElms.length > 0) {
-      popUpAddLinkModal();
+      setIsImportModalOpen(true);
     }
   };
 
@@ -488,48 +513,6 @@ export const MainCanvas = (props: MainCanvasProps) => {
     }
   };
 
-  const inner = (
-    <div className="ImportModalMenuContainer">
-      <div className="ImportModalMenu">
-        {localIllustList.map((item: HyperIllust, index: number) => {
-          return (
-            <img
-              key={index}
-              className={"ImportModalItem"}
-              alt={item.id}
-              title={item.id}
-              src={item.sourceURL}
-              width={100}
-              height={80}
-              onClick={() => {
-                handleAddLink(item);
-              }}
-            />
-          );
-        })}
-      </div>
-    </div>
-  );
-
-  const popUpAddLinkModal = () => {
-    showModal({
-      type: "confirm",
-      title: <h2>{`他のイラストと紐付ける`}</h2>,
-      content: (
-        <>
-          <div>
-            <h3>{`以下のリストから選択`}</h3>
-            {inner}
-          </div>
-        </>
-      ),
-      onCancel() {},
-      cancelText: "キャンセル"
-    });
-  };
-
-  const { showModal } = useModal();
-
   return (
     <>
       <svg
@@ -589,7 +572,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
       <div className="toolBarContainer">
         <div className="toolBar">
-          <ModeSelector text={editorMode} modeChange={onModeChange} />
+          <ModeSelector text={editorMode} modeChange={switchEditorMode} />
 
           <DrawPresets
             preset={preset}
@@ -611,10 +594,22 @@ export const MainCanvas = (props: MainCanvasProps) => {
             </ButtonComponent>
           </div>
 
-          <AddInnerLinkButton
-            onSelected={handleAddLink}
-            localIllustList={localIllustList}
-          />
+          {/*<AddInnerLinkButton*/}
+          {/*  onSelected={handleAddLink}*/}
+          {/*  localIllustList={localIllustList}*/}
+          {/*/>*/}
+
+          <div style={{ padding: "3px" }}>
+            <ButtonComponent type="green" onClick={() => { setIsLinkModalOpen(true) }}>
+              <img
+                src={"../icons/link-24px.svg"}
+                alt={"リンク付要素を表示"}
+                title={"リンク付要素を表示"}
+                draggable={false}
+                style={{ transform: "scale(1.5)" }}
+              />
+            </ButtonComponent>
+          </div>
 
           <ImportButton
             onSelected={handleImport}
@@ -659,7 +654,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
             <ButtonComponent
               type={"danger"}
               onClick={() => {
-                setIsOpen(true);
+                setIsClearModalOpen(true);
               }}
             >
               <img
@@ -680,12 +675,24 @@ export const MainCanvas = (props: MainCanvasProps) => {
           {/*<UploadButton onExport={handleExport} selectedElms={selectedElms} />*/}
 
           <ResetDialog
-            isShow={isOpen}
+            isShow={isClearModalOpen}
             onOk={handleAllClear}
             onCancel={() => {
-              setIsOpen(false);
+              setIsClearModalOpen(false);
             }}
           />
+
+          <ImportDialog isShow={isImportModalOpen} onSelected={(item => {
+            handleAddLink(item);
+            setIsImportModalOpen(false);
+          })} localIllustList={localIllustList} onCancel={() => {
+            setIsImportModalOpen(false);
+          }} />
+
+          <ViewLinkDialog isShow={isLinkModalOpen} onCancel={() => {
+            setIsLinkModalOpen(false)
+          }} referedIllusts={referedIllusts} />
+
         </div>
       </div>
     </>
