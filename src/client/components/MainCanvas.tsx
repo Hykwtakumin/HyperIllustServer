@@ -640,6 +640,20 @@ export const MainCanvas = (props: MainCanvasProps) => {
           />
 
           <div style={{ padding: "3px" }}>
+              <ButtonComponent type={"primary"} onClick={() => {
+                window.open("/", "", "");
+              }}>
+                  <img
+                      src={"../icons/add_box-24px.svg"}
+                      alt={"新規作成"}
+                      title={"新規作成"}
+                      draggable={false}
+                      style={{ transform: "scale(1.5)" }}
+                  />
+              </ButtonComponent>
+          </div>
+
+          <div style={{ padding: "3px" }}>
             <ButtonComponent
               type={"primary"}
               onClick={event => {
