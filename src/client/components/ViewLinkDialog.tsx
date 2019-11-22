@@ -2,7 +2,7 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { FC } from "react";
 import { ButtonComponent } from "./share";
-import {HyperIllust} from "../../share/model";
+import { HyperIllust } from "../../share/model";
 
 type ViewLinkDialogProps = {
   isShow: boolean;

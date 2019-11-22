@@ -2,7 +2,7 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { FC } from "react";
 import { ButtonComponent } from "./share";
-import {HyperIllust} from "../../share/model";
+import { HyperIllust } from "../../share/model";
 
 type ImportDialogProps = {
   isShow: boolean;
@@ -32,22 +32,24 @@ export const ImportDialog: FC<ImportDialogProps> = props => {
 
               <div className="ImportModalMenuContainer">
                 <div className="ImportModalMenu">
-                  {props.localIllustList.map((item: HyperIllust, index: number) => {
-                    return (
-                      <img
-                        key={index}
-                        className={"ImportModalItem"}
-                        alt={item.id}
-                        title={item.id}
-                        src={item.sourceURL}
-                        width={200}
-                        draggable={false}
-                        onClick={() => {
-                          props.onSelected(item);
-                        }}
-                      />
-                    );
-                  })}
+                  {props.localIllustList.map(
+                    (item: HyperIllust, index: number) => {
+                      return (
+                        <img
+                          key={index}
+                          className={"ImportModalItem"}
+                          alt={item.id}
+                          title={item.id}
+                          src={item.sourceURL}
+                          width={200}
+                          draggable={false}
+                          onClick={() => {
+                            props.onSelected(item);
+                          }}
+                        />
+                      );
+                    }
+                  )}
                 </div>
               </div>
             </div>

@@ -33,8 +33,8 @@ import { StrokeDrawer } from "./Graphics/StrokeDrawer";
 import { GroupDrawer } from "./Graphics/GroupDrawer";
 import { ResetDialog } from "./ResetDialog";
 import { DrawPresets } from "./DrawPresets";
-import {ImportDialog} from "./ImportDialog";
-import {ViewLinkDialog} from "./ViewLinkDialog";
+import { ImportDialog } from "./ImportDialog";
+import { ViewLinkDialog } from "./ViewLinkDialog";
 
 interface MainCanvasProps {
   loadedStrokes?: Stroke[];
@@ -90,7 +90,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
   );
 
   //引用したHyperIllustのリスト
-  const [ referedIllusts, setReferedIllusts ] = useState<string[]>([]);
+  const [referedIllusts, setReferedIllusts] = useState<string[]>([]);
 
   //一度編集したらkeyを設定する
   //以後編集される度にkeyを設定する
@@ -100,7 +100,10 @@ export const MainCanvas = (props: MainCanvasProps) => {
   const [user, setUser] = useState<HyperIllustUser>(null);
 
   //長押し判定用タイマー
-  const timerId = useRef<number>(null);
+  const gestureTimerId = useRef<number>(null);
+
+  //debounceアップロード用タイマー
+  const upLoadTimerId = useRef<number>(null);
 
   //リンク付けるようモーダルの表示非表示
   const [isShow, setIsShow] = useState<boolean>(false);
@@ -157,12 +160,12 @@ export const MainCanvas = (props: MainCanvasProps) => {
   };
 
   const switchEditorMode = () => {
-    editorMode === "draw" ? setEditorMode("edit") : setEditorMode("draw")
+    editorMode === "draw" ? setEditorMode("edit") : setEditorMode("draw");
   };
 
   //editorModeが変わるとPointerEventも変わる
   useEffect(() => {
-    editorMode === "draw" ? setEvents("none") : setEvents("auto")
+    editorMode === "draw" ? setEvents("none") : setEvents("auto");
   }, [editorMode]);
 
   //BBがリサイズされたときに走る
@@ -186,27 +189,42 @@ export const MainCanvas = (props: MainCanvasProps) => {
   }, [inRectSize]);
 
   //StrokeのisSelected要素を入れ替えていく
-   useEffect(() => {
-     setStrokes(
-       strokes.reduce((prev, curr, index) => {
-         curr.isSelected = selectedElms.includes(curr.id);
-         prev.push(curr);
-         return prev;
-       }, [])
-     );
-   }, [selectedElms]);
-
-   //引用したイラストのリストを設定する
   useEffect(() => {
-    console.log(groups.reduce((prev, curr, index) => {
-      prev.push(curr.href);
-      return prev;
-    }, []));
-    setReferedIllusts(groups.reduce((prev, curr, index) => {
-      prev.push(curr.href);
-      return prev;
-    }, []));
+    setStrokes(
+      strokes.reduce((prev, curr, index) => {
+        curr.isSelected = selectedElms.includes(curr.id);
+        prev.push(curr);
+        return prev;
+      }, [])
+    );
+  }, [selectedElms]);
+
+  //引用したイラストのリストを設定する
+  useEffect(() => {
+    console.log(
+      groups.reduce((prev, curr, index) => {
+        prev.push(curr.href);
+        return prev;
+      }, [])
+    );
+    setReferedIllusts(
+      groups.reduce((prev, curr, index) => {
+        prev.push(curr.href);
+        return prev;
+      }, [])
+    );
   }, [groups]);
+
+  //描画とかが変更される度にアップロードする
+  useEffect(() => {
+    if (user && user.name && strokes.length > 0) {
+      upLoadTimerId.current = window.setTimeout(() => {
+        handleUpSert();
+      }, 1500);
+    } else {
+      console.log("user is not defined!");
+    }
+  }, [strokes, groups]);
 
   //元に戻す
   const handleUndo = event => {
@@ -232,6 +250,8 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
     //PointerDownしたときの初期座標を設定
     setInitialPoint({ x: Math.floor(now.x), y: Math.floor(now.y) });
+    //アップロード用タイマーをリセット
+    upLoadTimerId.current && clearTimeout(upLoadTimerId.current);
 
     if (editorMode === "draw") {
       const newPoint: drawPoint = {
@@ -246,7 +266,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
     }
 
     //タイマーをセット
-    timerId.current = window.setTimeout(() => {
+    gestureTimerId.current = window.setTimeout(() => {
       console.log("300ms elapsed!");
       //描画点を消す
       setPoints([]);
@@ -283,7 +303,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
         if (strokeDrawer) {
           const drawingRect = strokeDrawer.getBoundingClientRect();
           if (drawingRect.height > 5 && drawingRect.width > 5) {
-            timerId.current && clearTimeout(timerId.current);
+            gestureTimerId.current && clearTimeout(gestureTimerId.current);
           }
         }
       } else {
@@ -309,14 +329,14 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
     if (inRectSize.height > 5 && inRectSize.width > 5) {
       //動いているのでタイマーをリセット
-      timerId.current && clearTimeout(timerId.current);
+      gestureTimerId.current && clearTimeout(gestureTimerId.current);
     }
   };
 
   const handleUp = (event: React.PointerEvent<SVGSVGElement>) => {
     console.log("onPointerUp!");
     //タイマーをリセットする
-    timerId.current && clearTimeout(timerId.current);
+    gestureTimerId.current && clearTimeout(gestureTimerId.current);
     setIsDragging(false);
     if (editorMode === "draw") {
       const newStroke: Stroke = {
@@ -332,8 +352,6 @@ export const MainCanvas = (props: MainCanvasProps) => {
       //pointsはリセットする
       setPoints([]);
 
-      //PointerEventによらずアップロードしたい
-      handleUpSert();
     } else {
       handleBBUp(event);
     }
@@ -600,7 +618,12 @@ export const MainCanvas = (props: MainCanvasProps) => {
           {/*/>*/}
 
           <div style={{ padding: "3px" }}>
-            <ButtonComponent type="green" onClick={() => { setIsLinkModalOpen(true) }}>
+            <ButtonComponent
+              type="green"
+              onClick={() => {
+                setIsLinkModalOpen(true);
+              }}
+            >
               <img
                 src={"../icons/link-24px.svg"}
                 alt={"リンク付要素を表示"}
@@ -682,17 +705,25 @@ export const MainCanvas = (props: MainCanvasProps) => {
             }}
           />
 
-          <ImportDialog isShow={isImportModalOpen} onSelected={(item => {
-            handleAddLink(item);
-            setIsImportModalOpen(false);
-          })} localIllustList={localIllustList} onCancel={() => {
-            setIsImportModalOpen(false);
-          }} />
+          <ImportDialog
+            isShow={isImportModalOpen}
+            onSelected={item => {
+              handleAddLink(item);
+              setIsImportModalOpen(false);
+            }}
+            localIllustList={localIllustList}
+            onCancel={() => {
+              setIsImportModalOpen(false);
+            }}
+          />
 
-          <ViewLinkDialog isShow={isLinkModalOpen} onCancel={() => {
-            setIsLinkModalOpen(false)
-          }} referedIllusts={referedIllusts} />
-
+          <ViewLinkDialog
+            isShow={isLinkModalOpen}
+            onCancel={() => {
+              setIsLinkModalOpen(false);
+            }}
+            referedIllusts={referedIllusts}
+          />
         </div>
       </div>
     </>
