@@ -121,9 +121,9 @@
 
 /*画像一覧用コンテナ*/
 .ImportModalMenuContainer {
-  max-height: 150px;
   max-width: 100%;
-  overflow: scroll;
+  max-height: 80%;
+  overflow-y: auto;
   user-select: none;
 }
 
@@ -140,10 +140,9 @@
 }
 
 .ImportModalItem {
-  filter: grayscale(80%);
 }
 
-.ImportModalItem:active {
+.ImportModalItem:hover {
   filter: grayscale(0%);
   border-width: 3px;
   border-style: solid;

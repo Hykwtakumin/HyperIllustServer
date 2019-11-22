@@ -20,14 +20,14 @@ export const ResetDialog: FC<ResetDialogProps> = props => {
           <section className="overLay" onClick={props.onCancel}>
             <div
               style={{
-                width: "400",
-                height: "150",
+                width: "40%",
+                height: "30%",
                 backgroundColor: "white",
-                border: "1px black solid",
+                border: "none",
                 position: "absolute"
               }}
             >
-              <h1>描いたものをリセットします</h1>
+              <h2>描いたものをリセットします</h2>
 
               <ButtonComponent type="default" onClick={props.onCancel}>
                 {"キャンセル"}
