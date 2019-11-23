@@ -35,6 +35,7 @@ import { ResetDialog } from "./ResetDialog";
 import { DrawPresets } from "./DrawPresets";
 import { ImportDialog } from "./ImportDialog";
 import { ViewLinkDialog } from "./ViewLinkDialog";
+import {ShareDialog} from "../ShareDIalog";
 
 interface MainCanvasProps {
   loadedStrokes?: Stroke[];
@@ -68,6 +69,8 @@ export const MainCanvas = (props: MainCanvasProps) => {
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
   //関連画像モーダルの表示
   const [isLinkModalOpen, setIsLinkModalOpen] = useState<boolean>(false);
+  //共有モーダルの表示非表示
+  const [isSHowShareModal, setIsShowShareModal] = useState<boolean>(false);
   //キャンバスのref
   const canvasRef = useRef<SVGSVGElement>(null);
   //BB判定用Rectのref
@@ -224,7 +227,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
     } else {
       console.log("user is not defined!");
     }
-  }, [strokes, groups]);
+  }, [strokes]);
 
   //元に戻す
   const handleUndo = event => {
@@ -656,8 +659,8 @@ export const MainCanvas = (props: MainCanvasProps) => {
           <div style={{ padding: "3px" }}>
             <ButtonComponent
               type={"primary"}
-              onClick={event => {
-                console.log(event);
+              onClick={() => {
+                setIsShowShareModal(true);
               }}
             >
               <img
@@ -738,6 +741,9 @@ export const MainCanvas = (props: MainCanvasProps) => {
             }}
             referedIllusts={referedIllusts}
           />
+
+          <ShareDialog isShow={isSHowShareModal} onCancel={() => {setIsShowShareModal(false)}}  resourceKey={""} resourceURL={"https://github.com/Hykwtakumin/HyperIllustServer"}/>
+
         </div>
       </div>
     </>

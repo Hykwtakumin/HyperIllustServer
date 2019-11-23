@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { FC } from "react";
+import { FC, useState } from "react";
 import { ButtonComponent } from "./share";
 import { HyperIllust } from "../../share/model";
 
@@ -15,7 +15,6 @@ export const ViewLinkDialog: FC<ViewLinkDialogProps> = props => {
   return ReactDOM.createPortal(
     <>
       {props.isShow && (
-        <>
           <section className="overLay" onClick={props.onCancel}>
             <div
               style={{
@@ -50,7 +49,6 @@ export const ViewLinkDialog: FC<ViewLinkDialogProps> = props => {
               </div>
             </div>
           </section>
-        </>
       )}
     </>,
     document.body

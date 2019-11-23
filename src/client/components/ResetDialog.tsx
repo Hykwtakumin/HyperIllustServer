@@ -29,12 +29,15 @@ export const ResetDialog: FC<ResetDialogProps> = props => {
             >
               <h2>描いたものをリセットします</h2>
 
-              <ButtonComponent type="default" onClick={props.onCancel}>
-                {"キャンセル"}
-              </ButtonComponent>
-              <ButtonComponent type="danger" onClick={props.onOk}>
-                {props.okText || "OK"}
-              </ButtonComponent>
+              <div>
+                <ButtonComponent type="default" onClick={props.onCancel}>
+                  {"キャンセル"}
+                </ButtonComponent>
+                <ButtonComponent type="danger" onClick={props.onOk}>
+                  {props.okText || "OK"}
+                </ButtonComponent>
+              </div>
+
             </div>
           </section>
         </>

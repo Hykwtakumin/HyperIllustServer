@@ -60,6 +60,7 @@
     "multer": "^1.4.1",
     "node-fetch": "^2.6.0",
     "prettier": "^1.17.0",
+    "qrcode": "^1.4.4",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "s3rver": "^3.0.3",
@@ -78,6 +79,5 @@
     "webpack-bundle-size-analyzer": "^3.0.0",
     "webpack-cli": "^3.3.2"
   },
-  "devDependencies": {
-  }
+  "devDependencies": {}
 }
