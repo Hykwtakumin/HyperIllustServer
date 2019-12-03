@@ -4,14 +4,16 @@ import { FC } from "react";
 import { ButtonComponent } from "./share";
 import { HyperIllust } from "../../share/model";
 
-type ViewLinkDialogProps = {
+type LocalListDialogProps = {
   isShow: boolean;
   onCancel: () => void;
-  referedIllusts: string[];
+  onSelected: (item: HyperIllust) => void;
+  onDeleted: (item: HyperIllust) => void;
+  localIllustList: HyperIllust[];
 };
 
 //シンプルなダイアログ用コンポーネント
-export const ViewLinkDialog: FC<ViewLinkDialogProps> = props => {
+export const LocalListDialog: FC<LocalListDialogProps> = props => {
   return ReactDOM.createPortal(
     <>
       {props.isShow && (
@@ -27,25 +29,28 @@ export const ViewLinkDialog: FC<ViewLinkDialogProps> = props => {
                 position: "absolute"
               }}
             >
-              <h2>以下のイラストがリンクによって紐付いています</h2>
+              <h2>イラストギャラリー</h2>
 
               <div className="ImportModalMenuContainer">
                 <div className="ImportModalMenu">
-                  {props.referedIllusts.map((item: string, index: number) => {
-                    return (
-                      <a href={item} target={"_blank"}>
+                  {props.localIllustList.map(
+                    (item: HyperIllust, index: number) => {
+                      return (
                         <img
                           key={index}
                           className={"ImportModalItem"}
-                          alt={item}
-                          title={item}
-                          src={item}
+                          alt={item.id}
+                          title={item.id}
+                          src={item.sourceURL}
                           width={200}
                           draggable={false}
+                          onClick={() => {
+                            props.onSelected(item);
+                          }}
                         />
-                      </a>
-                    );
-                  })}
+                      );
+                    }
+                  )}
                 </div>
               </div>
             </div>

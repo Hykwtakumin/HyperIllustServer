@@ -33,8 +33,9 @@ import { StrokeDrawer } from "./Graphics/StrokeDrawer";
 import { GroupDrawer } from "./Graphics/GroupDrawer";
 import { ResetDialog } from "./ResetDialog";
 import { DrawPresets } from "./DrawPresets";
-import {ImportDialog} from "./ImportDialog";
-import {ViewLinkDialog} from "./ViewLinkDialog";
+import { ImportDialog } from "./ImportDialog";
+import { ViewLinkDialog } from "./ViewLinkDialog";
+import { LocalListDialog } from "./LocalListDialog";
 
 interface MainCanvasProps {
   loadedStrokes?: Stroke[];
@@ -68,6 +69,10 @@ export const MainCanvas = (props: MainCanvasProps) => {
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
   //関連画像モーダルの表示
   const [isLinkModalOpen, setIsLinkModalOpen] = useState<boolean>(false);
+  //画像一覧モーダルの表示
+  const [isLocalListModalOpen, setIsLocalListModalOpen] = useState<boolean>(
+    false
+  );
   //キャンバスのref
   const canvasRef = useRef<SVGSVGElement>(null);
   //BB判定用Rectのref
@@ -90,7 +95,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
   );
 
   //引用したHyperIllustのリスト
-  const [ referedIllusts, setReferedIllusts ] = useState<string[]>([]);
+  const [referedIllusts, setReferedIllusts] = useState<string[]>([]);
 
   //一度編集したらkeyを設定する
   //以後編集される度にkeyを設定する
@@ -157,12 +162,12 @@ export const MainCanvas = (props: MainCanvasProps) => {
   };
 
   const switchEditorMode = () => {
-    editorMode === "draw" ? setEditorMode("edit") : setEditorMode("draw")
+    editorMode === "draw" ? setEditorMode("edit") : setEditorMode("draw");
   };
 
   //editorModeが変わるとPointerEventも変わる
   useEffect(() => {
-    editorMode === "draw" ? setEvents("none") : setEvents("auto")
+    editorMode === "draw" ? setEvents("none") : setEvents("auto");
   }, [editorMode]);
 
   //BBがリサイズされたときに走る
@@ -186,26 +191,30 @@ export const MainCanvas = (props: MainCanvasProps) => {
   }, [inRectSize]);
 
   //StrokeのisSelected要素を入れ替えていく
-   useEffect(() => {
-     setStrokes(
-       strokes.reduce((prev, curr, index) => {
-         curr.isSelected = selectedElms.includes(curr.id);
-         prev.push(curr);
-         return prev;
-       }, [])
-     );
-   }, [selectedElms]);
-
-   //引用したイラストのリストを設定する
   useEffect(() => {
-    console.log(groups.reduce((prev, curr, index) => {
-      prev.push(curr.href);
-      return prev;
-    }, []));
-    setReferedIllusts(groups.reduce((prev, curr, index) => {
-      prev.push(curr.href);
-      return prev;
-    }, []));
+    setStrokes(
+      strokes.reduce((prev, curr, index) => {
+        curr.isSelected = selectedElms.includes(curr.id);
+        prev.push(curr);
+        return prev;
+      }, [])
+    );
+  }, [selectedElms]);
+
+  //引用したイラストのリストを設定する
+  useEffect(() => {
+    console.log(
+      groups.reduce((prev, curr, index) => {
+        prev.push(curr.href);
+        return prev;
+      }, [])
+    );
+    setReferedIllusts(
+      groups.reduce((prev, curr, index) => {
+        prev.push(curr.href);
+        return prev;
+      }, [])
+    );
   }, [groups]);
 
   //元に戻す
@@ -333,7 +342,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
       setPoints([]);
 
       //PointerEventによらずアップロードしたい
-      handleUpSert();
+      //handleUpSert();
     } else {
       handleBBUp(event);
     }
@@ -478,6 +487,9 @@ export const MainCanvas = (props: MainCanvasProps) => {
   //   }
   // };
 
+  //削除処理
+  const handleLocalImageDelete = () => {};
+
   //リンクの追加
   const handleAddLink = (item: HyperIllust) => {
     if (selectedElms) {
@@ -538,13 +550,13 @@ export const MainCanvas = (props: MainCanvasProps) => {
                   stroke: red;
                   transition: 0.5s;
                 }
-              
+
                 a:hover {
                   fill: dodgerblue;
                   stroke: dodgerblue;
                   transition: 0.5s;
                 }
-                
+
                 a:active {
                   fill: dodgerblue;
                   stroke: dodgerblue;
@@ -600,7 +612,12 @@ export const MainCanvas = (props: MainCanvasProps) => {
           {/*/>*/}
 
           <div style={{ padding: "3px" }}>
-            <ButtonComponent type="green" onClick={() => { setIsLinkModalOpen(true) }}>
+            <ButtonComponent
+              type="green"
+              onClick={() => {
+                setIsLinkModalOpen(true);
+              }}
+            >
               <img
                 src={"../icons/link-24px.svg"}
                 alt={"リンク付要素を表示"}
@@ -617,9 +634,12 @@ export const MainCanvas = (props: MainCanvasProps) => {
           />
 
           <div style={{ padding: "3px" }}>
-            <ButtonComponent type={"primary"} onClick={() => {
-              window.open("/", "", "");
-            }}>
+            <ButtonComponent
+              type={"primary"}
+              onClick={() => {
+                window.open("/", "", "");
+              }}
+            >
               <img
                 src={"../icons/add_box-24px.svg"}
                 alt={"新規作成"}
@@ -650,8 +670,8 @@ export const MainCanvas = (props: MainCanvasProps) => {
           <div style={{ padding: "3px" }}>
             <ButtonComponent
               type={"primary"}
-              onClick={event => {
-                console.log(event);
+              onClick={() => {
+                setIsLocalListModalOpen(true);
               }}
             >
               <img
@@ -696,17 +716,35 @@ export const MainCanvas = (props: MainCanvasProps) => {
             }}
           />
 
-          <ImportDialog isShow={isImportModalOpen} onSelected={(item => {
-            handleAddLink(item);
-            setIsImportModalOpen(false);
-          })} localIllustList={localIllustList} onCancel={() => {
-            setIsImportModalOpen(false);
-          }} />
+          <ImportDialog
+            isShow={isImportModalOpen}
+            onSelected={item => {
+              handleAddLink(item);
+              setIsImportModalOpen(false);
+            }}
+            localIllustList={localIllustList}
+            onCancel={() => {
+              setIsImportModalOpen(false);
+            }}
+          />
 
-          <ViewLinkDialog isShow={isLinkModalOpen} onCancel={() => {
-            setIsLinkModalOpen(false)
-          }} referedIllusts={referedIllusts} />
+          <ViewLinkDialog
+            isShow={isLinkModalOpen}
+            onCancel={() => {
+              setIsLinkModalOpen(false);
+            }}
+            referedIllusts={referedIllusts}
+          />
 
+          <LocalListDialog
+            isShow={isLocalListModalOpen}
+            localIllustList={localIllustList}
+            onCancel={() => {
+              setIsLocalListModalOpen(false);
+            }}
+            onDeleted={handleLocalImageDelete}
+            onSelected={() => {}}
+          />
         </div>
       </div>
     </>
