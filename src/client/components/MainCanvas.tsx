@@ -24,11 +24,11 @@ import { PublishButton } from "./PublishButton";
 import { ImportButton, loadHyperIllusts, SelectedItem } from "./ImportButton";
 import { ExportButton } from "./ExportButton";
 import { HyperIllust, HyperIllustUser } from "../../share/model";
-import { saveToLocalStorage } from "./share/localStorage";
+import {deleteObjectFromLocalStorage, saveToLocalStorage} from "./share/localStorage";
 import { UploadButton } from "./UploadButton";
 import { loadUserInfo, setUserInfo } from "./share/UserSetting";
 import { AddInnerLinkButton } from "./AddInnerLinkButton";
-import { updateSVG, uploadSVG } from "./share/API";
+import {deleteSVG, updateSVG, uploadSVG} from "./share/API";
 import { StrokeDrawer } from "./Graphics/StrokeDrawer";
 import { GroupDrawer } from "./Graphics/GroupDrawer";
 import { ResetDialog } from "./ResetDialog";
@@ -36,6 +36,7 @@ import { DrawPresets } from "./DrawPresets";
 import { ImportDialog } from "./ImportDialog";
 import { ViewLinkDialog } from "./ViewLinkDialog";
 import { LocalListDialog } from "./LocalListDialog";
+import {deleteHyperIllust} from "../../server/HyperIllusts";
 
 interface MainCanvasProps {
   loadedStrokes?: Stroke[];
@@ -488,7 +489,17 @@ export const MainCanvas = (props: MainCanvasProps) => {
   // };
 
   //削除処理
-  const handleLocalImageDelete = () => {};
+  const handleLocalImageDelete = async (item: HyperIllust) => {
+    console.dir(item);
+    const request = await deleteSVG(item.sourceKey);
+    // if (request) {
+    //   console.log("削除に成功");
+    // } else {
+    //   console.log("削除に失敗");
+    // }
+    deleteObjectFromLocalStorage(item.sourceKey);
+    setLocalIllustList(localIllustList.filter(illust => { if (illust.sourceKey != item.sourceKey) { return illust} }));
+  };
 
   //リンクの追加
   const handleAddLink = (item: HyperIllust) => {

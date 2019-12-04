@@ -36,18 +36,27 @@ export const LocalListDialog: FC<LocalListDialogProps> = props => {
                   {props.localIllustList.map(
                     (item: HyperIllust, index: number) => {
                       return (
-                        <img
-                          key={index}
-                          className={"ImportModalItem"}
-                          alt={item.id}
-                          title={item.id}
-                          src={item.sourceURL}
-                          width={200}
-                          draggable={false}
-                          onClick={() => {
-                            props.onSelected(item);
-                          }}
-                        />
+                        <>
+                          <img
+                            key={index}
+                            className={"ImportModalItem"}
+                            alt={item.id}
+                            title={item.id}
+                            src={item.sourceURL}
+                            width={200}
+                            draggable={false}
+                            onClick={() => {
+                              props.onSelected(item);
+                            }}
+                          />
+                          <div
+                            key={`x-${index}`}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              event.preventDefault();
+                              props.onDeleted(item);
+                            }} >x</div>
+                        </>
                       );
                     }
                   )}

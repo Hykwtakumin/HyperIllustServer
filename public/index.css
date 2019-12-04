@@ -140,6 +140,7 @@
 }
 
 .ImportModalItem {
+  max-height: 200px;
 }
 
 .ImportModalItem:hover {
