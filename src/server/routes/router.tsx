@@ -5,7 +5,7 @@ import { app, wrap } from "../index";
 import { BaseLayout } from "../../../views/BaseLayout";
 import {
   asyncReadFile,
-  asyncUnLink,
+  asyncUnLink, promiseDeleteFile,
   promiseGetFile,
   promisePutFile
 } from "../services/s3";
@@ -222,7 +222,6 @@ export const Router = (io: socketIo.Server): express.Router => {
         const mime: string = "image/svg+xml";
         const rawData = await asyncReadFile(req.file.path);
         const fileName = req.params.key;
-        console.log(`fileName: ${fileName}`);
         const result = await promisePutFile(fileName, rawData, mime);
         //アップロードしたらローカルの一時ファイルは削除
         await asyncUnLink(req.file.path);
@@ -235,6 +234,20 @@ export const Router = (io: socketIo.Server): express.Router => {
       }
     }
   );
+
+  //同一Keyのドキュメントを削除するAPI
+  router.delete("/api/delete/:key", async (req: express.Request, res: express.Response) => {
+    const fileName = encodeURI(req.params.key);
+    const result = await promiseDeleteFile(fileName);
+    if (result) {
+      res.send(JSON.stringify(result));
+      console.log(`result ${fileName}`);
+      console.dir(await result);
+    } else {
+      console.log(`something went wrong`);
+      res.send("failed to delete");
+    }
+  });
 
   router.post(
     "/api/postlayer",
