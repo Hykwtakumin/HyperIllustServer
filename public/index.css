@@ -20,6 +20,12 @@
   transition: 0.5s;
 }
 
+/*選択されたGroupパス*/
+.activePath {
+  stroke: dodgerblue;
+  stroke-width: 12;
+}
+
 /*関連画像から選択されたパス*/
 .focusedLinkedPath{
   stroke: dodgerblue;

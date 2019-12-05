@@ -51,11 +51,14 @@ export const LocalListDialog: FC<LocalListDialogProps> = props => {
                           />
                           <div
                             key={`x-${index}`}
-                            onClick={(event) => {
+                            onClick={event => {
                               event.stopPropagation();
                               event.preventDefault();
                               props.onDeleted(item);
-                            }} >x</div>
+                            }}
+                          >
+                            x
+                          </div>
                         </>
                       );
                     }

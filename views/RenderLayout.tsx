@@ -23,7 +23,7 @@ export const RenderLayout:FC<RenderLayoutProps> = props => {
       xmlnsXlink="http://www.w3.org/1999/xlink"
     >
       <StrokeDrawer strokes={strokeList} events={events} />
-      <GroupDrawer groupElms={groupList} events={events} />
+      {/*<GroupDrawer groupElms={groupList} events={events} />*/}
     </svg>
   );
 };
