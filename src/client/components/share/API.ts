@@ -48,7 +48,7 @@ export const updateSVG = async (svg: SVGElement, fileKey: string) => {
 //SVGの削除用
 export const deleteSVG = async (fileKey: string) => {
   const options = {
-    method: "DELETE",
+    method: "DELETE"
   };
 
   let result;

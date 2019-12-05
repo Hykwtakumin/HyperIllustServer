@@ -24,11 +24,14 @@ import { PublishButton } from "./PublishButton";
 import { ImportButton, loadHyperIllusts, SelectedItem } from "./ImportButton";
 import { ExportButton } from "./ExportButton";
 import { HyperIllust, HyperIllustUser } from "../../share/model";
-import {deleteObjectFromLocalStorage, saveToLocalStorage} from "./share/localStorage";
+import {
+  deleteObjectFromLocalStorage,
+  saveToLocalStorage
+} from "./share/localStorage";
 import { UploadButton } from "./UploadButton";
 import { loadUserInfo, setUserInfo } from "./share/UserSetting";
 import { AddInnerLinkButton } from "./AddInnerLinkButton";
-import {deleteSVG, updateSVG, uploadSVG} from "./share/API";
+import { deleteSVG, updateSVG, uploadSVG } from "./share/API";
 import { StrokeDrawer } from "./Graphics/StrokeDrawer";
 import { GroupDrawer } from "./Graphics/GroupDrawer";
 import { ResetDialog } from "./ResetDialog";
@@ -36,7 +39,8 @@ import { DrawPresets } from "./DrawPresets";
 import { ImportDialog } from "./ImportDialog";
 import { ViewLinkDialog } from "./ViewLinkDialog";
 import { LocalListDialog } from "./LocalListDialog";
-import {deleteHyperIllust} from "../../server/HyperIllusts";
+import { deleteHyperIllust } from "../../server/HyperIllusts";
+import { ThumbDialog } from "./ThumbDialog";
 
 interface MainCanvasProps {
   loadedStrokes?: Stroke[];
@@ -90,6 +94,9 @@ export const MainCanvas = (props: MainCanvasProps) => {
   //BBで選択対象になった要素のidのリスト
   const [selectedElms, setSelectedElms] = useState<string[]>([]);
 
+  //クリックされたg要素
+  const [selectedGroup, setSelectedGroup] = useState<Group>(null);
+
   //今までアップロードしてきたHyperIllustのリスト(とりあえずlocalStorageに保存している)
   const [localIllustList, setLocalIllustList] = useState<HyperIllust[]>(
     loadHyperIllusts()
@@ -100,7 +107,10 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
   //一度編集したらkeyを設定する
   //以後編集される度にkeyを設定する
-  const [itemURL, setItemURL] = useState<string>("");
+  //URLから引き継いだ場合はこっちも引き継ぐ必要がある
+  const [itemURL, setItemURL] = useState<string>(
+    location.href.split("/")[4] || ""
+  );
 
   //一度UserIdを発行されたら基本的にそれを使い続ける感じで
   const [user, setUser] = useState<HyperIllustUser>(null);
@@ -108,8 +118,17 @@ export const MainCanvas = (props: MainCanvasProps) => {
   //長押し判定用タイマー
   const timerId = useRef<number>(null);
 
-  //リンク付けるようモーダルの表示非表示
+  //debounceUpload用タイマー
+  const upLoadTimer = useRef<number>(null);
+
+  //リンク付ける用モーダルの表示非表示
   const [isShow, setIsShow] = useState<boolean>(false);
+
+  //選択されたイラストのkey
+  const [selectedItemKey, setSelectedItemKey] = useState<string>("");
+
+  //サムネイル用モーダル
+  const [isThumbOpen, setIsThumbOpen] = useState<boolean>(false);
 
   //PointerDownしたときの座標
   const [initialPoint, setInitialPoint] = useState<Points>({ x: 0, y: 0 });
@@ -117,6 +136,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
   //4種類の描画プリセット
   const [preset, setPreset] = useState<DrawPreset>("normal");
 
+  //ユーザー名を設定したりする
   useEffect(() => {
     const user = loadUserInfo();
     if (user) {
@@ -218,6 +238,47 @@ export const MainCanvas = (props: MainCanvasProps) => {
     );
   }, [groups]);
 
+  //debounceUpload
+  useEffect(() => {
+    if (strokes.length > 0 && editorMode === "draw") {
+      console.log(`strokes updated! : ${strokes.length}`);
+      //編集モードのときにアップロードするとBBoxが出たりするので避けたい
+      upLoadTimer.current && clearTimeout(upLoadTimer.current);
+      //タイマーをセット
+      //最後の変更から2秒経過でアップロード処理を行う
+      upLoadTimer.current = window.setTimeout(() => {
+        console.log("2000ms elapsed!");
+        handleUpSert();
+      }, 2000);
+    }
+  }, [strokes]);
+
+  //グループを編集したときもアップロードする
+  useEffect(() => {
+    if (groups.length > 0 && editorMode === "edit") {
+      console.log(`groups updated! : ${groups.length}`);
+      //編集モードのときにアップロードするとBBoxが出たりするので避けたい
+      upLoadTimer.current && clearTimeout(upLoadTimer.current);
+      //タイマーをセット
+      //最後の変更から2秒経過でアップロード処理を行う
+      upLoadTimer.current = window.setTimeout(() => {
+        console.log("2000ms elapsed!");
+        handleUpSert();
+      }, 2000);
+    }
+  }, [groups]);
+
+  //選択されたGroup要素が変わる度にサムネイル用ツールチップを表示する
+  useEffect(() => {
+    if (selectedGroup) {
+      console.log(`現在次のグループが選択されています。: ${selectedGroup.id}`);
+      const key = selectedGroup.href.split("/")[4];
+      console.log(`そしてそのKeyは${key}です。`);
+      setSelectedItemKey(key);
+      setIsThumbOpen(true);
+    }
+  }, [selectedGroup]);
+
   //元に戻す
   const handleUndo = event => {
     const newStrokes = strokes.filter((stroke, index) => {
@@ -267,6 +328,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
   const handleBBDown = (event: React.PointerEvent<SVGSVGElement>) => {
     //selectedListが設定されている場合はリセットする
     setSelectedElms([]);
+    setSelectedGroup(null);
     const now = getPoint(event.pageX, event.pageY, canvasRef.current);
     setInRectSize({
       left: Math.floor(now.x),
@@ -341,9 +403,6 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
       //pointsはリセットする
       setPoints([]);
-
-      //PointerEventによらずアップロードしたい
-      //handleUpSert();
     } else {
       handleBBUp(event);
     }
@@ -352,12 +411,14 @@ export const MainCanvas = (props: MainCanvasProps) => {
   const handleBBUp = (event: React.PointerEvent<SVGSVGElement>) => {
     if (selectedElms && selectedElms.length > 0) {
       setIsImportModalOpen(true);
+      //暴発するので修正したい
     }
   };
 
   const handleUpSert = async () => {
     setEvents("auto");
     if (!itemURL) {
+      console.log("URLが設定されていないので新規作成");
       //アップロードする
       const result = await uploadSVG(canvasRef.current, user.name);
       console.log(result);
@@ -377,6 +438,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
       );
     } else {
       //既にSVGはあるので上書きさせる
+      console.log("URLは設定されているので上書き");
       //アップロードする
       const result = await updateSVG(canvasRef.current, itemURL);
       console.log(result);
@@ -498,12 +560,22 @@ export const MainCanvas = (props: MainCanvasProps) => {
     //   console.log("削除に失敗");
     // }
     deleteObjectFromLocalStorage(item.sourceKey);
-    setLocalIllustList(localIllustList.filter(illust => { if (illust.sourceKey != item.sourceKey) { return illust} }));
+    setLocalIllustList(
+      localIllustList.filter(illust => {
+        if (illust.sourceKey != item.sourceKey) {
+          return illust;
+        }
+      })
+    );
   };
 
+  //内部リンクをクリックしたときの処理
+  const handleLinkedElmClicked = () => {};
+
   //リンクの追加
+  //グループに対しても上書きでリンクの追加(厳密には再編集)ができるようにする?
   const handleAddLink = (item: HyperIllust) => {
-    if (selectedElms) {
+    if (selectedElms && selectedElms.length > 0) {
       console.log(`itemId: ${item.id}`);
       //新しいGroupを作成し、そこに追加する
       const selectedStrokes = strokes.reduce((prev, curr) => {
@@ -513,9 +585,12 @@ export const MainCanvas = (props: MainCanvasProps) => {
         }
         return prev;
       }, []);
+      //S3への直リンクではなくdraw-wikiで開くようにする
+      //userも関わってくるのが不穏
       const newGroup: Group = {
         id: `${Date.now()}`,
-        href: item.sourceURL,
+        href: `https://draw-wiki.herokuapp.com/${item.sourceKey.split("_")[1] ||
+          user.name}/${item.sourceKey}`,
         strokes: selectedStrokes,
         transform: ""
       };
@@ -578,7 +653,12 @@ export const MainCanvas = (props: MainCanvasProps) => {
         <rect width="100%" height="100%" fill="#FFFFFF" />
         <PathDrawer points={points} color={color} width={`${penWidth}`} />
         <StrokeDrawer strokes={strokes} events={events} />
-        <GroupDrawer groupElms={groups} events={events} />
+        <GroupDrawer
+          groupElms={groups}
+          events={events}
+          selectedGroup={selectedGroup}
+          onGroupSelected={setSelectedGroup}
+        />
         <rect
           display={editorMode === "draw" ? "none" : ""}
           ref={inRectRef}
@@ -755,6 +835,14 @@ export const MainCanvas = (props: MainCanvasProps) => {
             }}
             onDeleted={handleLocalImageDelete}
             onSelected={() => {}}
+          />
+
+          <ThumbDialog
+            isShow={isThumbOpen}
+            onCancel={() => {
+              setIsThumbOpen(false);
+            }}
+            sourceKey={selectedItemKey}
           />
         </div>
       </div>
