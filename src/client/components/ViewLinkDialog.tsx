@@ -32,6 +32,7 @@ export const ViewLinkDialog: FC<ViewLinkDialogProps> = props => {
               <div className="ImportModalMenuContainer">
                 <div className="ImportModalMenu">
                   {props.referedIllusts.map((item: string, index: number) => {
+                    const sourceKey = item.split("/")[4];
                     return (
                       <a href={item} target={"_blank"}>
                         <img
@@ -39,7 +40,7 @@ export const ViewLinkDialog: FC<ViewLinkDialogProps> = props => {
                           className={"ImportModalItem"}
                           alt={item}
                           title={item}
-                          src={item}
+                          src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${sourceKey}`}
                           width={200}
                           draggable={false}
                         />
