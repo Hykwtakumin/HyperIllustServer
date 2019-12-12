@@ -755,7 +755,10 @@ export const MainCanvas = (props: MainCanvasProps) => {
               setIsLinkModalOpen(false);
             }}
             referedIllusts={referredIllusts}
-            onKeySelected={setSelectedItemKey}
+            onKeySelected={(key) => {
+              setSelectedItemKey(key);
+              setIsThumbOpen(true);
+            }}
           />
 
           <LocalListDialog
