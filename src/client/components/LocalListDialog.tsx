@@ -19,17 +19,8 @@ export const LocalListDialog: FC<LocalListDialogProps> = props => {
       {props.isShow && (
         <>
           <section className="overLay" onClick={props.onCancel}>
-            <div
-              style={{
-                width: "80%",
-                height: "80%",
-                backgroundColor: "white",
-                border: "none",
-                boxShadow: "0px 5px 5px rgba(0,0,0,0.4)",
-                position: "absolute"
-              }}
-            >
-              <h2>イラストギャラリー</h2>
+            <div className="localListContainer">
+              <h2>今までに作成した図</h2>
 
               <div className="ImportModalMenuContainer">
                 <div className="ImportModalMenu">
@@ -37,18 +28,32 @@ export const LocalListDialog: FC<LocalListDialogProps> = props => {
                     (item: HyperIllust, index: number) => {
                       return (
                         <>
-                          <img
+                          <a
                             key={index}
-                            className={"ImportModalItem"}
-                            alt={item.id}
-                            title={item.id}
-                            src={item.sourceURL}
-                            width={200}
-                            draggable={false}
-                            onClick={() => {
-                              props.onSelected(item);
+                            className="referedItemContainer"
+                            href={`https://draw-wiki.herokuapp.com/${
+                              item.sourceKey.split("_")[1]
+                            }/${item.sourceKey}`}
+                            onClick={event => {
+                              event.stopPropagation();
                             }}
-                          />
+                            target={"_blank"}
+                          >
+                            <img
+                              key={index}
+                              className={"referedItem"}
+                              alt={item.id}
+                              title={item.id}
+                              src={item.sourceURL}
+                              width={200}
+                              draggable={false}
+                              onClick={() => {
+                                //props.onSelected(item);
+                                // event.stopPropagation();
+                                // event.preventDefault();
+                              }}
+                            />
+                          </a>
                           <div
                             key={`x-${index}`}
                             onClick={event => {

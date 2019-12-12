@@ -23,6 +23,10 @@ export type HyperIllust = {
   sourceKey: string;
   sourceURL: string;
   size?: number;
+  referredIllusts?: string[];
+  referIllusts?: string[];
+  importedIllsts?: string[];
+  importIllusts?: string[];
   createdAt: DateLike;
   updatedAt: DateLike;
   owner: string;
@@ -44,6 +48,10 @@ export type HyperIllustParams = {
   name: string;
   desc?: string;
   size?: number;
+  referredIllusts?: string[];
+  referreIllusts?: string[];
+  importedIllsts?: string[];
+  importIllusts?: string[];
   owner: HyperIllustUser;
   isForked: boolean;
   origin?: string;

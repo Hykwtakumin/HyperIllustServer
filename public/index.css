@@ -22,8 +22,20 @@
 
 /*選択されたGroupパス*/
 .activePath {
-  stroke: dodgerblue;
-  stroke-width: 12;
+  animation: blinkingStrokes ease-in-out 1s infinite;
+}
+
+@keyframes blinkingStrokes {
+  0% {
+
+  }
+  50% {
+    stroke: dodgerblue;
+    stroke-width: 12;
+  }
+  100% {
+
+  }
 }
 
 /*関連画像から選択されたパス*/
@@ -36,8 +48,8 @@
 
 #root {
   background-color: rgba(0, 0, 0, 0.35);
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   touch-action: none;
 }
 
@@ -167,6 +179,40 @@
   transition: 0.1s;
 }
 
+.referedItemMenu {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: stretch;
+  align-content: flex-start;
+  scroll-behavior: auto;
+  user-select: none;
+}
+
+.referedItem {
+  margin: 5px;
+  max-width: 110px;
+  max-height: 110px;
+  box-shadow: 0px 3px 3px rgba(0,0,0,0.4);
+}
+.referedItem:active {
+  box-shadow: none;
+}
+
+.referedItem:hover {
+  box-shadow: none;
+}
+
+.referedItemContainer:active {
+  box-shadow: 0px 0px 0px 2px #3aac7d inset;
+}
+
+.referedItemContainer:hover {
+  box-shadow: 0px 0px 0px 2px #3aac7d inset;
+}
+
 /* .ImportModalItemSelected {
   filter: grayscale(0%);
   border-width: 3px;
@@ -217,4 +263,95 @@
   width: 36px;
   height: 36px;
   margin: 0px 2px;
+}
+
+/*キャンバスリセット時の確認モーダル*/
+.resetDialogContainer {
+  width: 30%;
+  height: 20%;
+  background-color: white;
+  border: none;
+  box-shadow: 0px 5px 5px rgba(0,0,0,0.4);
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: center;
+  align-content: center;
+  justify-content: space-around;
+}
+
+/*そのボタン*/
+.resetDialogButtons {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+  align-items: center;
+  align-content: center;
+  user-select: none;
+}
+
+/*関連画像一覧モーダル*/
+.localListContainer {
+  width: 90%;
+  height: 80%;
+  background-color: white;
+  border: none;
+  box-shadow: 0px 5px 5px rgba(0,0,0,0.4);
+  position: absolute;
+}
+
+/*要素をクリックしたときにサムネを表示する(ThumbDialog.tsx)*/
+.thumbDialogContainer {
+  width: 50%;
+  max-height: 70%;
+  background-color: rgba(255,255,255,0.5);
+  border: none;
+  box-shadow: 0px 5px 5px rgba(0,0,0,0.4);
+  position: absolute;
+}
+
+/*サムネ本体*/
+.thumbnailContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+/*ThumbDialogの中の関連イラストリスト*/
+.thumbDialogReferredContainer {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+/*横に表示する関連ページ*/
+.viewLinkDialogContainer {
+  width: 120px;
+  height: 100%;
+  left: 0%;
+  top: 0%;
+  background-color: rgba(0, 0, 0, 0.15);
+  border: none;
+  box-shadow: 0px 5px 5px rgba(0,0,0,0.4);
+  position: fixed;
+  user-select: none;
+}
+
+/*Import用Dialog*/
+.importDialogContainer {
+  width: 80%;
+  height: 80%;
+  background-color: white;
+  border: none;
+  box-shadow: 0px 5px 5px rgba(0,0,0,0.4);
+  position: absolute;
+}
+
+/*Export用キャンバス(常に非表示にしておく)*/
+.exportCanvasContainer {
+  display: none;
 }

@@ -18,23 +18,16 @@ export const ResetDialog: FC<ResetDialogProps> = props => {
       {props.isShow && (
         <>
           <section className="overLay" onClick={props.onCancel}>
-            <div
-              style={{
-                width: "40%",
-                height: "30%",
-                backgroundColor: "white",
-                border: "none",
-                position: "absolute"
-              }}
-            >
+            <div className="resetDialogContainer">
               <h2>描いたものをリセットします</h2>
-
-              <ButtonComponent type="default" onClick={props.onCancel}>
-                {"キャンセル"}
-              </ButtonComponent>
-              <ButtonComponent type="danger" onClick={props.onOk}>
-                {props.okText || "OK"}
-              </ButtonComponent>
+              <div className="resetDialogButtons">
+                <ButtonComponent type="default" onClick={props.onCancel}>
+                  {"キャンセル"}
+                </ButtonComponent>
+                <ButtonComponent type="danger" onClick={props.onOk}>
+                  {props.okText || "OK"}
+                </ButtonComponent>
+              </div>
             </div>
           </section>
         </>

@@ -8,7 +8,7 @@ export type LocalStorageObject<T> = T & {
   expiredAt?: DateLike;
 };
 
-export type restoredObject<T> = {
+export type restoredObject<T> = T & {
   data: T;
   storedAt: DateLike;
 };
@@ -51,6 +51,8 @@ export function restoreFromLocalStorage<T>(
   return new Promise<restoredObject<T>>((resolve, reject) => {
     if (localStorage) {
       const restoredItem = JSON.parse(localStorage.getItem(key));
+
+      resolve(restoredItem);
       if (isRestoredObject(restoredItem)) {
         resolve(restoredItem);
       } else {
