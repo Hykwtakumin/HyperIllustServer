@@ -106,20 +106,38 @@ export const Router = (io: socketIo.Server): express.Router => {
     }
   );
 
-  //イラストidを拡張子付で指定された場合はS3のURLを直に返す?
-  //これで表示できるんだろうか?
-  router.get(
-    "/illust/:illustId.svg",
-    async (req: express.Request, res: express.Response) => {
-      const illust = await getHyperIllust(req.params.illustId);
-      res.send(JSON.stringify(illust.sourceURL));
-    }
-  );
+  // //イラストidを拡張子付で指定された場合はS3のURLを直に返す?
+  // //これで表示できるんだろうか?
+  // router.get(
+  //   "/illust/:illustId.svg",
+  //   async (req: express.Request, res: express.Response) => {
+  //     const illust = await getHyperIllust(req.params.illustId);
+  //     res.send(JSON.stringify(illust.sourceURL));
+  //   }
+  // );
 
-  //イラストidを単に指定された場合はHyperIllustを返す
+  //HyperIllustのkeyを単に指定された場合はHyperIllustの素のSVGを返す
   router.get(
-    "/illust/:illustId",
+    "/api/illust/:illustKey",
     async (req: express.Request, res: express.Response) => {
+      const key = req.params.illustKey;
+
+      const result = await fetch(
+        `https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${key}`,
+        {
+          method: "GET",
+          mode: "cors"
+        }
+      );
+
+      if (result) {
+        const svg = await result.text();
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.send(svg);
+      } else {
+        res.send("failed to get SVG.");
+      }
+
       res.send(JSON.stringify(await getHyperIllust(req.params.illustId)));
     }
   );
@@ -194,6 +212,8 @@ export const Router = (io: socketIo.Server): express.Router => {
           desc: "",
           size: req.file.size,
           owner: req.params.userName,
+          referredIllusts: [],
+          referIllusts: [],
           isForked: false,
           origin: "",
           version: 1,

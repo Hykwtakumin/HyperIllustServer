@@ -13,19 +13,13 @@ import {
 } from "./share/utils";
 import { PathDrawer } from "./Graphics/PathDrawer";
 import { ModeSelector } from "./ModeSelector";
-import {
-  ButtonComponent,
-  ModalContext,
-  ModalProvider,
-  ShowModal,
-  useModal
-} from "./share";
-import { PublishButton } from "./PublishButton";
+import { ButtonComponent } from "./share";
 import { ImportButton, loadHyperIllusts, SelectedItem } from "./ImportButton";
 import { ExportButton } from "./ExportButton";
 import { HyperIllust, HyperIllustUser } from "../../share/model";
 import {
   deleteObjectFromLocalStorage,
+  restoreFromLocalStorage,
   saveToLocalStorage
 } from "./share/localStorage";
 import { UploadButton } from "./UploadButton";
@@ -41,14 +35,19 @@ import { ViewLinkDialog } from "./ViewLinkDialog";
 import { LocalListDialog } from "./LocalListDialog";
 import { deleteHyperIllust } from "../../server/HyperIllusts";
 import { ThumbDialog } from "./ThumbDialog";
+import { defineReferToIllust } from "./share/referController";
 
 interface MainCanvasProps {
   loadedStrokes?: Stroke[];
   loadedGroups?: Group[];
+  loadedReferred?: string[];
+  loadedRefer?: string[];
+  loadedImported?: string[];
+  loadedImport?: string[];
 }
 
 export const MainCanvas = (props: MainCanvasProps) => {
-  const [penWidth, setPenWidth] = useState<number>(6);
+  const [penWidth, setPenWidth] = useState<number>(5);
   const [color, setColor] = useState<string>("#585858");
   const [editorMode, setEditorMode] = useState<EditorMode>(
     props.loadedStrokes ? "edit" : "draw"
@@ -103,7 +102,22 @@ export const MainCanvas = (props: MainCanvasProps) => {
   );
 
   //引用したHyperIllustのリスト
-  const [referedIllusts, setReferedIllusts] = useState<string[]>([]);
+  const [referredIllusts, setReferredIllusts] = useState<string[]>(
+    props.loadedReferred || []
+  );
+  //自分を引用しているHyperIllustのリスト
+  const [referIllusts, setReferIllusts] = useState<string[]>(
+    props.loadedRefer || []
+  );
+
+  //インポートした画像のリスト
+  const [importedIllusts, setImportedIllusts] = useState<string[]>(
+    props.loadedImported || []
+  );
+  //自分をインポートしている画像のリスト
+  const [importIllusts, setImportIllusts] = useState<string[]>(
+    props.loadedImport || []
+  );
 
   //一度編集したらkeyを設定する
   //以後編集される度にkeyを設定する
@@ -163,13 +177,13 @@ export const MainCanvas = (props: MainCanvasProps) => {
       setPenWidth(10);
       setColor("#585858");
     } else if (preset === "shadow") {
-      setPenWidth(6);
+      setPenWidth(5);
       setColor("rgba(0,0,0,.25)");
     } else if (preset === "highLight") {
-      setPenWidth(6);
+      setPenWidth(5);
       setColor("rgba(255,141,60,0.8)");
     } else {
-      setPenWidth(6);
+      setPenWidth(5);
       setColor("#585858");
     }
   }, [preset]);
@@ -222,22 +236,6 @@ export const MainCanvas = (props: MainCanvasProps) => {
     );
   }, [selectedElms]);
 
-  //引用したイラストのリストを設定する
-  useEffect(() => {
-    console.log(
-      groups.reduce((prev, curr, index) => {
-        prev.push(curr.href);
-        return prev;
-      }, [])
-    );
-    setReferedIllusts(
-      groups.reduce((prev, curr, index) => {
-        prev.push(curr.href);
-        return prev;
-      }, [])
-    );
-  }, [groups]);
-
   //debounceUpload
   useEffect(() => {
     if (strokes.length > 0 && editorMode === "draw") {
@@ -255,6 +253,23 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
   //グループを編集したときもアップロードする
   useEffect(() => {
+    //引用したイラストのリストを設定する
+    //  const combinedLists = groups.reduce((prev, curr, index) => {
+    //      if (!referredIllusts.includes(curr.href)) {
+    //        prev.push(curr.href);
+    //      }
+    //      return prev;
+    //    }, []);
+    //
+    // setReferIllusts(combinedLists);
+
+    setReferredIllusts(
+      groups.reduce((prev, curr, index) => {
+        prev.push(curr.href);
+        return prev;
+      }, [])
+    );
+
     if (groups.length > 0 && editorMode === "edit") {
       console.log(`groups updated! : ${groups.length}`);
       //編集モードのときにアップロードするとBBoxが出たりするので避けたい
@@ -278,6 +293,14 @@ export const MainCanvas = (props: MainCanvasProps) => {
       setIsThumbOpen(true);
     }
   }, [selectedGroup]);
+
+  //横の関連画像をクリックしてもサムネイル用ツールチップを表示する
+  //グループ要素をハイライトする仕組みはあとで考える
+  useEffect(() => {
+    if (selectedItemKey) {
+      setIsThumbOpen(true);
+    }
+  }, [selectedItemKey]);
 
   //元に戻す
   const handleUndo = event => {
@@ -354,7 +377,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
         const strokeDrawer = document.getElementById("strokeDrawer");
         if (strokeDrawer) {
           const drawingRect = strokeDrawer.getBoundingClientRect();
-          if (drawingRect.height > 5 && drawingRect.width > 5) {
+          if (drawingRect.height > 5 || drawingRect.width > 5) {
             timerId.current && clearTimeout(timerId.current);
           }
         }
@@ -376,10 +399,9 @@ export const MainCanvas = (props: MainCanvasProps) => {
         width: Math.floor(now.x) - initialPoint.x,
         height: Math.floor(now.y) - initialPoint.y
       });
-      //updateInterSections();
     }
 
-    if (inRectSize.height > 5 && inRectSize.width > 5) {
+    if (inRectSize.height > 5 || inRectSize.width > 5) {
       //動いているのでタイマーをリセット
       timerId.current && clearTimeout(timerId.current);
     }
@@ -421,9 +443,14 @@ export const MainCanvas = (props: MainCanvasProps) => {
       console.log("URLが設定されていないので新規作成");
       //アップロードする
       const result = await uploadSVG(canvasRef.current, user.name);
-      console.log(result);
+      //インポートした画像をここで打ち込む
+      const updated = defineReferToIllust(
+        result,
+        groups.map(group => group.href.split("/")[4])
+      );
+      console.dir(result);
       //ローカルに保存
-      const saveResult = await saveToLocalStorage(result.id, result);
+      const saveResult = await saveToLocalStorage(result.id, updated);
       console.log(`saveResult : ${saveResult}`);
 
       //再設定
@@ -438,13 +465,29 @@ export const MainCanvas = (props: MainCanvasProps) => {
       );
     } else {
       //既にSVGはあるので上書きさせる
-      console.log("URLは設定されているので上書き");
+      console.log(`URLは設定されているので上書き: ${itemURL}`);
+      //インポートした画像をここで打ち込む
+
+      const updating = await restoreFromLocalStorage<HyperIllust>(itemURL);
+      console.dir(updating);
+      // //引用した画像をreferredIllustに代入しておく
+      const updated = defineReferToIllust(
+        updating,
+        groups.map(group => group.href.split("/")[4])
+      );
+      console.dir(updated);
+
       //アップロードする
       const result = await updateSVG(canvasRef.current, itemURL);
-      console.log(result);
+
+      const saveResult = await saveToLocalStorage(result.id, updated);
+      console.log(`saveResult : ${saveResult}`);
     }
     //アップロード後はしっかりpointer-eventsを無効化しておく
-    setEvents("none");
+    //編集モードの場合は無効化する必要はない
+    if (editorMode != "edit") {
+      setEvents("none");
+    }
   };
 
   //Importは
@@ -472,83 +515,6 @@ export const MainCanvas = (props: MainCanvasProps) => {
       console.log(error);
     }
   };
-
-  const handleExport = async () => {
-    //リンクを埋め込んだPathがしっかりクリックできるようにしておく
-    setEvents("auto");
-    try {
-      const result = await uploadSVG(canvasRef.current, user.name);
-      console.log("アップロードに成功しました!");
-      console.log(result);
-      /*TODO APIとかSchemeをきちんと設定する*/
-
-      //ローカルに保存
-      const saveResult = await saveToLocalStorage(result.id, result);
-      console.log(`saveResult : ${saveResult}`);
-
-      //再設定
-      setLocalIllustList(loadHyperIllusts());
-      //アップロード後はしっかりpointer-eventsを無効化しておく
-      setEvents("none");
-      window.open(result.sourceURL);
-    } catch (error) {
-      console.dir(error);
-      alert("何か問題が発生しました!");
-    }
-  };
-
-  // //部分Export
-  // const handleClippedExport = async () => {
-  //   setPointerEventsEnableToAllPath(canvasRef.current);
-  //   const clipped: SVGElement = document.createElementNS(
-  //     "http://www.w3.org/2000/svg",
-  //     "svg"
-  //   );
-  //   clipped.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-  //   clipped.setAttribute("width", `${lastBBSize.width}`);
-  //   clipped.setAttribute("height", `${lastBBSize.height}`);
-  //   clipped.setAttribute(
-  //     "viewBox",
-  //     `${lastBBSize.left} ${lastBBSize.top} ${lastBBSize.width} ${
-  //       lastBBSize.height
-  //     }`
-  //   );
-  //   clipped.setAttribute("xmlns:xlink", `http://www.w3.org/1999/xlink`);
-  //   clipped.appendChild(lastGroup);
-  //
-  //   const blobObject: Blob = new Blob(
-  //     [new XMLSerializer().serializeToString(clipped)],
-  //     { type: "image/svg+xml;charset=utf-8" }
-  //   );
-  //
-  //   const formData = new FormData();
-  //   formData.append(`file`, blobObject);
-  //
-  //   const opt = {
-  //     method: "POST",
-  //     body: formData
-  //   };
-  //
-  //   try {
-  //     const userName = location.href.split("/")[3];
-  //     const request = await fetch(`/api/upload/${userName}`, opt);
-  //     const result: HyperIllust = await request.json();
-  //     console.log("アップロードに成功しました!");
-  //     console.log(result);
-  //
-  //     const saveResult = await saveToLocalStorage(result.id, result);
-  //     console.log(`saveResult : ${saveResult}`);
-  //
-  //     //再設定
-  //     setLocalIllustList(loadHyperIllusts());
-  //     //アップロード後はしっかりpointer-eventsを無効化しておく
-  //     setPointerEventsDisableToAllPath(canvasRef.current);
-  //     window.open(result.sourceURL);
-  //   } catch (error) {
-  //     console.dir(error);
-  //     alert("何か問題が発生しました!");
-  //   }
-  // };
 
   //削除処理
   const handleLocalImageDelete = async (item: HyperIllust) => {
@@ -629,33 +595,19 @@ export const MainCanvas = (props: MainCanvasProps) => {
         <desc
           stroke-data={JSON.stringify(strokes)}
           group-data={JSON.stringify(groups)}
+          referred-data={JSON.stringify(referredIllusts)}
+          refer-data={JSON.stringify(referIllusts)}
+          imported-data={JSON.stringify(importedIllusts)}
+          import-data={JSON.stringify(importIllusts)}
         />
-        <defs>
-          <style type={"text/css"}>{`<![CDATA[
-                path:hover: {
-                  stroke: red;
-                  transition: 0.5s;
-                }
-
-                a:hover {
-                  fill: dodgerblue;
-                  stroke: dodgerblue;
-                  transition: 0.5s;
-                }
-
-                a:active {
-                  fill: dodgerblue;
-                  stroke: dodgerblue;
-                  transition: 0.5s;
-                }
-           ]]>`}</style>
-        </defs>
+        <defs />
         <rect width="100%" height="100%" fill="#FFFFFF" />
         <PathDrawer points={points} color={color} width={`${penWidth}`} />
         <StrokeDrawer strokes={strokes} events={events} />
         <GroupDrawer
           groupElms={groups}
           events={events}
+          mode={editorMode}
           selectedGroup={selectedGroup}
           onGroupSelected={setSelectedGroup}
         />
@@ -691,28 +643,6 @@ export const MainCanvas = (props: MainCanvasProps) => {
                 src={"../icons/undo-24px.svg"}
                 alt={"元に戻す"}
                 title={"元に戻す"}
-                draggable={false}
-                style={{ transform: "scale(1.5)" }}
-              />
-            </ButtonComponent>
-          </div>
-
-          {/*<AddInnerLinkButton*/}
-          {/*  onSelected={handleAddLink}*/}
-          {/*  localIllustList={localIllustList}*/}
-          {/*/>*/}
-
-          <div style={{ padding: "3px" }}>
-            <ButtonComponent
-              type="green"
-              onClick={() => {
-                setIsLinkModalOpen(true);
-              }}
-            >
-              <img
-                src={"../icons/link-24px.svg"}
-                alt={"リンク付要素を表示"}
-                title={"リンク付要素を表示"}
                 draggable={false}
                 style={{ transform: "scale(1.5)" }}
               />
@@ -824,7 +754,8 @@ export const MainCanvas = (props: MainCanvasProps) => {
             onCancel={() => {
               setIsLinkModalOpen(false);
             }}
-            referedIllusts={referedIllusts}
+            referedIllusts={referredIllusts}
+            onKeySelected={setSelectedItemKey}
           />
 
           <LocalListDialog

@@ -1,13 +1,14 @@
 import * as React from "react";
-import { FC, useState } from "react";
+import { FC, useState, useRef } from "react";
 import { StrokeDrawer } from "./StrokeDrawer";
-import { Group, PointerEvents } from "../share/utils";
+import { EditorMode, Group, PointerEvents } from "../share/utils";
 
 export type GroupDrawerProps = {
   groupElms: Group[];
   events: PointerEvents;
-  selectedGroup: Group;
-  onGroupSelected: (group: Group) => void;
+  selectedGroup?: Group;
+  mode: EditorMode;
+  onGroupSelected?: (group: Group) => void;
 };
 
 //グループ化した要素をまとめて扱うコンポーネント
@@ -36,23 +37,20 @@ export const GroupDrawer: FC<GroupDrawerProps> = props => {
               handleLinkHover(event, group);
             }}
           >
-            {props.selectedGroup && group.id === props.selectedGroup.id ? (
-              <g transform={group.transform} pointerEvents={props.events}>
-                <StrokeDrawer
-                  strokes={group.strokes}
-                  events={props.events}
-                  style={"activePath"}
-                />
-              </g>
-            ) : (
-              <g transform={group.transform} pointerEvents={props.events}>
-                <StrokeDrawer
-                  strokes={group.strokes}
-                  events={props.events}
-                  style={""}
-                />
-              </g>
-            )}
+            <g transform={group.transform} pointerEvents={props.events}>
+              <StrokeDrawer
+                strokes={group.strokes}
+                events={props.events}
+                style={
+                  (props.selectedGroup &&
+                    group.id === props.selectedGroup.id &&
+                    props.mode === "edit") ||
+                  props.mode === "edit"
+                    ? "activePath"
+                    : ""
+                }
+              />
+            </g>
           </a>
         );
       })}

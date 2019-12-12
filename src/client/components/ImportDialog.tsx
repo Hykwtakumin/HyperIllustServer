@@ -18,16 +18,7 @@ export const ImportDialog: FC<ImportDialogProps> = props => {
       {props.isShow && (
         <>
           <section className="overLay" onClick={props.onCancel}>
-            <div
-              style={{
-                width: "80%",
-                height: "80%",
-                backgroundColor: "white",
-                border: "none",
-                boxShadow: "0px 5px 5px rgba(0,0,0,0.4)",
-                position: "absolute"
-              }}
-            >
+            <div className="importDialogContainer">
               <h2>他のイラストと紐付けます</h2>
 
               <div className="ImportModalMenuContainer">
@@ -37,7 +28,7 @@ export const ImportDialog: FC<ImportDialogProps> = props => {
                       return (
                         <img
                           key={index}
-                          className={"ImportModalItem"}
+                          className={"referedItem"}
                           alt={item.id}
                           title={item.id}
                           src={item.sourceURL}
