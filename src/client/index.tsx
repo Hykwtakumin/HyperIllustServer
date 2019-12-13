@@ -3,6 +3,8 @@ import { render } from "react-dom";
 import { MainCanvas } from "./components/MainCanvas";
 import { ModalProvider } from "./components/share";
 
+
+//ここらへんの処理を
 const rootElement = document.getElementById("root");
 
 const serializedHydratedSVG: string = document

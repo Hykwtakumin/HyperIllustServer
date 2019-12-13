@@ -72,7 +72,6 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                   href={`https://draw-wiki.herokuapp.com/${
                     props.sourceKey.split("_")[1]
                   }/${props.sourceKey}`}
-                  target={"_blank"}
                 >
                   <img
                     style={{
@@ -96,7 +95,6 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                         href={`https://draw-wiki.herokuapp.com/${
                           item.split("_")[1]
                         }/${item}`}
-                        target={"_blank"}
                         key={index}
                         className="referedItemContainer"
                       >
@@ -120,7 +118,6 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                         href={`https://draw-wiki.herokuapp.com/${
                           item.split("_")[1]
                         }/${item}`}
-                        target={"_blank"}
                         key={index}
                         className="referedItemContainer"
                       >
