@@ -5,6 +5,7 @@ import { ButtonComponent } from "./share";
 import { HyperIllust } from "../../share/model";
 import { Group } from "./share/utils";
 import { getRefersAndImports, refersAndImports } from "./share/referController";
+import { parseSVGFromURL } from "./share/SVGParser";
 
 type ThumbDialogProps = {
   isShow: boolean;
@@ -14,10 +15,6 @@ type ThumbDialogProps = {
 
 //シンプルなダイアログ用コンポーネント
 export const ThumbDialog: FC<ThumbDialogProps> = props => {
-  // referredKeys: string[]
-  // referKeys: string[]
-  // importedKeys: string[]
-  // importKeys: string[]
   const [referredKeys, setReferredKeys] = useState<string[]>([]);
   const [referKeys, setReferKeys] = useState<string[]>([]);
   const [importedKeys, setImportedKeys] = useState<string[]>([]);
@@ -25,30 +22,10 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
 
   useEffect(() => {
     if (props.sourceKey) {
-      fetch(`/api/illust/${props.sourceKey}`).then(async result => {
-        const loadedSVG = await result.text();
-
-        const domParser = new DOMParser();
-        const hydratedSVG = domParser.parseFromString(
-          loadedSVG,
-          "image/svg+xml"
+      parseSVGFromURL(props.sourceKey).then(result => {
+        setReferredKeys(
+          result.loadedGroups.map(group => group.href.split("/")[4])
         );
-
-        console.dir(hydratedSVG);
-
-        const elements: Element[] | SVGElement[] = Array.from(
-          hydratedSVG.children[0].children
-        );
-
-        const desc: Element | SVGElement = elements[0];
-
-        const desilializedGroup = JSON.parse(desc.getAttribute("group-data"));
-
-        if (desilializedGroup) {
-          setReferredKeys(
-            desilializedGroup.map(group => group.href.split("/")[4])
-          );
-        }
       });
 
       getRefersAndImports(props.sourceKey).then((list: refersAndImports) => {

@@ -37,14 +37,14 @@ import { deleteHyperIllust } from "../../server/HyperIllusts";
 import { ThumbDialog } from "./ThumbDialog";
 import { defineReferToIllust } from "./share/referController";
 
-interface MainCanvasProps {
+export type MainCanvasProps = {
   loadedStrokes?: Stroke[];
   loadedGroups?: Group[];
   loadedReferred?: string[];
   loadedRefer?: string[];
   loadedImported?: string[];
   loadedImport?: string[];
-}
+};
 
 export const MainCanvas = (props: MainCanvasProps) => {
   const [penWidth, setPenWidth] = useState<number>(5);
@@ -755,7 +755,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
               setIsLinkModalOpen(false);
             }}
             referedIllusts={referredIllusts}
-            onKeySelected={(key) => {
+            onKeySelected={key => {
               setSelectedItemKey(key);
               setIsThumbOpen(true);
             }}
