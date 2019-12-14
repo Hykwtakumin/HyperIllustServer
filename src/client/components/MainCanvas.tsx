@@ -36,15 +36,16 @@ import { LocalListDialog } from "./LocalListDialog";
 import { deleteHyperIllust } from "../../server/HyperIllusts";
 import { ThumbDialog } from "./ThumbDialog";
 import { defineReferToIllust } from "./share/referController";
+import { parseSVGFromURL } from "./share/SVGParser";
 
-interface MainCanvasProps {
+export type MainCanvasProps = {
   loadedStrokes?: Stroke[];
   loadedGroups?: Group[];
   loadedReferred?: string[];
   loadedRefer?: string[];
   loadedImported?: string[];
   loadedImport?: string[];
-}
+};
 
 export const MainCanvas = (props: MainCanvasProps) => {
   const [penWidth, setPenWidth] = useState<number>(5);
@@ -535,8 +536,24 @@ export const MainCanvas = (props: MainCanvasProps) => {
     );
   };
 
-  //内部リンクをクリックしたときの処理
-  const handleLinkedElmClicked = () => {};
+  // //内部リンクをクリックしたときの処理
+  // //ページ遷移はせずにその場でSVGを入れ替える
+  // const handleReplaceSVG = (key: string) => {
+  //   parseSVGFromURL(key).then(result => {
+  //     setEditorMode("edit");
+  //     setItemURL(key);
+  //     //URLも置き換える
+  //     window.history.pushState(``, ``, `/${user.name}/${key}`);
+  //
+  //     const { loadedStrokes, loadedGroups, loadedReferred, loadedRefer, loadedImported, loadedImport } = result;
+  //     setStrokes(loadedStrokes);
+  //     setGroups(loadedGroups);
+  //     setReferredIllusts(loadedReferred);
+  //     setReferIllusts(loadedRefer);
+  //     setImportedIllusts(loadedImported);
+  //     setImportIllusts(loadedImport);
+  //   }).catch(console.log);
+  // };
 
   //リンクの追加
   //グループに対しても上書きでリンクの追加(厳密には再編集)ができるようにする?
@@ -755,7 +772,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
               setIsLinkModalOpen(false);
             }}
             referedIllusts={referredIllusts}
-            onKeySelected={(key) => {
+            onKeySelected={key => {
               setSelectedItemKey(key);
               setIsThumbOpen(true);
             }}

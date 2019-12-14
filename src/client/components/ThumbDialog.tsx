@@ -1,23 +1,18 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { FC, useEffect, useState } from "react";
-import { ButtonComponent } from "./share";
-import { HyperIllust } from "../../share/model";
-import { Group } from "./share/utils";
 import { getRefersAndImports, refersAndImports } from "./share/referController";
+import { parseSVGFromURL } from "./share/SVGParser";
 
 type ThumbDialogProps = {
   isShow: boolean;
   onCancel: () => void;
+  // onSelected: (key: string) => void;
   sourceKey: string;
 };
 
 //シンプルなダイアログ用コンポーネント
 export const ThumbDialog: FC<ThumbDialogProps> = props => {
-  // referredKeys: string[]
-  // referKeys: string[]
-  // importedKeys: string[]
-  // importKeys: string[]
   const [referredKeys, setReferredKeys] = useState<string[]>([]);
   const [referKeys, setReferKeys] = useState<string[]>([]);
   const [importedKeys, setImportedKeys] = useState<string[]>([]);
@@ -25,30 +20,10 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
 
   useEffect(() => {
     if (props.sourceKey) {
-      fetch(`/api/illust/${props.sourceKey}`).then(async result => {
-        const loadedSVG = await result.text();
-
-        const domParser = new DOMParser();
-        const hydratedSVG = domParser.parseFromString(
-          loadedSVG,
-          "image/svg+xml"
+      parseSVGFromURL(props.sourceKey).then(result => {
+        setReferredKeys(
+          result.loadedGroups.map(group => group.href.split("/")[4])
         );
-
-        console.dir(hydratedSVG);
-
-        const elements: Element[] | SVGElement[] = Array.from(
-          hydratedSVG.children[0].children
-        );
-
-        const desc: Element | SVGElement = elements[0];
-
-        const desilializedGroup = JSON.parse(desc.getAttribute("group-data"));
-
-        if (desilializedGroup) {
-          setReferredKeys(
-            desilializedGroup.map(group => group.href.split("/")[4])
-          );
-        }
       });
 
       getRefersAndImports(props.sourceKey).then((list: refersAndImports) => {
@@ -72,7 +47,6 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                   href={`https://draw-wiki.herokuapp.com/${
                     props.sourceKey.split("_")[1]
                   }/${props.sourceKey}`}
-                  target={"_blank"}
                 >
                   <img
                     style={{
@@ -83,6 +57,9 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                     src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${
                       props.sourceKey
                     }`}
+                    // onClick={ev => {
+                    //   props.onSelected(props.sourceKey);
+                    // }}
                     draggable={false}
                   />
                 </a>
@@ -96,7 +73,6 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                         href={`https://draw-wiki.herokuapp.com/${
                           item.split("_")[1]
                         }/${item}`}
-                        target={"_blank"}
                         key={index}
                         className="referedItemContainer"
                       >
@@ -106,6 +82,9 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                           title={item}
                           src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
                           draggable={false}
+                          // onClick={ev => {
+                          //   props.onSelected(props.sourceKey);
+                          // }}
                         />
                       </a>
                     );
@@ -120,7 +99,6 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                         href={`https://draw-wiki.herokuapp.com/${
                           item.split("_")[1]
                         }/${item}`}
-                        target={"_blank"}
                         key={index}
                         className="referedItemContainer"
                       >
@@ -130,6 +108,9 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                           title={item}
                           src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
                           draggable={false}
+                          // onClick={ev => {
+                          //   props.onSelected(props.sourceKey);
+                          // }}
                         />
                       </a>
                     );
