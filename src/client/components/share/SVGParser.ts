@@ -23,12 +23,14 @@ export const parseSVGFromString = async (
 
   const svg: Element | SVGElement = elements[0];
 
-  const desilializedStroke = JSON.parse(svg.getAttribute("stroke-data"));
-  const desilializedGroup = JSON.parse(svg.getAttribute("group-data"));
-  const desilializedReferred = JSON.parse(svg.getAttribute("referred-data"));
-  const desilializedRefer = JSON.parse(svg.getAttribute("refer-data"));
-  const desilializedImported = JSON.parse(svg.getAttribute("imported-data"));
-  const desilializedImport = JSON.parse(svg.getAttribute("import-data"));
+  const desilializedStroke = JSON.parse(svg.getAttribute("stroke-data")) || [];
+  const desilializedGroup = JSON.parse(svg.getAttribute("group-data")) || [];
+  const desilializedReferred =
+    JSON.parse(svg.getAttribute("referred-data")) || [];
+  const desilializedRefer = JSON.parse(svg.getAttribute("refer-data")) || [];
+  const desilializedImported =
+    JSON.parse(svg.getAttribute("imported-data")) || [];
+  const desilializedImport = JSON.parse(svg.getAttribute("import-data")) || [];
 
   return {
     loadedStrokes: desilializedStroke,

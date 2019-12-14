@@ -37,7 +37,6 @@ export const LocalListDialog: FC<LocalListDialogProps> = props => {
                             onClick={event => {
                               event.stopPropagation();
                             }}
-                            target={"_blank"}
                           >
                             <img
                               key={index}

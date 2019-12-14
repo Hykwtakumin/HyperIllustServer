@@ -1,15 +1,13 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { FC, useEffect, useState } from "react";
-import { ButtonComponent } from "./share";
-import { HyperIllust } from "../../share/model";
-import { Group } from "./share/utils";
 import { getRefersAndImports, refersAndImports } from "./share/referController";
 import { parseSVGFromURL } from "./share/SVGParser";
 
 type ThumbDialogProps = {
   isShow: boolean;
   onCancel: () => void;
+  // onSelected: (key: string) => void;
   sourceKey: string;
 };
 
@@ -59,6 +57,9 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                     src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${
                       props.sourceKey
                     }`}
+                    // onClick={ev => {
+                    //   props.onSelected(props.sourceKey);
+                    // }}
                     draggable={false}
                   />
                 </a>
@@ -81,6 +82,9 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                           title={item}
                           src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
                           draggable={false}
+                          // onClick={ev => {
+                          //   props.onSelected(props.sourceKey);
+                          // }}
                         />
                       </a>
                     );
@@ -104,6 +108,9 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                           title={item}
                           src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
                           draggable={false}
+                          // onClick={ev => {
+                          //   props.onSelected(props.sourceKey);
+                          // }}
                         />
                       </a>
                     );
