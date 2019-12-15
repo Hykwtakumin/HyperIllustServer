@@ -65,7 +65,6 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                 </a>
               </div>
               <div className="thumbDialogReferredContainer">
-                <p>この図が引用している図</p>
                 {referredKeys &&
                   referredKeys.map((item, index) => {
                     return (
@@ -89,32 +88,29 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                       </a>
                     );
                   })}
-              </div>
-              <div className="thumbDialogReferredContainer">
-                <p>この図を引用している図</p>
                 {referKeys &&
-                  referKeys.map((item, index) => {
-                    return (
-                      <a
-                        href={`https://draw-wiki.herokuapp.com/${
-                          item.split("_")[1]
-                        }/${item}`}
-                        key={index}
-                        className="referedItemContainer"
-                      >
-                        <img
-                          className="referedItem"
-                          alt={item}
-                          title={item}
-                          src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
-                          draggable={false}
-                          // onClick={ev => {
-                          //   props.onSelected(props.sourceKey);
-                          // }}
-                        />
-                      </a>
-                    );
-                  })}
+                referKeys.map((item, index) => {
+                  return (
+                    <a
+                      href={`https://draw-wiki.herokuapp.com/${
+                        item.split("_")[1]
+                      }/${item}`}
+                      key={index}
+                      className="referedItemContainer"
+                    >
+                      <img
+                        className="referedItem"
+                        alt={item}
+                        title={item}
+                        src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
+                        draggable={false}
+                        // onClick={ev => {
+                        //   props.onSelected(props.sourceKey);
+                        // }}
+                      />
+                    </a>
+                  );
+                })}
               </div>
             </div>
           </section>
