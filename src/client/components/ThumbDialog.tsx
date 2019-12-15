@@ -43,28 +43,6 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
         <>
           <section className="overLay" onClick={props.onCancel}>
             <div className="thumbDialogContainer">
-              <div className="thumbnailContainer">
-                <a
-                  href={`https://draw-wiki.herokuapp.com/${
-                    props.sourceKey.split("_")[1]
-                  }/${props.sourceKey}`}
-                >
-                  <img
-                    style={{
-                      maxWidth: "80%"
-                    }}
-                    alt={props.sourceKey}
-                    title={props.sourceKey}
-                    src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${
-                      props.sourceKey
-                    }`}
-                    // onClick={ev => {
-                    //   props.onSelected(props.sourceKey);
-                    // }}
-                    draggable={false}
-                  />
-                </a>
-              </div>
               <div className="thumbDialogReferredContainer">
                 {referredKeys &&
                   referredKeys.filter(item => item !== props.selfKey).map((item, index) => {
@@ -113,6 +91,30 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                   );
                 })}
               </div>
+
+              <div className="thumbnailContainer">
+                <a
+                  href={`https://draw-wiki.herokuapp.com/${
+                    props.sourceKey.split("_")[1]
+                  }/${props.sourceKey}`}
+                >
+                  <img
+                    style={{
+                      maxWidth: "100%"
+                    }}
+                    alt={props.sourceKey}
+                    title={props.sourceKey}
+                    src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${
+                      props.sourceKey
+                    }`}
+                    // onClick={ev => {
+                    //   props.onSelected(props.sourceKey);
+                    // }}
+                    draggable={false}
+                  />
+                </a>
+              </div>
+
             </div>
           </section>
         </>
