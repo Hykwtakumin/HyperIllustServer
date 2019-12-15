@@ -7,6 +7,7 @@ import { parseSVGFromURL } from "./share/SVGParser";
 type ThumbDialogProps = {
   isShow: boolean;
   onCancel: () => void;
+  selfKey: string;
   // onSelected: (key: string) => void;
   sourceKey: string;
 };
@@ -42,6 +43,58 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
         <>
           <section className="overLay" onClick={props.onCancel}>
             <div className="thumbDialogContainer">
+              <div className="thumbDialogReferredContainer">
+                {referredKeys &&
+                  referredKeys.filter(item => item !== props.selfKey).map((item, index) => {
+                    return (
+                      <a
+                        href={`https://draw-wiki.herokuapp.com/${
+                          item.split("_")[1]
+                        }/${item}`}
+                        key={index}
+                        className="referedItemContainer"
+                      >
+                        <div key={index} className="referedItemContainer" >
+                          <img
+                            className="referedItem"
+                            alt={item}
+                            title={item}
+                            src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
+                            draggable={false}
+                            // onClick={ev => {
+                            //   props.onSelected(props.sourceKey);
+                            // }}
+                          />
+                        </div>
+                      </a>
+                    );
+                  })}
+                {referKeys &&
+                referKeys.filter(item => item !== props.selfKey).map((item, index) => {
+                  return (
+                    <a
+                      href={`https://draw-wiki.herokuapp.com/${
+                        item.split("_")[1]
+                      }/${item}`}
+                      key={index}
+                    >
+                      <div key={index} className="referedItemContainer" >
+                        <img
+                          className="referedItem"
+                          alt={item}
+                          title={item}
+                          src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
+                          draggable={false}
+                          // onClick={ev => {
+                          //   props.onSelected(props.sourceKey);
+                          // }}
+                        />
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
+
               <div className="thumbnailContainer">
                 <a
                   href={`https://draw-wiki.herokuapp.com/${
@@ -50,7 +103,7 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                 >
                   <img
                     style={{
-                      maxWidth: "80%"
+                      maxWidth: "100%"
                     }}
                     alt={props.sourceKey}
                     title={props.sourceKey}
@@ -64,58 +117,7 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                   />
                 </a>
               </div>
-              <div className="thumbDialogReferredContainer">
-                <p>この図が引用している図</p>
-                {referredKeys &&
-                  referredKeys.map((item, index) => {
-                    return (
-                      <a
-                        href={`https://draw-wiki.herokuapp.com/${
-                          item.split("_")[1]
-                        }/${item}`}
-                        key={index}
-                        className="referedItemContainer"
-                      >
-                        <img
-                          className="referedItem"
-                          alt={item}
-                          title={item}
-                          src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
-                          draggable={false}
-                          // onClick={ev => {
-                          //   props.onSelected(props.sourceKey);
-                          // }}
-                        />
-                      </a>
-                    );
-                  })}
-              </div>
-              <div className="thumbDialogReferredContainer">
-                <p>この図を引用している図</p>
-                {referKeys &&
-                  referKeys.map((item, index) => {
-                    return (
-                      <a
-                        href={`https://draw-wiki.herokuapp.com/${
-                          item.split("_")[1]
-                        }/${item}`}
-                        key={index}
-                        className="referedItemContainer"
-                      >
-                        <img
-                          className="referedItem"
-                          alt={item}
-                          title={item}
-                          src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
-                          draggable={false}
-                          // onClick={ev => {
-                          //   props.onSelected(props.sourceKey);
-                          // }}
-                        />
-                      </a>
-                    );
-                  })}
-              </div>
+
             </div>
           </section>
         </>

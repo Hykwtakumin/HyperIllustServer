@@ -311,6 +311,9 @@
   border: none;
   box-shadow: 0px 5px 5px rgba(0,0,0,0.4);
   position: absolute;
+  display: flex;
+  flex-direction: row;
+
 }
 
 /*サムネ本体*/

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState, useRef, FC, useEffect, createElement } from "react";
+import { useState, useRef, FC, useEffect } from "react";
 import {
   Points,
   getPoint,
@@ -14,17 +14,14 @@ import {
 import { PathDrawer } from "./Graphics/PathDrawer";
 import { ModeSelector } from "./ModeSelector";
 import { ButtonComponent } from "./share";
-import { ImportButton, loadHyperIllusts, SelectedItem } from "./ImportButton";
-import { ExportButton } from "./ExportButton";
+import { ImportButton, loadHyperIllusts } from "./ImportButton";
 import { HyperIllust, HyperIllustUser } from "../../share/model";
 import {
   deleteObjectFromLocalStorage,
   restoreFromLocalStorage,
   saveToLocalStorage
 } from "./share/localStorage";
-import { UploadButton } from "./UploadButton";
 import { loadUserInfo, setUserInfo } from "./share/UserSetting";
-import { AddInnerLinkButton } from "./AddInnerLinkButton";
 import { deleteSVG, updateSVG, uploadSVG } from "./share/API";
 import { StrokeDrawer } from "./Graphics/StrokeDrawer";
 import { GroupDrawer } from "./Graphics/GroupDrawer";
@@ -33,10 +30,8 @@ import { DrawPresets } from "./DrawPresets";
 import { ImportDialog } from "./ImportDialog";
 import { ViewLinkDialog } from "./ViewLinkDialog";
 import { LocalListDialog } from "./LocalListDialog";
-import { deleteHyperIllust } from "../../server/HyperIllusts";
 import { ThumbDialog } from "./ThumbDialog";
 import { defineReferToIllust } from "./share/referController";
-import { parseSVGFromURL } from "./share/SVGParser";
 
 export type MainCanvasProps = {
   loadedStrokes?: Stroke[];
@@ -47,7 +42,7 @@ export type MainCanvasProps = {
   loadedImport?: string[];
 };
 
-export const MainCanvas = (props: MainCanvasProps) => {
+export const MainCanvas:FC<MainCanvasProps> = (props: MainCanvasProps) => {
   const [penWidth, setPenWidth] = useState<number>(5);
   const [color, setColor] = useState<string>("#585858");
   const [editorMode, setEditorMode] = useState<EditorMode>(
@@ -123,7 +118,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
   //一度編集したらkeyを設定する
   //以後編集される度にkeyを設定する
   //URLから引き継いだ場合はこっちも引き継ぐ必要がある
-  const [itemURL, setItemURL] = useState<string>(
+  const [selfKey, setSelfKey] = useState<string>(
     location.href.split("/")[4] || ""
   );
 
@@ -299,7 +294,11 @@ export const MainCanvas = (props: MainCanvasProps) => {
   //グループ要素をハイライトする仕組みはあとで考える
   useEffect(() => {
     if (selectedItemKey) {
+      const selectedGroup = groups.filter(group => group.href.includes(selectedItemKey));
+      selectedGroup && setSelectedGroup(selectedGroup[0]);
       setIsThumbOpen(true);
+    } else {
+      setSelectedGroup(null);
     }
   }, [selectedItemKey]);
 
@@ -440,7 +439,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
   const handleUpSert = async () => {
     setEvents("auto");
-    if (!itemURL) {
+    if (!selfKey) {
       console.log("URLが設定されていないので新規作成");
       //アップロードする
       const result = await uploadSVG(canvasRef.current, user.name);
@@ -457,7 +456,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
       //再設定
       setLocalIllustList(loadHyperIllusts());
       //itemURLを設定
-      setItemURL(result.sourceKey);
+      setSelfKey(result.sourceKey);
       //URLを変更する
       window.history.replaceState(
         null,
@@ -466,10 +465,10 @@ export const MainCanvas = (props: MainCanvasProps) => {
       );
     } else {
       //既にSVGはあるので上書きさせる
-      console.log(`URLは設定されているので上書き: ${itemURL}`);
+      console.log(`URLは設定されているので上書き: ${selfKey}`);
       //インポートした画像をここで打ち込む
 
-      const updating = await restoreFromLocalStorage<HyperIllust>(itemURL);
+      const updating = await restoreFromLocalStorage<HyperIllust>(selfKey);
       console.dir(updating);
       // //引用した画像をreferredIllustに代入しておく
       const updated = defineReferToIllust(
@@ -479,7 +478,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
       console.dir(updated);
 
       //アップロードする
-      const result = await updateSVG(canvasRef.current, itemURL);
+      const result = await updateSVG(canvasRef.current, selfKey);
 
       const saveResult = await saveToLocalStorage(result.id, updated);
       console.log(`saveResult : ${saveResult}`);
@@ -541,7 +540,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
   // const handleReplaceSVG = (key: string) => {
   //   parseSVGFromURL(key).then(result => {
   //     setEditorMode("edit");
-  //     setItemURL(key);
+  //     setSelfKey(key);
   //     //URLも置き換える
   //     window.history.pushState(``, ``, `/${user.name}/${key}`);
   //
@@ -772,6 +771,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
               setIsLinkModalOpen(false);
             }}
             referedIllusts={referredIllusts}
+            selfKey={selfKey}
             onKeySelected={key => {
               setSelectedItemKey(key);
               setIsThumbOpen(true);
@@ -791,8 +791,10 @@ export const MainCanvas = (props: MainCanvasProps) => {
           <ThumbDialog
             isShow={isThumbOpen}
             onCancel={() => {
+              setSelectedItemKey("");
               setIsThumbOpen(false);
             }}
+            selfKey={selfKey}
             sourceKey={selectedItemKey}
           />
         </div>
