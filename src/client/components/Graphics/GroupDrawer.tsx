@@ -43,9 +43,7 @@ export const GroupDrawer: FC<GroupDrawerProps> = props => {
                 events={props.events}
                 style={
                   (props.selectedGroup &&
-                    group.id === props.selectedGroup.id &&
-                    props.mode === "edit") ||
-                  props.mode === "edit"
+                    group.id === props.selectedGroup.id && props.mode == "edit")
                     ? "activePath"
                     : ""
                 }

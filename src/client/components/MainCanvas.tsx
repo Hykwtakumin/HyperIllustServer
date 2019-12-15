@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState, useRef, FC, useEffect, createElement } from "react";
+import { useState, useRef, FC, useEffect } from "react";
 import {
   Points,
   getPoint,
@@ -14,17 +14,14 @@ import {
 import { PathDrawer } from "./Graphics/PathDrawer";
 import { ModeSelector } from "./ModeSelector";
 import { ButtonComponent } from "./share";
-import { ImportButton, loadHyperIllusts, SelectedItem } from "./ImportButton";
-import { ExportButton } from "./ExportButton";
+import { ImportButton, loadHyperIllusts } from "./ImportButton";
 import { HyperIllust, HyperIllustUser } from "../../share/model";
 import {
   deleteObjectFromLocalStorage,
   restoreFromLocalStorage,
   saveToLocalStorage
 } from "./share/localStorage";
-import { UploadButton } from "./UploadButton";
 import { loadUserInfo, setUserInfo } from "./share/UserSetting";
-import { AddInnerLinkButton } from "./AddInnerLinkButton";
 import { deleteSVG, updateSVG, uploadSVG } from "./share/API";
 import { StrokeDrawer } from "./Graphics/StrokeDrawer";
 import { GroupDrawer } from "./Graphics/GroupDrawer";
@@ -33,10 +30,8 @@ import { DrawPresets } from "./DrawPresets";
 import { ImportDialog } from "./ImportDialog";
 import { ViewLinkDialog } from "./ViewLinkDialog";
 import { LocalListDialog } from "./LocalListDialog";
-import { deleteHyperIllust } from "../../server/HyperIllusts";
 import { ThumbDialog } from "./ThumbDialog";
 import { defineReferToIllust } from "./share/referController";
-import { parseSVGFromURL } from "./share/SVGParser";
 
 export type MainCanvasProps = {
   loadedStrokes?: Stroke[];
@@ -47,7 +42,7 @@ export type MainCanvasProps = {
   loadedImport?: string[];
 };
 
-export const MainCanvas = (props: MainCanvasProps) => {
+export const MainCanvas:FC<MainCanvasProps> = (props: MainCanvasProps) => {
   const [penWidth, setPenWidth] = useState<number>(5);
   const [color, setColor] = useState<string>("#585858");
   const [editorMode, setEditorMode] = useState<EditorMode>(
@@ -299,7 +294,11 @@ export const MainCanvas = (props: MainCanvasProps) => {
   //グループ要素をハイライトする仕組みはあとで考える
   useEffect(() => {
     if (selectedItemKey) {
+      const selectedGroup = groups.filter(group => group.href.includes(selectedItemKey));
+      selectedGroup && setSelectedGroup(selectedGroup[0]);
       setIsThumbOpen(true);
+    } else {
+      setSelectedGroup(null);
     }
   }, [selectedItemKey]);
 
@@ -792,6 +791,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
           <ThumbDialog
             isShow={isThumbOpen}
             onCancel={() => {
+              setSelectedItemKey("");
               setIsThumbOpen(false);
             }}
             selfKey={selfKey}

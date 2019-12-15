@@ -54,16 +54,18 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                         key={index}
                         className="referedItemContainer"
                       >
-                        <img
-                          className="referedItem"
-                          alt={item}
-                          title={item}
-                          src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
-                          draggable={false}
-                          // onClick={ev => {
-                          //   props.onSelected(props.sourceKey);
-                          // }}
-                        />
+                        <div key={index} className="referedItemContainer" >
+                          <img
+                            className="referedItem"
+                            alt={item}
+                            title={item}
+                            src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
+                            draggable={false}
+                            // onClick={ev => {
+                            //   props.onSelected(props.sourceKey);
+                            // }}
+                          />
+                        </div>
                       </a>
                     );
                   })}
@@ -75,18 +77,19 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                         item.split("_")[1]
                       }/${item}`}
                       key={index}
-                      className="referedItemContainer"
                     >
-                      <img
-                        className="referedItem"
-                        alt={item}
-                        title={item}
-                        src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
-                        draggable={false}
-                        // onClick={ev => {
-                        //   props.onSelected(props.sourceKey);
-                        // }}
-                      />
+                      <div key={index} className="referedItemContainer" >
+                        <img
+                          className="referedItem"
+                          alt={item}
+                          title={item}
+                          src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
+                          draggable={false}
+                          // onClick={ev => {
+                          //   props.onSelected(props.sourceKey);
+                          // }}
+                        />
+                      </div>
                     </a>
                   );
                 })}
