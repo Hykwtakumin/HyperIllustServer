@@ -123,7 +123,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
   //一度編集したらkeyを設定する
   //以後編集される度にkeyを設定する
   //URLから引き継いだ場合はこっちも引き継ぐ必要がある
-  const [itemURL, setItemURL] = useState<string>(
+  const [selfKey, setSelfKey] = useState<string>(
     location.href.split("/")[4] || ""
   );
 
@@ -440,7 +440,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
 
   const handleUpSert = async () => {
     setEvents("auto");
-    if (!itemURL) {
+    if (!selfKey) {
       console.log("URLが設定されていないので新規作成");
       //アップロードする
       const result = await uploadSVG(canvasRef.current, user.name);
@@ -457,7 +457,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
       //再設定
       setLocalIllustList(loadHyperIllusts());
       //itemURLを設定
-      setItemURL(result.sourceKey);
+      setSelfKey(result.sourceKey);
       //URLを変更する
       window.history.replaceState(
         null,
@@ -466,10 +466,10 @@ export const MainCanvas = (props: MainCanvasProps) => {
       );
     } else {
       //既にSVGはあるので上書きさせる
-      console.log(`URLは設定されているので上書き: ${itemURL}`);
+      console.log(`URLは設定されているので上書き: ${selfKey}`);
       //インポートした画像をここで打ち込む
 
-      const updating = await restoreFromLocalStorage<HyperIllust>(itemURL);
+      const updating = await restoreFromLocalStorage<HyperIllust>(selfKey);
       console.dir(updating);
       // //引用した画像をreferredIllustに代入しておく
       const updated = defineReferToIllust(
@@ -479,7 +479,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
       console.dir(updated);
 
       //アップロードする
-      const result = await updateSVG(canvasRef.current, itemURL);
+      const result = await updateSVG(canvasRef.current, selfKey);
 
       const saveResult = await saveToLocalStorage(result.id, updated);
       console.log(`saveResult : ${saveResult}`);
@@ -541,7 +541,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
   // const handleReplaceSVG = (key: string) => {
   //   parseSVGFromURL(key).then(result => {
   //     setEditorMode("edit");
-  //     setItemURL(key);
+  //     setSelfKey(key);
   //     //URLも置き換える
   //     window.history.pushState(``, ``, `/${user.name}/${key}`);
   //
@@ -772,6 +772,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
               setIsLinkModalOpen(false);
             }}
             referedIllusts={referredIllusts}
+            selfKey={selfKey}
             onKeySelected={key => {
               setSelectedItemKey(key);
               setIsThumbOpen(true);
@@ -793,6 +794,7 @@ export const MainCanvas = (props: MainCanvasProps) => {
             onCancel={() => {
               setIsThumbOpen(false);
             }}
+            selfKey={selfKey}
             sourceKey={selectedItemKey}
           />
         </div>

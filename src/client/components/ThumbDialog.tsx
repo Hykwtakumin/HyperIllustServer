@@ -7,6 +7,7 @@ import { parseSVGFromURL } from "./share/SVGParser";
 type ThumbDialogProps = {
   isShow: boolean;
   onCancel: () => void;
+  selfKey: string;
   // onSelected: (key: string) => void;
   sourceKey: string;
 };
@@ -66,7 +67,7 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
               </div>
               <div className="thumbDialogReferredContainer">
                 {referredKeys &&
-                  referredKeys.map((item, index) => {
+                  referredKeys.filter(item => item !== props.selfKey).map((item, index) => {
                     return (
                       <a
                         href={`https://draw-wiki.herokuapp.com/${
@@ -89,7 +90,7 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                     );
                   })}
                 {referKeys &&
-                referKeys.map((item, index) => {
+                referKeys.filter(item => item !== props.selfKey).map((item, index) => {
                   return (
                     <a
                       href={`https://draw-wiki.herokuapp.com/${

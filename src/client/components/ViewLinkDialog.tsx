@@ -9,6 +9,7 @@ type ViewLinkDialogProps = {
   isShow: boolean;
   onCancel: () => void;
   referedIllusts: string[];
+  selfKey: string;
   onKeySelected: (key: string) => void;
 };
 
@@ -25,7 +26,7 @@ export const ViewLinkDialog: FC<ViewLinkDialogProps> = props => {
         <div className="viewLinkDialogContainer">
           <h3>関連する図</h3>
           <div className="referedItemMenu">
-            {props.referedIllusts.map((item: string, index: number) => {
+            {props.referedIllusts.filter(item => item !== props.selfKey).map((item: string, index: number) => {
               const sourceKey = item.split("/")[4];
               return (
                 <div key={index} className="referedItemContainer">
