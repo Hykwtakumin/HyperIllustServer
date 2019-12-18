@@ -45,54 +45,58 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
             <div className="thumbDialogContainer">
               <div className="thumbDialogReferredContainer">
                 {referredKeys &&
-                  referredKeys.filter(item => item !== props.selfKey).map((item, index) => {
-                    return (
-                      <a
-                        href={`https://draw-wiki.herokuapp.com/${
-                          item.split("_")[1]
-                        }/${item}`}
-                        key={index}
-                        className="referedItemContainer"
-                      >
-                        <div key={index} className="referedItemContainer" >
-                          <img
-                            className="referedItem"
-                            alt={item}
-                            title={item}
-                            src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
-                            draggable={false}
-                            // onClick={ev => {
-                            //   props.onSelected(props.sourceKey);
-                            // }}
-                          />
-                        </div>
-                      </a>
-                    );
-                  })}
+                  referredKeys
+                    .filter(item => item !== props.selfKey)
+                    .map((item, index) => {
+                      return (
+                        <a
+                          href={`https://draw-wiki.herokuapp.com/${
+                            item.split("_")[1]
+                          }/${item}`}
+                          key={index}
+                          className="referedItemContainer"
+                        >
+                          <div key={index} className="referedItemContainer">
+                            <img
+                              className="referedItem"
+                              alt={item}
+                              title={item}
+                              src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
+                              draggable={false}
+                              // onClick={ev => {
+                              //   props.onSelected(props.sourceKey);
+                              // }}
+                            />
+                          </div>
+                        </a>
+                      );
+                    })}
                 {referKeys &&
-                referKeys.filter(item => item !== props.selfKey).map((item, index) => {
-                  return (
-                    <a
-                      href={`https://draw-wiki.herokuapp.com/${
-                        item.split("_")[1]
-                      }/${item}`}
-                      key={index}
-                    >
-                      <div key={index} className="referedItemContainer" >
-                        <img
-                          className="referedItem"
-                          alt={item}
-                          title={item}
-                          src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
-                          draggable={false}
-                          // onClick={ev => {
-                          //   props.onSelected(props.sourceKey);
-                          // }}
-                        />
-                      </div>
-                    </a>
-                  );
-                })}
+                  referKeys
+                    .filter(item => item !== props.selfKey)
+                    .map((item, index) => {
+                      return (
+                        <a
+                          href={`https://draw-wiki.herokuapp.com/${
+                            item.split("_")[1]
+                          }/${item}`}
+                          key={index}
+                        >
+                          <div key={index} className="referedItemContainer">
+                            <img
+                              className="referedItem"
+                              alt={item}
+                              title={item}
+                              src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
+                              draggable={false}
+                              // onClick={ev => {
+                              //   props.onSelected(props.sourceKey);
+                              // }}
+                            />
+                          </div>
+                        </a>
+                      );
+                    })}
               </div>
 
               <div className="thumbnailContainer">
@@ -117,7 +121,6 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                   />
                 </a>
               </div>
-
             </div>
           </section>
         </>

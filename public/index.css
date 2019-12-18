@@ -1,6 +1,8 @@
 .svgCanvas {
   position: absolute;
   user-select: none;
+  width: 100%;
+  height: 100%;
 }
 
 /*現在描画中のパスはわかりやすいように色をつける*/
@@ -245,6 +247,16 @@
   user-select: none;
 }
 
+/*BB用背景*/
+.BBOverLay {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  user-select: none;
+}
+
 /*リンク付きのPath*/
 
 /*カラーパレット*/
@@ -297,6 +309,16 @@
 .localListContainer {
   width: 90%;
   height: 80%;
+  background-color: white;
+  border: none;
+  box-shadow: 0px 5px 5px rgba(0,0,0,0.4);
+  position: absolute;
+}
+
+/*共有モーダル*/
+.shareDialogContainer {
+  width: 60%;
+  height: 60%;
   background-color: white;
   border: none;
   box-shadow: 0px 5px 5px rgba(0,0,0,0.4);
@@ -357,4 +379,34 @@
 /*Export用キャンバス(常に非表示にしておく)*/
 .exportCanvasContainer {
   display: none;
+}
+
+/*BoundingBoxのメニュー用*/
+.contextRectMenu {
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  background-color: transparent;
+  border: none;
+  user-select: none;
+  margin-bottom: 2px;
+}
+
+.contextRectButtons {
+  margin: 0 0 0 2px;
+  box-shadow: 0px 2px 2px rgba(0,0,0,0.4);
+  background-color: #01bc8c;
+  color: white;
+}
+
+.contextRectButtons:hover {
+  background-color: white;
+  color: #01bc8c;
+  transition: .3s;
+}
+
+.contextRectButtons:active {
+  background-color: white;
+  color: #01bc8c;
+  transition: .3s;
 }
