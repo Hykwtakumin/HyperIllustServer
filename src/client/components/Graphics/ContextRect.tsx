@@ -63,10 +63,22 @@ export const ContextRect: FC<contextRectProps> = props => {
 
   function BBMove(event: React.PointerEvent<SVGRectElement>) {
     if (isDragging) {
+      const now = getPoint(event.pageX, event.pageY, canvasRef.current);
+      const deltaX =  Math.floor(now.x) - initialPoint.x;
+      const deltaY = Math.floor(now.y) - initialPoint.y;
+      setBBSize({left: bbSize.left + deltaX, top: bbSize.top + deltaY, width: bbSize.width, height: bbSize.height});
+      onTransFormStarted(`translate(${deltaX}, ${deltaY})`);
     }
   }
 
   function BBUp(event: React.PointerEvent<SVGRectElement>) {
+    if (isDragging) {
+      const now = getPoint(event.pageX, event.pageY, canvasRef.current);
+      const deltaX =  Math.floor(now.x) - initialPoint.x;
+      const deltaY = Math.floor(now.y) - initialPoint.y;
+      setBBSize({left: bbSize.left + deltaX, top: bbSize.top + deltaY, width: bbSize.width, height: bbSize.height});
+      onTransFormEnd(`translate(${deltaX}, ${deltaY})`);
+    }
     setInitialPoint(null);
     setIsDragging(false);
   }

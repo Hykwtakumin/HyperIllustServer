@@ -258,7 +258,9 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
     //引用したイラストのリストを設定する
     setReferredIllusts(
       groups.reduce((prev, curr, index) => {
-        prev.push(curr.href);
+        if (curr.href) {
+          prev.push(curr.href);
+        }
         return prev;
       }, [])
     );
@@ -280,10 +282,12 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
   useEffect(() => {
     if (selectedGroup) {
       console.log(`現在次のグループが選択されています。: ${selectedGroup.id}`);
-      const key = selectedGroup.href.split("/")[4];
-      console.log(`そしてそのKeyは${key}です。`);
-      setSelectedItemKey(key);
-      setIsThumbOpen(true);
+      if (selectedGroup.href) {
+        const key = selectedGroup.href.split("/")[4];
+        console.log(`そしてそのKeyは${key}です。`);
+        setSelectedItemKey(key);
+        setIsThumbOpen(true);
+      }
     }
   }, [selectedGroup]);
 
@@ -444,7 +448,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       //インポートした画像をここで打ち込む
       const updated = defineReferToIllust(
         result,
-        groups.map(group => group.href.split("/")[4])
+        groups.filter(group => group.href).map(group => group.href.split("/")[4])
       );
       console.dir(result);
       //ローカルに保存
@@ -471,7 +475,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       // //引用した画像をreferredIllustに代入しておく
       const updated = defineReferToIllust(
         updating,
-        groups.map(group => group.href.split("/")[4])
+        groups.filter(group => group.href).map(group => group.href.split("/")[4])
       );
       console.dir(updated);
 
@@ -485,6 +489,8 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
     //編集モードの場合は無効化する必要はない
     if (editorMode != "edit") {
       setEvents("none");
+    } else {
+      setEvents("auto");
     }
   };
 
@@ -559,6 +565,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       setGroups(groups.reduce((prev, curr) => {
         if (selectedGroup.id === curr.id) {
           curr.transform = transform;
+          prev.push(curr);
         } else {
           prev.push(curr);
         }
@@ -592,10 +599,10 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
   //変形処理が一通りすんだら変形配列に記録する
   //TODO 操作のスタック化で戻せるようにする
   const handleTransformEnd = (transform: string) => {
-    if (selectedGroup) {
-    } else {
-
-    }
+    handleTransformStart(transform);
+    // if (selectedGroup) {
+    // } else {
+    // }
   };
 
   const handleExport = () => {};
@@ -691,7 +698,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
           fill="#01bc8c"
           fillOpacity="0.25"
           pointerEvents={events}
-          opacity={editorMode === "draw" ? "0" : "1"}
+          opacity={(editorMode === "draw" || isBBCreated) ? "0" : "1"}
         />
       </svg>
 
