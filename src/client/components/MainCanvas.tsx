@@ -34,6 +34,7 @@ import { ThumbDialog } from "./ThumbDialog";
 import { defineReferToIllust } from "./share/referController";
 import { ContextRect } from "./Graphics/ContextRect";
 import { createGroup } from "./Graphics/GroupController";
+import { ShareDialog } from "./ShareDialog";
 
 export type MainCanvasProps = {
   loadedStrokes?: Stroke[];
@@ -75,6 +76,10 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
   const [isLocalListModalOpen, setIsLocalListModalOpen] = useState<boolean>(
     false
   );
+
+  //共有モーダルの表示
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState<boolean>(false);
+
   //キャンバスのref
   const canvasRef = useRef<SVGSVGElement>(null);
   //BB判定用Rectのref
@@ -343,12 +348,12 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
     }
 
     //タイマーをセット
-    timerId.current = window.setTimeout(() => {
-      console.log("300ms elapsed!");
-      //描画点を消す
-      setPoints([]);
-      switchEditorMode();
-    }, 500);
+    // timerId.current = window.setTimeout(() => {
+    //   console.log("300ms elapsed!");
+    //   //描画点を消す
+    //   setPoints([]);
+    //   switchEditorMode();
+    // }, 500);
   };
 
   const handleBBDown = (event: React.PointerEvent<SVGSVGElement>) => {
@@ -378,12 +383,12 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
         setPoints([...points, newPoint]);
 
         const strokeDrawer = document.getElementById("strokeDrawer");
-        if (strokeDrawer) {
-          const drawingRect = strokeDrawer.getBoundingClientRect();
-          if (drawingRect.height > 5 || drawingRect.width > 5) {
-            timerId.current && clearTimeout(timerId.current);
-          }
-        }
+        // if (strokeDrawer) {
+        //   const drawingRect = strokeDrawer.getBoundingClientRect();
+        //   if (drawingRect.height > 5 || drawingRect.width > 5) {
+        //     timerId.current && clearTimeout(timerId.current);
+        //   }
+        // }
       } else {
         handleBBMove(event);
       }
@@ -404,16 +409,16 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       });
     }
 
-    if (inRectSize.height > 5 || inRectSize.width > 5) {
-      //動いているのでタイマーをリセット
-      timerId.current && clearTimeout(timerId.current);
-    }
+    // if (inRectSize.height > 5 || inRectSize.width > 5) {
+    //   //動いているのでタイマーをリセット
+    //   timerId.current && clearTimeout(timerId.current);
+    // }
   };
 
   const handleUp = (event: React.PointerEvent<SVGSVGElement>) => {
     console.log("onPointerUp!");
     //タイマーをリセットする
-    timerId.current && clearTimeout(timerId.current);
+    //timerId.current && clearTimeout(timerId.current);
     setIsDragging(false);
     if (editorMode === "draw") {
       const newStroke: Stroke = {
@@ -448,7 +453,9 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       //インポートした画像をここで打ち込む
       const updated = defineReferToIllust(
         result,
-        groups.filter(group => group.href).map(group => group.href.split("/")[4])
+        groups
+          .filter(group => group.href)
+          .map(group => group.href.split("/")[4])
       );
       console.dir(result);
       //ローカルに保存
@@ -475,7 +482,9 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       // //引用した画像をreferredIllustに代入しておく
       const updated = defineReferToIllust(
         updating,
-        groups.filter(group => group.href).map(group => group.href.split("/")[4])
+        groups
+          .filter(group => group.href)
+          .map(group => group.href.split("/")[4])
       );
       console.dir(updated);
 
@@ -562,23 +571,20 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
   const handleTransformStart = (transform: string) => {
     if (selectedGroup) {
       //既にあるGroupを変形させる
-      setGroups(groups.reduce((prev, curr) => {
-        if (selectedGroup.id === curr.id) {
-          curr.transform = transform;
-          prev.push(curr);
-        } else {
-          prev.push(curr);
-        }
-        return prev;
-      }, []));
+      setGroups(
+        groups.reduce((prev, curr) => {
+          if (selectedGroup.id === curr.id) {
+            curr.transform = transform;
+            prev.push(curr);
+          } else {
+            prev.push(curr);
+          }
+          return prev;
+        }, [])
+      );
     } else {
       //新規作成
-      const newGroup = createGroup(
-        selectedElms,
-        strokes,
-        ``,
-        transform
-      );
+      const newGroup = createGroup(selectedElms, strokes, ``, transform);
 
       setGroups([...groups, newGroup]);
       //selectedにある要素をstrokesから削除する
@@ -605,7 +611,9 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
     // }
   };
 
-  const handleExport = () => {};
+  const handleExport = () => {
+    window.alert("まだ未実装の機能です!m(_ _)m");
+  };
 
   //リンクの追加
   //グループに対しても上書きでリンクの追加(厳密には再編集)ができるようにする?
@@ -698,7 +706,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
           fill="#01bc8c"
           fillOpacity="0.25"
           pointerEvents={events}
-          opacity={(editorMode === "draw" || isBBCreated) ? "0" : "1"}
+          opacity={editorMode === "draw" || isBBCreated ? "0" : "1"}
         />
       </svg>
 
@@ -713,8 +721,8 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
           setIsImportModalOpen(true);
         }}
         onExport={handleExport}
-        onTransFormStarted={handleTransformStart}
-        onTransFormEnd={handleTransformEnd}
+        // onTransFormStarted={handleTransformStart}
+        // onTransFormEnd={handleTransformEnd}
       />
 
       <div className="toolBarContainer">
@@ -762,7 +770,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
             <ButtonComponent
               type={"primary"}
               onClick={event => {
-                console.log(event);
+                //setIsShareDialogOpen(true);
               }}
             >
               <img
@@ -851,6 +859,14 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
             }}
             onDeleted={handleLocalImageDelete}
             onSelected={() => {}}
+          />
+
+          <ShareDialog
+            isShow={isShareDialogOpen}
+            itemKey={selfKey}
+            onCancel={() => {
+              setIsShareDialogOpen(false);
+            }}
           />
 
           <ThumbDialog

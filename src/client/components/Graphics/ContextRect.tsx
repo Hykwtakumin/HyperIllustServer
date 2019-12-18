@@ -10,8 +10,8 @@ type contextRectProps = {
   onCancel: () => void;
   onAddLink: () => void;
   onExport: () => void;
-  onTransFormStarted: (transform: string) => void;
-  onTransFormEnd: (transform: string) => void;
+  // onTransFormStarted: (transform: string) => void;
+  // onTransFormEnd: (transform: string) => void;
 };
 
 export const ContextRect: FC<contextRectProps> = props => {
@@ -20,9 +20,9 @@ export const ContextRect: FC<contextRectProps> = props => {
     isBBCreated,
     onCancel,
     onAddLink,
-    onExport,
-    onTransFormStarted,
-    onTransFormEnd
+    onExport
+    // onTransFormStarted,
+    // onTransFormEnd
   } = props;
 
   //BBの寸法
@@ -64,20 +64,30 @@ export const ContextRect: FC<contextRectProps> = props => {
   function BBMove(event: React.PointerEvent<SVGRectElement>) {
     if (isDragging) {
       const now = getPoint(event.pageX, event.pageY, canvasRef.current);
-      const deltaX =  Math.floor(now.x) - initialPoint.x;
+      const deltaX = Math.floor(now.x) - initialPoint.x;
       const deltaY = Math.floor(now.y) - initialPoint.y;
-      setBBSize({left: bbSize.left + deltaX, top: bbSize.top + deltaY, width: bbSize.width, height: bbSize.height});
-      onTransFormStarted(`translate(${deltaX}, ${deltaY})`);
+      setBBSize({
+        left: bbSize.left + deltaX,
+        top: bbSize.top + deltaY,
+        width: bbSize.width,
+        height: bbSize.height
+      });
+      //onTransFormStarted(`translate(${deltaX}, ${deltaY})`);
     }
   }
 
   function BBUp(event: React.PointerEvent<SVGRectElement>) {
     if (isDragging) {
       const now = getPoint(event.pageX, event.pageY, canvasRef.current);
-      const deltaX =  Math.floor(now.x) - initialPoint.x;
+      const deltaX = Math.floor(now.x) - initialPoint.x;
       const deltaY = Math.floor(now.y) - initialPoint.y;
-      setBBSize({left: bbSize.left + deltaX, top: bbSize.top + deltaY, width: bbSize.width, height: bbSize.height});
-      onTransFormEnd(`translate(${deltaX}, ${deltaY})`);
+      setBBSize({
+        left: bbSize.left + deltaX,
+        top: bbSize.top + deltaY,
+        width: bbSize.width,
+        height: bbSize.height
+      });
+      //onTransFormEnd(`translate(${deltaX}, ${deltaY})`);
     }
     setInitialPoint(null);
     setIsDragging(false);
@@ -108,9 +118,9 @@ export const ContextRect: FC<contextRectProps> = props => {
               strokeDasharray="4"
               fill="#01bc8c"
               fillOpacity="0.25"
-              onPointerDown={BBDown}
-              onPointerMove={BBMove}
-              onPointerUp={BBUp}
+              // onPointerDown={BBDown}
+              // onPointerMove={BBMove}
+              // onPointerUp={BBUp}
             />
           </svg>
 

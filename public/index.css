@@ -315,6 +315,16 @@
   position: absolute;
 }
 
+/*共有モーダル*/
+.shareDialogContainer {
+  width: 60%;
+  height: 60%;
+  background-color: white;
+  border: none;
+  box-shadow: 0px 5px 5px rgba(0,0,0,0.4);
+  position: absolute;
+}
+
 /*要素をクリックしたときにサムネを表示する(ThumbDialog.tsx)*/
 .thumbDialogContainer {
   width: 50%;

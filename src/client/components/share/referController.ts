@@ -73,7 +73,11 @@ export const deleteReferInfo = (prevKeys: string[], referedKey: string) => {
       //当該イラストを取得
       const updating = await restoreFromLocalStorage<HyperIllust>(prevKey);
       console.log(`${prevKey}の引用情報を編集中...`);
-      if (updating.referIllusts && updating.referIllusts.includes(referedKey)) {
+      if (
+        updating &&
+        updating.referIllusts &&
+        updating.referIllusts.includes(referedKey)
+      ) {
         console.log(`${prevKey}の引用情報を削除します`);
         updating.referIllusts = updating.referIllusts.filter(
           key => key !== referedKey
@@ -140,7 +144,11 @@ export const deleteImportInfo = (prevKeys: string[], referedKey: string) => {
     if (prevKey) {
       //当該イラストを取得
       const updating = await restoreFromLocalStorage<HyperIllust>(prevKey);
-      if (updating.importIllusts && updating.importIllusts.includes(referedKey)) {
+      if (
+        updating &&
+        updating.importIllusts &&
+        updating.importIllusts.includes(referedKey)
+      ) {
         updating.importIllusts = updating.importIllusts.filter(
           key => key !== referedKey
         );
