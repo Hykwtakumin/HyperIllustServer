@@ -42,8 +42,9 @@ export const GroupDrawer: FC<GroupDrawerProps> = props => {
                 strokes={group.strokes}
                 events={props.events}
                 style={
-                  (props.selectedGroup &&
-                    group.id === props.selectedGroup.id && props.mode == "edit")
+                  props.selectedGroup &&
+                  group.id === props.selectedGroup.id &&
+                  props.mode == "edit"
                     ? "activePath"
                     : ""
                 }
