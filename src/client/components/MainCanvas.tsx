@@ -65,7 +65,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
   //ドラッグ中のboolean
   const [isDragging, setIsDragging] = useState<boolean>(false);
   //要素のpointer-events
-  const [events, setEvents] = useState<PointerEvents>("none");
+  const [events, setEvents] = useState<PointerEvents>("auto");
   //クリアモーダルの表示
   const [isClearModalOpen, setIsClearModalOpen] = useState<boolean>(false);
   //画像Importモーダルの表示
@@ -206,11 +206,6 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
     editorMode === "draw" ? setEditorMode("edit") : setEditorMode("draw");
   };
 
-  //editorModeが変わるとPointerEventも変わる
-  useEffect(() => {
-    editorMode === "draw" ? setEvents("none") : setEvents("auto");
-  }, [editorMode]);
-
   //BBがリサイズされたときに走る
   useEffect(() => {
     //BBがリサイズされる度に交差判定を行う
@@ -253,7 +248,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       //最後の変更から2秒経過でアップロード処理を行う
       upLoadTimer.current = window.setTimeout(() => {
         console.log("2000ms elapsed!");
-        handleUpSert();
+        //handleUpSert();
       }, 2000);
     }
   }, [strokes]);
@@ -278,7 +273,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       //最後の変更から2秒経過でアップロード処理を行う
       upLoadTimer.current = window.setTimeout(() => {
         console.log("2000ms elapsed!");
-        handleUpSert();
+        //handleUpSert();
       }, 2000);
     }
   }, [groups]);
@@ -445,7 +440,6 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
   };
 
   const handleUpSert = async () => {
-    setEvents("auto");
     if (!selfKey) {
       console.log("URLが設定されていないので新規作成");
       //アップロードする
@@ -493,13 +487,6 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
 
       const saveResult = await saveToLocalStorage(result.id, updated);
       console.log(`saveResult : ${saveResult}`);
-    }
-    //アップロード後はしっかりpointer-eventsを無効化しておく
-    //編集モードの場合は無効化する必要はない
-    if (editorMode != "edit") {
-      setEvents("none");
-    } else {
-      setEvents("auto");
     }
   };
 
@@ -687,7 +674,6 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
         />
         <defs />
         <rect width="100%" height="100%" fill="#FFFFFF" />
-        <PathDrawer points={points} color={color} width={`${penWidth}`} />
         <StrokeDrawer strokes={strokes} events={events} />
         <GroupDrawer
           groupElms={groups}
@@ -696,6 +682,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
           selectedGroup={selectedGroup}
           onGroupSelected={setSelectedGroup}
         />
+        <PathDrawer points={points} color={color} width={`${penWidth}`} />
         <rect
           ref={inRectRef}
           x={inRectSize.left}
