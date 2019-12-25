@@ -1,3 +1,6 @@
+import {HyperIllust} from "../../../share/model";
+import * as day from "dayjs";
+
 export type Points = {
   x: number;
   y: number;
@@ -16,6 +19,21 @@ export const getPoint = (
   y = pageY - dy;
   return { x, y };
 };
+
+//古い順
+export const sortImagesByCreatedAtAscend = (list: HyperIllust[]): HyperIllust[] => {
+  return list.sort((a,b) => {
+    return (day(a.createdAt) > day(b.createdAt ) ? 1: -1);
+  });
+};
+
+//新しい順
+export const sortImagesByCreatedAtDescend = (list: HyperIllust[]): HyperIllust[] => {
+  return list.sort((a,b) => {
+    return (day(a.createdAt) < day(b.createdAt ) ? 1: -1);
+  });
+};
+
 
 export type titleImageMap = {
   title: string;

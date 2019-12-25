@@ -15,8 +15,7 @@ import * as multer from "multer";
 import * as path from "path";
 import * as AWS from "aws-sdk";
 import * as dotenv from "dotenv";
-import * as moment from "moment";
-import * as fs from "fs";
+import * as day from "dayjs";
 import { promisify } from "util";
 const shortid = require("shortid");
 import * as socketIo from "socket.io";
@@ -188,7 +187,7 @@ export const Router = (io: socketIo.Server): express.Router => {
     "/api/upload/:userName",
     uploader.single("file"),
     async (req: express.Request, res: express.Response) => {
-      const now = moment().format("YYYY-MM-DD-HH-mm-ss");
+      const now = day().format();
       const fileName = `hyperillust_${req.params.userName}_${now}_.svg`;
       const mime: string = "image/svg+xml";
 

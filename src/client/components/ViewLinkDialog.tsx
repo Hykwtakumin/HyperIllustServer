@@ -19,6 +19,8 @@ type illustReferences = {
   referes: string[];
 };
 
+//ここのソートもいじれるようにする?(今じゃなくても良い)
+
 //シンプルなダイアログ用コンポーネント
 export const ViewLinkDialog: FC<ViewLinkDialogProps> = props => {
   return ReactDOM.createPortal(
