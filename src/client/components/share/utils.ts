@@ -34,6 +34,11 @@ export const sortImagesByCreatedAtDescend = (list: HyperIllust[]): HyperIllust[]
   });
 };
 
+//日毎に分割する
+
+//月ごとに分割する
+
+
 
 export type titleImageMap = {
   title: string;

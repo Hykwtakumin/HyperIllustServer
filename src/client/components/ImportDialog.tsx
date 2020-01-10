@@ -16,9 +16,10 @@ type ImportDialogProps = {
 //シンプルなダイアログ用コンポーネント
 export const ImportDialog: FC<ImportDialogProps> = props => {
   const { isShow, onCancel, onSelected, localIllustList } = props;
-  //localIllustList.map(item => console.dir(new Date(item.createdAt)));
-  // console.dir(day());
+  // //localIllustList.map(item => console.dir(new Date(item.createdAt)));
+  // // console.dir(day());
   // console.dir(day().format());
+  // console.dir(day());
   return ReactDOM.createPortal(
     <>
       {isShow && (

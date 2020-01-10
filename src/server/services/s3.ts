@@ -39,6 +39,17 @@ export async function promisePutFile(
     .promise();
 }
 
+//バケットにJSONをアップロードする
+export async function promisePutMetadata(
+  Key: string,
+  Body: any,
+  ContentType: string
+): Promise<ManagedUpload.SendData> {
+  return await bucket
+    .upload({ Bucket, Key, Body, ContentType, ACL: "public-read" })
+    .promise();
+}
+
 //バケットからSVGを削除
 export async function promiseDeleteFile(
   Key: string

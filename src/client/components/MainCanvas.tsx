@@ -22,7 +22,7 @@ import {
   saveToLocalStorage
 } from "./share/localStorage";
 import { loadUserInfo, setUserInfo } from "./share/UserSetting";
-import { deleteSVG, updateSVG, uploadSVG } from "./share/API";
+import {deleteSVG, updateMetaData, updateSVG, uploadSVG} from "./share/API";
 import { StrokeDrawer } from "./Graphics/StrokeDrawer";
 import { GroupDrawer } from "./Graphics/GroupDrawer";
 import { ResetDialog } from "./ResetDialog";
@@ -248,7 +248,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       //最後の変更から2秒経過でアップロード処理を行う
       upLoadTimer.current = window.setTimeout(() => {
         console.log("2000ms elapsed!");
-        //handleUpSert();
+        handleUpSert();
       }, 2000);
     }
   }, [strokes]);
@@ -273,7 +273,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       //最後の変更から2秒経過でアップロード処理を行う
       upLoadTimer.current = window.setTimeout(() => {
         console.log("2000ms elapsed!");
-        //handleUpSert();
+        handleUpSert();
       }, 2000);
     }
   }, [groups]);
@@ -456,6 +456,11 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       const saveResult = await saveToLocalStorage(result.id, updated);
       console.log(`saveResult : ${saveResult}`);
 
+      // const updatedMeta = result;
+      // updatedMeta.name = "これはメタデータ用APIによって追記されました!";
+      // const metaResult = await updateMetaData(result.id, updatedMeta);
+      // console.log(`metaData : ${metaResult}`);
+
       //再設定
       setLocalIllustList(loadHyperIllusts());
       //itemURLを設定
@@ -487,6 +492,11 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
 
       const saveResult = await saveToLocalStorage(result.id, updated);
       console.log(`saveResult : ${saveResult}`);
+
+      // const updatedMeta = result;
+      // updatedMeta.name = "これはメタデータ用APIによってさらに追記されました!";
+      // const metaResult = await updateMetaData(result.id, updatedMeta);
+      // console.log(`metaData : ${metaResult}`);
     }
   };
 

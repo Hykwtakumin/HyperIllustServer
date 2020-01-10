@@ -24,6 +24,11 @@ export const mongoDbSetup = async () => {
   debug(db.collection(userCollectionName));
 };
 
+export const setUpClient = (): MongoClient => {
+  debug("Connecting to MongoDB.");
+  return new MongoClient(mongoUrl, { useNewUrlParser: true});
+};
+
 const collections = Object.create(null);
 export const getMongoCollection = async (
   collectionName: string

@@ -12,6 +12,16 @@ export const formDataCreator = (svg: SVGElement): FormData => {
   return formData;
 };
 
+export const jsonFormDataConvertor = (json: string) => {
+  const blobObject: Blob = new Blob(
+    [json],
+    { type: "application/json" }
+  );
+  const formData = new FormData();
+  formData.append(`file`, blobObject);
+  return formData;
+};
+
 //SVGのアップロード用
 export const uploadSVG = async (
   svg: SVGElement,
@@ -27,6 +37,39 @@ export const uploadSVG = async (
   } catch (error) {
     console.log(error);
     return error;
+  }
+};
+
+//メタデータのアップロード用
+export const uploadMetaData = async (
+  key: string,
+  meta: HyperIllust
+): Promise<HyperIllust> => {
+  const options = {
+    method: "POST",
+    body: jsonFormDataConvertor(JSON.stringify(meta))
+  };
+
+  const request = await fetch(`/api/updatemeta/${key}`);
+
+  if (request) {
+    return (await request.json()) as HyperIllust;
+  }
+};
+
+export const updateMetaData = async (
+  key: string,
+  meta: HyperIllust
+): Promise<HyperIllust> => {
+  const options = {
+    method: "POST",
+    body: jsonFormDataConvertor(JSON.stringify(meta))
+  };
+
+  const request = await fetch(`/api/updatemeta/${key}`, options);
+
+  if (request) {
+    return (await request.json()) as HyperIllust;
   }
 };
 
