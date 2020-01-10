@@ -1,10 +1,11 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { FC } from "react";
+import {FC, useEffect} from "react";
 import { ButtonComponent } from "./share";
 import { HyperIllust } from "../../share/model";
 import {sortImagesByCreatedAtAscend, sortImagesByCreatedAtDescend} from "./share/utils";
 import * as day from "dayjs";
+import * as moment from 'moment';
 
 type ImportDialogProps = {
   isShow: boolean;
@@ -20,6 +21,14 @@ export const ImportDialog: FC<ImportDialogProps> = props => {
   // // console.dir(day());
   // console.dir(day().format());
   // console.dir(day());
+  //localIllustList.map(item => console.dir(moment(item.createdAt, "YYYY-MM-DD-HH-mm-ss").toDate()));
+
+  useEffect(() => {
+    const lists = localIllustList;
+    console.dir(sortImagesByCreatedAtAscend(lists).map(item => item.createdAt));
+    console.dir(sortImagesByCreatedAtDescend(lists).map(item => item.createdAt));
+  }, []);
+
   return ReactDOM.createPortal(
     <>
       {isShow && (

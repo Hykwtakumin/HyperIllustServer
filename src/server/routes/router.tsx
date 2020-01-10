@@ -16,6 +16,7 @@ import * as path from "path";
 import * as AWS from "aws-sdk";
 import * as dotenv from "dotenv";
 import * as day from "dayjs";
+import * as moment from "moment";
 import { promisify } from "util";
 const shortid = require("shortid");
 import * as socketIo from "socket.io";
@@ -82,18 +83,8 @@ export const Router = (io: socketIo.Server): express.Router => {
       //
       const username = decodeURIComponent(req.params.userName);
       const imageKey = decodeURIComponent(req.params.fileKey);
-      debug(`imageKey: ${imageKey}`);
-
-      let requestKey;
-
-      if (imageKey.includes("%")) {
-        requestKey = decodeURIComponent(imageKey);
-      } else {
-        requestKey = encodeURIComponent(imageKey)
-      }
-
       const result = await fetch(
-        `https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${encodeURIComponent(requestKey)}`,
+        `https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${imageKey}`,
         {
           method: "GET",
           mode: "cors"
@@ -207,7 +198,7 @@ export const Router = (io: socketIo.Server): express.Router => {
     "/api/upload/:userName",
     uploader.single("file"),
     async (req: express.Request, res: express.Response) => {
-      const now = encodeURIComponent(day().format());
+      const now = moment().format("YYYY-MM-DD-HH-mm-ss");
       const fileName = `hyperillust_${req.params.userName}_${now}_.svg`;
       const mime: string = "image/svg+xml";
       const rawData = await asyncReadFile(req.file.path);

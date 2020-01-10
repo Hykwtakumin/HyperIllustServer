@@ -1,5 +1,6 @@
-import {HyperIllust} from "../../../share/model";
+import {DateLike, HyperIllust} from "../../../share/model";
 import * as day from "dayjs";
+import * as moment from 'moment';
 
 export type Points = {
   x: number;
@@ -20,17 +21,23 @@ export const getPoint = (
   return { x, y };
 };
 
-//古い順
+//独自形式からDateに変換する
+
+export const dateConverter = (createdAt :DateLike):Date => {
+  return moment(createdAt, "YYYY-MM-DD-HH-mm-ss").toDate();
+};
+
+//古い順にソート
 export const sortImagesByCreatedAtAscend = (list: HyperIllust[]): HyperIllust[] => {
   return list.sort((a,b) => {
-    return (day(a.createdAt) > day(b.createdAt ) ? 1: -1);
+    return (dateConverter(a.createdAt) > dateConverter(b.createdAt) ? 1: -1);
   });
 };
 
-//新しい順
+//新しい順にソート
 export const sortImagesByCreatedAtDescend = (list: HyperIllust[]): HyperIllust[] => {
   return list.sort((a,b) => {
-    return (day(a.createdAt) < day(b.createdAt ) ? 1: -1);
+    return (dateConverter(a.createdAt) < dateConverter(b.createdAt) ? 1: -1);
   });
 };
 
