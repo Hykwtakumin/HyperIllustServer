@@ -13,10 +13,7 @@ export const formDataCreator = (svg: SVGElement): FormData => {
 };
 
 export const jsonFormDataConvertor = (json: string) => {
-  const blobObject: Blob = new Blob(
-    [json],
-    { type: "application/json" }
-  );
+  const blobObject: Blob = new Blob([json], { type: "application/json" });
   const formData = new FormData();
   formData.append(`file`, blobObject);
   return formData;

@@ -33,7 +33,7 @@ export type HyperIllust = {
   updatedAt: DateLike;
   owner: string;
   projectName?: string;
-  serializedPath?: string[]
+  serializedPath?: string[];
   isForked: boolean;
   origin?: string;
   version: number;
@@ -58,7 +58,7 @@ export type HyperIllustParams = {
   importIllusts?: string[];
   owner: HyperIllustUser;
   projectName?: string;
-  serializedPath?: string[]
+  serializedPath?: string[];
   isForked: boolean;
   origin?: string;
 };

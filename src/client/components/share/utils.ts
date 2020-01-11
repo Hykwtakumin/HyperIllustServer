@@ -1,6 +1,6 @@
-import {DateLike, HyperIllust} from "../../../share/model";
+import { DateLike, HyperIllust } from "../../../share/model";
 import * as day from "dayjs";
-import * as moment from 'moment';
+import * as moment from "moment";
 
 export type Points = {
   x: number;
@@ -23,29 +23,31 @@ export const getPoint = (
 
 //独自形式からDateに変換する
 
-export const dateConverter = (createdAt :DateLike):Date => {
+export const dateConverter = (createdAt: DateLike): Date => {
   return moment(createdAt, "YYYY-MM-DD-HH-mm-ss").toDate();
 };
 
 //古い順にソート
-export const sortImagesByCreatedAtAscend = (list: HyperIllust[]): HyperIllust[] => {
-  return list.sort((a,b) => {
-    return (dateConverter(a.createdAt) > dateConverter(b.createdAt) ? 1: -1);
+export const sortImagesByCreatedAtAscend = (
+  list: HyperIllust[]
+): HyperIllust[] => {
+  return list.sort((a, b) => {
+    return dateConverter(a.createdAt) > dateConverter(b.createdAt) ? 1 : -1;
   });
 };
 
 //新しい順にソート
-export const sortImagesByCreatedAtDescend = (list: HyperIllust[]): HyperIllust[] => {
-  return list.sort((a,b) => {
-    return (dateConverter(a.createdAt) < dateConverter(b.createdAt) ? 1: -1);
+export const sortImagesByCreatedAtDescend = (
+  list: HyperIllust[]
+): HyperIllust[] => {
+  return list.sort((a, b) => {
+    return dateConverter(a.createdAt) < dateConverter(b.createdAt) ? 1 : -1;
   });
 };
 
 //日毎に分割する
 
 //月ごとに分割する
-
-
 
 export type titleImageMap = {
   title: string;

@@ -26,7 +26,7 @@ export const mongoDbSetup = async () => {
 
 export const setUpClient = (): MongoClient => {
   debug("Connecting to MongoDB.");
-  return new MongoClient(mongoUrl, { useNewUrlParser: true});
+  return new MongoClient(mongoUrl, { useNewUrlParser: true });
 };
 
 const collections = Object.create(null);

@@ -22,7 +22,7 @@ import {
   saveToLocalStorage
 } from "./share/localStorage";
 import { loadUserInfo, setUserInfo } from "./share/UserSetting";
-import {deleteSVG, updateMetaData, updateSVG, uploadSVG} from "./share/API";
+import { deleteSVG, updateMetaData, updateSVG, uploadSVG } from "./share/API";
 import { StrokeDrawer } from "./Graphics/StrokeDrawer";
 import { GroupDrawer } from "./Graphics/GroupDrawer";
 import { ResetDialog } from "./ResetDialog";
@@ -444,6 +444,10 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       console.log("URLが設定されていないので新規作成");
       //アップロードする
       const result = await uploadSVG(canvasRef.current, user.name);
+
+      console.log("result");
+      console.dir(result);
+
       //インポートした画像をここで打ち込む
       const updated = defineReferToIllust(
         result,
@@ -451,15 +455,30 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
           .filter(group => group.href)
           .map(group => group.href.split("/")[4])
       );
-      console.dir(result);
+      console.log("updated");
+      console.dir(updated);
       //ローカルに保存
       const saveResult = await saveToLocalStorage(result.id, updated);
       console.log(`saveResult : ${saveResult}`);
 
       // const updatedMeta = result;
+      //
+      // console.log("updatedMeta");
+      // console.dir(updatedMeta);
       // updatedMeta.name = "これはメタデータ用APIによって追記されました!";
       // const metaResult = await updateMetaData(result.id, updatedMeta);
       // console.log(`metaData : ${metaResult}`);
+
+      //メタデータを取得する
+      const metaData = await fetch(
+        `https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${result.id}`
+      );
+      const loadedMetaData = await metaData.json();
+      console.dir(loadedMetaData);
+      const loaded = loadedMetaData as HyperIllust;
+      loaded.desc = "これはメタデータ用APIによって追記されました!";
+      const metaResult = await updateMetaData(result.id, loaded);
+      console.log(`metaData : ${metaResult}`);
 
       //再設定
       setLocalIllustList(loadHyperIllusts());
@@ -477,21 +496,25 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       //インポートした画像をここで打ち込む
 
       const updating = await restoreFromLocalStorage<HyperIllust>(selfKey);
-      console.dir(updating);
-      // //引用した画像をreferredIllustに代入しておく
-      const updated = defineReferToIllust(
-        updating,
-        groups
-          .filter(group => group.href)
-          .map(group => group.href.split("/")[4])
-      );
-      console.dir(updated);
+      // console.dir(updating);
+      // // //引用した画像をreferredIllustに代入しておく
+      // const updated = defineReferToIllust(
+      //   updating,
+      //   groups
+      //     .filter(group => group.href)
+      //     .map(group => group.href.split("/")[4])
+      // );
+      // console.dir(updated);
 
       //アップロードする
+      //返ってくるのはfileNameというかKeyであってJSONではない。
       const result = await updateSVG(canvasRef.current, selfKey);
 
-      const saveResult = await saveToLocalStorage(result.id, updated);
-      console.log(`saveResult : ${saveResult}`);
+      // const saveResult = await saveToLocalStorage(result.id, result);
+      // console.log(`saveResult : ${saveResult}`);
+
+      const savemetaData = await restoreFromLocalStorage(result);
+      console.dir(savemetaData);
 
       // const updatedMeta = result;
       // updatedMeta.name = "これはメタデータ用APIによってさらに追記されました!";

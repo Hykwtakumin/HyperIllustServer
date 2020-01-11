@@ -11,7 +11,7 @@ import { Router } from "./routes/router";
 import { createSocketIOServer, socketIOHandler } from "./services/socket";
 import { logger } from "../share/logger";
 import { Simulate } from "react-dom/test-utils";
-import {setUpClient} from "./services/db";
+import { setUpClient } from "./services/db";
 const { debug } = logger("index:index");
 
 export const app: express.Express = express();
@@ -45,7 +45,6 @@ const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
-
 
 server.listen(port, () => {
   debug(`server listening at port : ${port}`);

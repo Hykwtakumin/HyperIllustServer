@@ -5,10 +5,12 @@ import { app, wrap } from "../index";
 import { BaseLayout } from "../../../views/BaseLayout";
 import {
   asyncReadFile,
+  asyncReadJSON,
   asyncUnLink,
   promiseDeleteFile,
   promiseGetFile,
-  promisePutFile, promisePutMetadata
+  promisePutFile,
+  promisePutMetadata
 } from "../services/s3";
 import * as fetchBase64 from "fetch-base64";
 import * as multer from "multer";
@@ -63,7 +65,6 @@ export const Router = (io: socketIo.Server): express.Router => {
         .end();
     }
   );
-
 
   /*TopページにGetでアクセスするとエディタのJSXを返す*/
   router.get(
@@ -199,7 +200,7 @@ export const Router = (io: socketIo.Server): express.Router => {
     uploader.single("file"),
     async (req: express.Request, res: express.Response) => {
       const now = moment().format("YYYY-MM-DD-HH-mm-ss");
-      const fileName = `hyperillust_${req.params.userName}_${now}_.svg`;
+      const fileName = `hyperillust_${req.params.userName}_${now}.svg`;
       const mime: string = "image/svg+xml";
       const rawData = await asyncReadFile(req.file.path);
       try {
@@ -235,7 +236,11 @@ export const Router = (io: socketIo.Server): express.Router => {
         //アップロードしたらローカルの一時ファイルは削除
         await asyncUnLink(req.file.path);
 
-        const uploadedMeta = await promisePutMetadata(metaKey, JSON.stringify(newIllust), `application/json`);
+        const uploadedMeta = await promisePutMetadata(
+          metaKey,
+          JSON.stringify(newIllust),
+          `application/json`
+        );
 
         //CORSを全許可にして返す?
         res.setHeader("Access-Control-Allow-Origin", "*");
@@ -246,22 +251,26 @@ export const Router = (io: socketIo.Server): express.Router => {
     }
   );
 
+  router.post(
+    `/api/updatemeta/:metaKey`,
+    uploader.single("file"),
+    async (req: express.Request, res: express.Response) => {
+      const metaKey = req.params.metaKey;
+      console.log("updatng metadata...");
+      const rawJSON = await asyncReadJSON(req.file.path);
 
-  router.post(`/api/updatemeta/:metaKey`, uploader.single("file"), async (req: express.Request, res: express.Response) => {
-    const metaKey = req.params.metaKey;
+      const uploadedMeta = await promisePutFile(
+        metaKey,
+        rawJSON,
+        `application/json`
+      );
 
-    const rawJSON = await asyncReadFile(req.file.path);
+      //await asyncUnLink(req.file.path);
 
-
-    console.dir(rawJSON);
-    const uploadedMeta = await promisePutFile(metaKey, JSON.stringify(rawJSON), `application/json`);
-
-    await asyncUnLink(req.file.path);
-
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.send(JSON.stringify(uploadedMeta.Location));
-  });
-
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.send(JSON.stringify(uploadedMeta.Location));
+    }
+  );
 
   //同一keyのドキュメントを更新するAPI
   router.put(
