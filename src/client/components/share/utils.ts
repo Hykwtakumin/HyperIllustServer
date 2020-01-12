@@ -99,4 +99,4 @@ export type OpeStacks = {
   desc: Object;
 };
 
-export type DrawPreset = "normal" | "bold" | "shadow" | "highLight";
+export type DrawPreset = "normal" | "bold" | "shadow" | "highLight" | "eraser";

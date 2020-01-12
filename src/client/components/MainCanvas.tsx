@@ -31,7 +31,7 @@ import { ImportDialog } from "./ImportDialog";
 import { ViewLinkDialog } from "./ViewLinkDialog";
 import { LocalListDialog } from "./LocalListDialog";
 import { ThumbDialog } from "./ThumbDialog";
-import { defineReferToIllust } from "./share/referController";
+import {addLinkedInfo, deleteLinkedInfo} from "./share/referController";
 import { ContextRect } from "./Graphics/ContextRect";
 import { createGroup } from "./Graphics/GroupController";
 import { ShareDialog } from "./ShareDialog";
@@ -188,6 +188,9 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
     } else if (preset === "highLight") {
       setPenWidth(5);
       setColor("rgba(255,141,60,0.8)");
+    } else if (preset === "eraser") {
+      setPenWidth(5);
+      setColor("rgba(255,255,255,1)");
     } else {
       setPenWidth(5);
       setColor("#585858");
@@ -277,6 +280,8 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       }, 2000);
     }
   }, [groups]);
+
+  //グループの中のURLをトラバースするのではなく、
 
   //選択されたGroup要素が変わる度にサムネイル用ツールチップを表示する
   useEffect(() => {
@@ -448,38 +453,6 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       console.log("result");
       console.dir(result);
 
-      //インポートした画像をここで打ち込む
-      const updated = defineReferToIllust(
-        result,
-        groups
-          .filter(group => group.href)
-          .map(group => group.href.split("/")[4])
-      );
-      console.log("updated");
-      console.dir(updated);
-      //ローカルに保存
-      const saveResult = await saveToLocalStorage(result.id, updated);
-      console.log(`saveResult : ${saveResult}`);
-
-      // const updatedMeta = result;
-      //
-      // console.log("updatedMeta");
-      // console.dir(updatedMeta);
-      // updatedMeta.name = "これはメタデータ用APIによって追記されました!";
-      // const metaResult = await updateMetaData(result.id, updatedMeta);
-      // console.log(`metaData : ${metaResult}`);
-
-      //メタデータを取得する
-      const metaData = await fetch(
-        `https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${result.id}`
-      );
-      const loadedMetaData = await metaData.json();
-      console.dir(loadedMetaData);
-      const loaded = loadedMetaData as HyperIllust;
-      loaded.desc = "これはメタデータ用APIによって追記されました!";
-      const metaResult = await updateMetaData(result.id, loaded);
-      console.log(`metaData : ${metaResult}`);
-
       //再設定
       setLocalIllustList(loadHyperIllusts());
       //itemURLを設定
@@ -495,6 +468,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       console.log(`URLは設定されているので上書き: ${selfKey}`);
       //インポートした画像をここで打ち込む
 
+      //selfKeyは.svgではなく単なるIDとして扱う
       const updating = await restoreFromLocalStorage<HyperIllust>(selfKey);
       // console.dir(updating);
       // // //引用した画像をreferredIllustに代入しておく
@@ -660,9 +634,27 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       );
       //selectedな要素をクリアーする
       setSelectedElms([]);
+      //引用情報を追加する
+      addRefer(item.id)
     } else {
       console.log("要素が選択されていません");
     }
+  };
+
+  //referを操作する関数
+  //addLinkとかhandleImportとかで使う
+  const addRefer = async (itemKey: string) => {
+    //まず自分の引用リストに追加する
+    setReferIllusts([...referIllusts, itemKey]);
+    //次に引用したモノのリストにも自分のIDを追加する
+    await addLinkedInfo(selfKey, itemKey);
+  };
+
+  const deleteRefer = async (itemKey: string) => {
+    //自分の引用リストから削除
+    setReferIllusts(referIllusts.filter(item => item !== itemKey));
+    //次に引用したモノのリストにも自分のIDを追加する
+    await deleteLinkedInfo(selfKey, itemKey);
   };
 
   //選択された要素からグループを作成する

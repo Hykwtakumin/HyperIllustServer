@@ -26,6 +26,7 @@ export async function setUserInfo() {
     const setUser: HyperIllustUser = {
       id: userName,
       name: userName,
+      illustList: [],
       createdAt: now,
       updatedAt: now
     };

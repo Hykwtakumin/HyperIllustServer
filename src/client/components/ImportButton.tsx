@@ -21,6 +21,7 @@ export type SelectedItem = {
 };
 
 //localに保存されているhyperIllustを全件取得する
+//ユーザーメタデータに紐付いているものを全部取得してローカルを更新する?
 export function loadHyperIllusts(): Array<HyperIllust> {
   const localHyperIllusts: HyperIllust[] = [];
   if (localStorage) {

@@ -223,8 +223,8 @@ export const Router = (io: socketIo.Server): express.Router => {
           desc: "",
           size: req.file.size,
           owner: req.params.userName,
-          referredIllusts: [],
-          referIllusts: [],
+          linkedList: [],
+          linkedByList: [],
           isForked: false,
           origin: "",
           version: 1,
@@ -256,21 +256,80 @@ export const Router = (io: socketIo.Server): express.Router => {
     uploader.single("file"),
     async (req: express.Request, res: express.Response) => {
       const metaKey = req.params.metaKey;
-      console.log("updatng metadata...");
       const rawJSON = await asyncReadJSON(req.file.path);
-
       const uploadedMeta = await promisePutFile(
         metaKey,
         rawJSON,
         `application/json`
       );
-
-      //await asyncUnLink(req.file.path);
-
+      await asyncUnLink(req.file.path);
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.send(JSON.stringify(uploadedMeta.Location));
     }
   );
+
+  //メタデータを削除するAPI
+  router.delete(`/api/deletemeta/:metakey`, async (req: express.Request, res: express.Response) => {
+    const metaKey = req.params.metaKey;
+    const result = await promiseDeleteFile(metaKey);
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.send(JSON.stringify(result));
+  });
+
+  //ユーザーメタデータを生成するAPI
+  //これは更新APIと同じでも良いかも
+  router.post(
+    `/api/createuser/:username`,
+    uploader.single("file"),
+    async (req: express.Request, res: express.Response) => {
+      //ファイル名は"user-hykwtakumin"みたいな感じになる
+      const userKey = `user-${req.params.username}`;
+      const rawJSON = await asyncReadJSON(req.file.path);
+      const uploadedMeta = await promisePutFile(
+        userKey,
+        rawJSON,
+        `application/json`
+      );
+      await asyncUnLink(req.file.path);
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.send(JSON.stringify(uploadedMeta.Location));
+    }
+  );
+
+  //既存のユーザーメタデータを取得するAPI
+  router.get(`/api/getuser/:username`, async (req: express.Request, res: express.Response) => {
+    const userKey = `user-${req.params.username}`;
+    const result = await fetch(
+      `https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${userKey}`
+    );
+    const loadedUser = await result.json();
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.send(JSON.stringify(loadedUser));
+  });
+  //既存のユーザーメタデータを更新するAPI
+  router.post(
+    `/api/updateuser/:username`,
+    uploader.single("file"),
+    async (req: express.Request, res: express.Response) => {
+      const userKey = `user-${req.params.username}`;
+      const rawJSON = await asyncReadJSON(req.file.path);
+      const uploadedMeta = await promisePutFile(
+        userKey,
+        rawJSON,
+        `application/json`
+      );
+      await asyncUnLink(req.file.path);
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.send(JSON.stringify(uploadedMeta.Location));
+    }
+  );
+  //既存のユーザーメタデータを削除するAPI
+  router.delete(`/api/deleteuser/:username`, async (req: express.Request, res: express.Response) => {
+    const userKey = `user-${req.params.username}`;
+    const result = await promiseDeleteFile(userKey);
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.send(JSON.stringify(result));
+  });
 
   //同一keyのドキュメントを更新するAPI
   router.put(
