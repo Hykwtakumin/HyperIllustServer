@@ -20,19 +20,14 @@ type ImportDialogProps = {
 //シンプルなダイアログ用コンポーネント
 export const ImportDialog: FC<ImportDialogProps> = props => {
   const { isShow, onCancel, onSelected, localIllustList } = props;
-  // //localIllustList.map(item => console.dir(new Date(item.createdAt)));
-  // // console.dir(day());
-  // console.dir(day().format());
-  // console.dir(day());
-  //localIllustList.map(item => console.dir(moment(item.createdAt, "YYYY-MM-DD-HH-mm-ss").toDate()));
 
-  useEffect(() => {
-    const lists = localIllustList;
-    console.dir(sortImagesByCreatedAtAscend(lists).map(item => item.createdAt));
-    console.dir(
-      sortImagesByCreatedAtDescend(lists).map(item => item.createdAt)
-    );
-  }, []);
+  // useEffect(() => {
+  //   const lists = localIllustList;
+  //   console.dir(sortImagesByCreatedAtAscend(lists).map(item => item.createdAt));
+  //   console.dir(
+  //     sortImagesByCreatedAtDescend(lists).map(item => item.createdAt)
+  //   );
+  // }, []);
 
   return ReactDOM.createPortal(
     <>
@@ -49,7 +44,7 @@ export const ImportDialog: FC<ImportDialogProps> = props => {
                       return (
                         <img
                           key={index}
-                          className={"referedItem"}
+                          className="linkedItem"
                           alt={item.id}
                           title={item.id}
                           src={item.sourceURL}

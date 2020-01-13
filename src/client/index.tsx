@@ -19,10 +19,10 @@ parseSVGFromString(serializedHydratedSVG)
         <MainCanvas
           loadedStrokes={result.loadedStrokes}
           loadedGroups={result.loadedGroups}
-          loadedReferred={result.loadedReferred}
-          loadedRefer={result.loadedRefer}
+          loadedLinked={result.loadedLinked}
+          loadedLinkedBy={result.loadedLinkedBy}
           loadedImported={result.loadedImported}
-          loadedImport={result.loadedImport}
+          loadedImportedBy={result.loadedImportedBy}
         />
       </ModalProvider>,
       rootElement

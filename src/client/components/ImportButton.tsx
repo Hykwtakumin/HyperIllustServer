@@ -3,8 +3,10 @@ import { FC, useRef, useState } from "react";
 import { useModal, ButtonComponent } from "./share";
 import { PublishButtonProps } from "./PublishButton";
 import { restoreFromLocalStorage } from "./share/localStorage";
-import { HyperIllust } from "../../share/model";
+import { HyperIllust, HyperIllustUser } from "../../share/model";
 import { logger } from "../../share/logger";
+import { getUser, loadMetaData } from "./share/API";
+import { loadUserInfo } from "./share/UserSetting";
 
 /*押すと他のハイパーイラストをインポートできるモーダルを召喚するボタン*/
 
@@ -21,7 +23,6 @@ export type SelectedItem = {
 };
 
 //localに保存されているhyperIllustを全件取得する
-//ユーザーメタデータに紐付いているものを全部取得してローカルを更新する?
 export function loadHyperIllusts(): Array<HyperIllust> {
   const localHyperIllusts: HyperIllust[] = [];
   if (localStorage) {
@@ -32,6 +33,35 @@ export function loadHyperIllusts(): Array<HyperIllust> {
       }
     }
   }
+  return localHyperIllusts;
+}
+
+//localHyperIllustを全て削除する
+export function resetLocalIllusts() {
+  if (localStorage) {
+    for (let key in localStorage) {
+      if (key && key.includes("hyperillust")) {
+        localStorage.removeItem(key);
+      }
+    }
+  }
+}
+
+//ユーザーメタデータに紐付いているものを全部取得して、それをローカルリストに代入する
+export function loadIllustsFromUser(userName: string): Array<HyperIllust> {
+  const localHyperIllusts: HyperIllust[] = [];
+
+  getUser(userName).then(result => {
+    if (result && result.illustList && result.illustList.length > 0) {
+      result.illustList.forEach(async (item, index) => {
+        const loaded = await loadMetaData(item);
+        if (loaded) {
+          localHyperIllusts.push(loaded);
+        }
+      });
+    }
+  });
+
   return localHyperIllusts;
 }
 

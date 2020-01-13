@@ -14,7 +14,11 @@ import {
 import { PathDrawer } from "./Graphics/PathDrawer";
 import { ModeSelector } from "./ModeSelector";
 import { ButtonComponent } from "./share";
-import { loadHyperIllusts } from "./ImportButton";
+import {
+  loadHyperIllusts,
+  loadIllustsFromUser,
+  resetLocalIllusts
+} from "./ImportButton";
 import { HyperIllust, HyperIllustUser } from "../../share/model";
 import {
   deleteObjectFromLocalStorage,
@@ -22,7 +26,13 @@ import {
   saveToLocalStorage
 } from "./share/localStorage";
 import { loadUserInfo, setUserInfo } from "./share/UserSetting";
-import { deleteSVG, updateMetaData, updateSVG, uploadSVG } from "./share/API";
+import {
+  deleteSVG,
+  updateMetaData,
+  updateSVG,
+  updateUser,
+  uploadSVG
+} from "./share/API";
 import { StrokeDrawer } from "./Graphics/StrokeDrawer";
 import { GroupDrawer } from "./Graphics/GroupDrawer";
 import { ResetDialog } from "./ResetDialog";
@@ -31,7 +41,7 @@ import { ImportDialog } from "./ImportDialog";
 import { ViewLinkDialog } from "./ViewLinkDialog";
 import { LocalListDialog } from "./LocalListDialog";
 import { ThumbDialog } from "./ThumbDialog";
-import {addLinkedInfo, deleteLinkedInfo} from "./share/referController";
+import { addLinkedInfo, deleteLinkedInfo } from "./share/referController";
 import { ContextRect } from "./Graphics/ContextRect";
 import { createGroup } from "./Graphics/GroupController";
 import { ShareDialog } from "./ShareDialog";
@@ -39,10 +49,10 @@ import { ShareDialog } from "./ShareDialog";
 export type MainCanvasProps = {
   loadedStrokes?: Stroke[];
   loadedGroups?: Group[];
-  loadedReferred?: string[];
-  loadedRefer?: string[];
+  loadedLinked?: string[];
+  loadedLinkedBy?: string[];
   loadedImported?: string[];
-  loadedImport?: string[];
+  loadedImportedBy?: string[];
 };
 
 export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
@@ -100,26 +110,24 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
   const [selectedGroup, setSelectedGroup] = useState<Group>(null);
 
   //今までアップロードしてきたHyperIllustのリスト(とりあえずlocalStorageに保存している)
-  const [localIllustList, setLocalIllustList] = useState<HyperIllust[]>(
-    loadHyperIllusts()
-  );
+  const [localIllustList, setLocalIllustList] = useState<HyperIllust[]>([]);
 
   //引用したHyperIllustのリスト
-  const [referredIllusts, setReferredIllusts] = useState<string[]>(
-    props.loadedReferred || []
+  const [linkedList, setLinkedList] = useState<string[]>(
+    props.loadedLinked || []
   );
   //自分を引用しているHyperIllustのリスト
-  const [referIllusts, setReferIllusts] = useState<string[]>(
-    props.loadedRefer || []
+  const [linkedByList, setLinkedByList] = useState<string[]>(
+    props.loadedLinkedBy || []
   );
 
   //インポートした画像のリスト
-  const [importedIllusts, setImportedIllusts] = useState<string[]>(
+  const [importedList, setImportedList] = useState<string[]>(
     props.loadedImported || []
   );
   //自分をインポートしている画像のリスト
-  const [importIllusts, setImportIllusts] = useState<string[]>(
-    props.loadedImport || []
+  const [importedByList, setImportedByList] = useState<string[]>(
+    props.loadedImportedBy || []
   );
 
   //一度編集したらkeyを設定する
@@ -157,13 +165,28 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
   const [isBBCreated, setIsBBCreated] = useState<boolean>(false);
 
   //ユーザー名を設定したりする
+  //普通に毎回入力させるようにすれば良いのでは?
+  //自動登録や自動保存はやめる?
+  //何も入力していない場合は自動でリダイレクトされる
   useEffect(() => {
     const user = loadUserInfo();
     if (user) {
       /*設定されている*/
       setUser(user);
       if (location.href.split("/")[3] !== user.name) {
-        window.history.replaceState(null, null, `/${user.name}`);
+        //これは他のユーザーのギャラリーにアクセスしたということなのでなんとかする
+        //window.history.replaceState(null, null, `/${user.name}`);
+        const otherUser = location.href.split("/")[3];
+        //resetLocalIllusts();
+        const loadedList = loadIllustsFromUser(otherUser);
+        setLocalIllustList(loadedList);
+      } else {
+        //localイラストをロードする
+        //loadHyperIllusts();
+        //resetLocalIllusts();
+        //resetLocalIllusts();
+        const loadedList = loadIllustsFromUser(user.name);
+        setLocalIllustList(loadedList);
       }
     } else {
       /*設定されていない*/
@@ -171,6 +194,8 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       const newUser = loadUserInfo();
       if (newUser) {
         setUser(newUser);
+        const loadedList = loadIllustsFromUser(newUser.name);
+        setLocalIllustList(loadedList);
         window.history.replaceState(null, null, `/${newUser.name}`);
       }
     }
@@ -259,7 +284,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
   //グループを編集したときもアップロードする
   useEffect(() => {
     //引用したイラストのリストを設定する
-    setReferredIllusts(
+    setLinkedList(
       groups.reduce((prev, curr, index) => {
         if (curr.href) {
           prev.push(curr.href);
@@ -346,14 +371,6 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       //編集モードのときはBBやパスの操作ということにする
       handleBBDown(event);
     }
-
-    //タイマーをセット
-    // timerId.current = window.setTimeout(() => {
-    //   console.log("300ms elapsed!");
-    //   //描画点を消す
-    //   setPoints([]);
-    //   switchEditorMode();
-    // }, 500);
   };
 
   const handleBBDown = (event: React.PointerEvent<SVGSVGElement>) => {
@@ -408,17 +425,10 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
         height: Math.floor(now.y) - initialPoint.y
       });
     }
-
-    // if (inRectSize.height > 5 || inRectSize.width > 5) {
-    //   //動いているのでタイマーをリセット
-    //   timerId.current && clearTimeout(timerId.current);
-    // }
   };
 
   const handleUp = (event: React.PointerEvent<SVGSVGElement>) => {
     console.log("onPointerUp!");
-    //タイマーをリセットする
-    //timerId.current && clearTimeout(timerId.current);
     setIsDragging(false);
     if (editorMode === "draw") {
       const newStroke: Stroke = {
@@ -446,54 +456,61 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
 
   const handleUpSert = async () => {
     if (!selfKey) {
-      console.log("URLが設定されていないので新規作成");
+      console.log("新規作成");
       //アップロードする
+      console.dir(user);
       const result = await uploadSVG(canvasRef.current, user.name);
 
       console.log("result");
       console.dir(result);
 
       //再設定
-      setLocalIllustList(loadHyperIllusts());
+      //setLocalIllustList(loadHyperIllusts());
+      setLocalIllustList([...localIllustList, result]);
       //itemURLを設定
-      setSelfKey(result.sourceKey);
+      setSelfKey(result.id);
       //URLを変更する
-      window.history.replaceState(
-        null,
-        null,
-        `/${user.name}/${result.sourceKey}`
-      );
+      window.history.replaceState(null, null, `/${user.name}/${result.id}`);
+      //ここでやるべきことは
+      //ユーザーメタデータに新規イラストIDを追加する
+      if (user.illustList && !user.illustList.includes(result.id)) {
+        user.illustList.push(result.id);
+        updateUser(user.name, user).then(result => {
+          saveToLocalStorage<HyperIllustUser>(`draw-wiki-user`, user);
+        });
+      }
     } else {
       //既にSVGはあるので上書きさせる
-      console.log(`URLは設定されているので上書き: ${selfKey}`);
+      console.log(`上書き: ${selfKey}`);
       //インポートした画像をここで打ち込む
+      //ここでやるべきことは、
+      //localListの更新?(updatedAt)
+      //メタデータのアップロード
 
-      //selfKeyは.svgではなく単なるIDとして扱う
-      const updating = await restoreFromLocalStorage<HyperIllust>(selfKey);
-      // console.dir(updating);
-      // // //引用した画像をreferredIllustに代入しておく
-      // const updated = defineReferToIllust(
-      //   updating,
-      //   groups
-      //     .filter(group => group.href)
-      //     .map(group => group.href.split("/")[4])
-      // );
-      // console.dir(updated);
-
-      //アップロードする
-      //返ってくるのはfileNameというかKeyであってJSONではない。
       const result = await updateSVG(canvasRef.current, selfKey);
 
-      // const saveResult = await saveToLocalStorage(result.id, result);
-      // console.log(`saveResult : ${saveResult}`);
-
-      const savemetaData = await restoreFromLocalStorage(result);
-      console.dir(savemetaData);
-
-      // const updatedMeta = result;
-      // updatedMeta.name = "これはメタデータ用APIによってさらに追記されました!";
-      // const metaResult = await updateMetaData(result.id, updatedMeta);
-      // console.log(`metaData : ${metaResult}`);
+      if (result) {
+        //アップロード時に全てをかえるか
+        //useEffectで全てを制御するか
+        //それが問題である
+        const updateTarget = localIllustList.find(item => item.id == selfKey);
+        if (updateTarget) {
+          updateTarget.linkedList = linkedList;
+          updateTarget.linkedByList = linkedByList;
+          updateTarget.importedList = importedList;
+          updateTarget.importedByList = importedByList;
+          updateTarget.updatedAt = new Date().toISOString();
+          updateMetaData(updateTarget.id, updateTarget).then(result => {
+            if (result) {
+              console.log("メタデータの更新に成功しました!");
+              console.dir(result);
+              //localIllustListも更新するべきだろうか?
+            }
+          });
+        }
+      } else {
+        console.log("アップロードに問題が発生しました");
+      }
     }
   };
 
@@ -524,15 +541,19 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
   };
 
   //削除処理
+  //本当は依存関係もクリアーしなきゃいけない
   const handleLocalImageDelete = async (item: HyperIllust) => {
     console.dir(item);
+    //本体SVGを削除
     const request = await deleteSVG(item.sourceKey);
-    // if (request) {
-    //   console.log("削除に成功");
-    // } else {
-    //   console.log("削除に失敗");
-    // }
-    deleteObjectFromLocalStorage(item.sourceKey);
+    //メタデータを削除
+    const request2 = await deleteSVG(item.id);
+    //ユーザーメタデータの方も更新
+    if (user.illustList.includes(item.id)) {
+      user.illustList = user.illustList.filter(id => id !== item.id);
+      updateUser(user.name, user);
+    }
+    //localListを更新
     setLocalIllustList(
       localIllustList.filter(illust => {
         if (illust.sourceKey != item.sourceKey) {
@@ -541,25 +562,6 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       })
     );
   };
-
-  // //内部リンクをクリックしたときの処理
-  // //ページ遷移はせずにその場でSVGを入れ替える
-  // const handleReplaceSVG = (key: string) => {
-  //   parseSVGFromURL(key).then(result => {
-  //     setEditorMode("edit");
-  //     setSelfKey(key);
-  //     //URLも置き換える
-  //     window.history.pushState(``, ``, `/${user.name}/${key}`);
-  //
-  //     const { loadedStrokes, loadedGroups, loadedReferred, loadedRefer, loadedImported, loadedImport } = result;
-  //     setStrokes(loadedStrokes);
-  //     setGroups(loadedGroups);
-  //     setReferredIllusts(loadedReferred);
-  //     setReferIllusts(loadedRefer);
-  //     setImportedIllusts(loadedImported);
-  //     setImportIllusts(loadedImport);
-  //   }).catch(console.log);
-  // };
 
   //変形(移動やリサイズを扱う関数)
   const handleTransformStart = (transform: string) => {
@@ -635,7 +637,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       //selectedな要素をクリアーする
       setSelectedElms([]);
       //引用情報を追加する
-      addRefer(item.id)
+      addRefer(item.id);
     } else {
       console.log("要素が選択されていません");
     }
@@ -645,14 +647,14 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
   //addLinkとかhandleImportとかで使う
   const addRefer = async (itemKey: string) => {
     //まず自分の引用リストに追加する
-    setReferIllusts([...referIllusts, itemKey]);
+    setLinkedList([...linkedList, itemKey]);
     //次に引用したモノのリストにも自分のIDを追加する
     await addLinkedInfo(selfKey, itemKey);
   };
 
   const deleteRefer = async (itemKey: string) => {
     //自分の引用リストから削除
-    setReferIllusts(referIllusts.filter(item => item !== itemKey));
+    setLinkedList(linkedList.filter(item => item !== itemKey));
     //次に引用したモノのリストにも自分のIDを追加する
     await deleteLinkedInfo(selfKey, itemKey);
   };
@@ -692,10 +694,10 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
         <desc
           stroke-data={JSON.stringify(strokes)}
           group-data={JSON.stringify(groups)}
-          referred-data={JSON.stringify(referredIllusts)}
-          refer-data={JSON.stringify(referIllusts)}
-          imported-data={JSON.stringify(importedIllusts)}
-          import-data={JSON.stringify(importIllusts)}
+          referred-data={JSON.stringify(linkedList)}
+          refer-data={JSON.stringify(linkedByList)}
+          imported-data={JSON.stringify(importedList)}
+          import-data={JSON.stringify(importedByList)}
         />
         <defs />
         <rect width="100%" height="100%" fill="#FFFFFF" />
@@ -765,7 +767,8 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
             <ButtonComponent
               type={"primary"}
               onClick={() => {
-                window.open("/", "", "");
+                const url = user ? `/${user.name}` : `/`;
+                window.open(url, "", "");
               }}
             >
               <img
@@ -854,9 +857,9 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
             onCancel={() => {
               setIsLinkModalOpen(false);
             }}
-            referedIllusts={referredIllusts}
             selfKey={selfKey}
-            referIllusts={referIllusts}
+            linkedKeys={linkedList}
+            linkedByKes={linkedByList}
             onKeySelected={key => {
               setSelectedItemKey(key);
               setIsThumbOpen(true);
@@ -866,6 +869,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
           <LocalListDialog
             isShow={isLocalListModalOpen}
             localIllustList={localIllustList}
+            userName={user ? user.name : ""}
             onCancel={() => {
               setIsLocalListModalOpen(false);
             }}
@@ -887,6 +891,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
               setSelectedItemKey("");
               setIsThumbOpen(false);
             }}
+            userName={user ? user.name : ""}
             selfKey={selfKey}
             sourceKey={selectedItemKey}
           />

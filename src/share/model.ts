@@ -39,7 +39,6 @@ export type HyperIllust = {
   version: number;
 };
 
-
 export type HyperIllustUser = {
   id: string;
   name: string;

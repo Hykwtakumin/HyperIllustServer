@@ -1,15 +1,15 @@
 import { HyperIllust } from "../../../share/model";
 import { restoreFromLocalStorage, saveToLocalStorage } from "./localStorage";
-import {loadMetaData, updateMetaData} from "./API";
+import { loadMetaData, updateMetaData } from "./API";
 /*HyperIllustには引用・被引用関係が定義されている。そのアタリをよしなにする関数*/
 /*自分が引用orImportしている画像を配列として持たせる*/
 /*自分を引用orImportしている画像も配列として持たせる*/
 
 export type refersAndImports = {
-  referredKeys: string[];
-  referKeys: string[];
-  importedKeys: string[];
-  importKeys: string[];
+  linkedList: string[];
+  linkedByList: string[];
+  importedList: string[];
+  importedByList: string[];
 };
 
 // export const defineReferToIllust = (
@@ -176,7 +176,7 @@ export type refersAndImports = {
 //引用被引用関係の操作は全部クラウドでやることにしたぞ!
 
 //被引用情報を追加する関数
-export const addLinkedInfo = async (itemKey : string, targetKey: string) => {
+export const addLinkedInfo = async (itemKey: string, targetKey: string) => {
   //itemにtargetを追加する
   const upDatingMetaKey = await loadMetaData(itemKey);
   if (upDatingMetaKey) {
@@ -191,7 +191,10 @@ export const addLinkedInfo = async (itemKey : string, targetKey: string) => {
   const upDatingMetaKey2 = await loadMetaData(targetKey);
   if (upDatingMetaKey2) {
     if (!upDatingMetaKey2.linkedByList.includes(itemKey)) {
-      upDatingMetaKey2.linkedByList = [...upDatingMetaKey2.linkedByList, itemKey];
+      upDatingMetaKey2.linkedByList = [
+        ...upDatingMetaKey2.linkedByList,
+        itemKey
+      ];
       //更新したものをアップロード
       await updateMetaData(targetKey, upDatingMetaKey2);
     }
@@ -199,12 +202,14 @@ export const addLinkedInfo = async (itemKey : string, targetKey: string) => {
 };
 
 //被引用情報を削除する関数
-export const deleteLinkedInfo = async (itemKey : string, targetKey: string) => {
+export const deleteLinkedInfo = async (itemKey: string, targetKey: string) => {
   //itemにtargetを追加する
   const upDatingMetaKey = await loadMetaData(itemKey);
   if (upDatingMetaKey) {
     if (upDatingMetaKey.linkedByList.includes(targetKey)) {
-      upDatingMetaKey.linkedByList = upDatingMetaKey.linkedByList.filter(item => item !== targetKey);
+      upDatingMetaKey.linkedByList = upDatingMetaKey.linkedByList.filter(
+        item => item !== targetKey
+      );
       await updateMetaData(itemKey, upDatingMetaKey);
     }
   }
@@ -213,19 +218,24 @@ export const deleteLinkedInfo = async (itemKey : string, targetKey: string) => {
   const upDatingMetaKey2 = await loadMetaData(targetKey);
   if (upDatingMetaKey2) {
     if (upDatingMetaKey2.linkedByList.includes(itemKey)) {
-      upDatingMetaKey2.linkedByList = upDatingMetaKey2.linkedByList.filter(item => item !== itemKey);
+      upDatingMetaKey2.linkedByList = upDatingMetaKey2.linkedByList.filter(
+        item => item !== itemKey
+      );
       await updateMetaData(targetKey, upDatingMetaKey2);
     }
   }
 };
 
 //被インポート情報を追加する関数
-export const addImportInfo = async (itemKey : string, targetKey: string) => {
+export const addImportInfo = async (itemKey: string, targetKey: string) => {
   //itemにtargetを追加する
   const upDatingMetaKey = await loadMetaData(itemKey);
   if (upDatingMetaKey) {
     if (!upDatingMetaKey.importedList.includes(targetKey)) {
-      upDatingMetaKey.importedList = [...upDatingMetaKey.importedList, targetKey];
+      upDatingMetaKey.importedList = [
+        ...upDatingMetaKey.importedList,
+        targetKey
+      ];
       await updateMetaData(itemKey, upDatingMetaKey);
     }
   }
@@ -233,19 +243,24 @@ export const addImportInfo = async (itemKey : string, targetKey: string) => {
   const upDatingMetaKey2 = await loadMetaData(targetKey);
   if (upDatingMetaKey2) {
     if (!upDatingMetaKey2.importedByList.includes(itemKey)) {
-      upDatingMetaKey2.importedByList = [...upDatingMetaKey2.importedByList, itemKey];
+      upDatingMetaKey2.importedByList = [
+        ...upDatingMetaKey2.importedByList,
+        itemKey
+      ];
       await updateMetaData(targetKey, upDatingMetaKey2);
     }
   }
 };
 
 //被インポート情報を削除する関数
-export const deleteImported = async (itemKey : string, targetKey: string) => {
+export const deleteImported = async (itemKey: string, targetKey: string) => {
   //itemにtargetを追加する
   const upDatingMetaKey = await loadMetaData(itemKey);
   if (upDatingMetaKey) {
     if (upDatingMetaKey.importedList.includes(targetKey)) {
-      upDatingMetaKey.importedList = upDatingMetaKey.importedList.filter(item => item !== targetKey);
+      upDatingMetaKey.importedList = upDatingMetaKey.importedList.filter(
+        item => item !== targetKey
+      );
       await updateMetaData(itemKey, upDatingMetaKey);
     }
   }
@@ -254,7 +269,9 @@ export const deleteImported = async (itemKey : string, targetKey: string) => {
   const upDatingMetaKey2 = await loadMetaData(targetKey);
   if (upDatingMetaKey2) {
     if (upDatingMetaKey2.importedByList.includes(itemKey)) {
-      upDatingMetaKey2.importedByList = upDatingMetaKey2.importedByList.filter(item => item !== itemKey);
+      upDatingMetaKey2.importedByList = upDatingMetaKey2.importedByList.filter(
+        item => item !== itemKey
+      );
       await updateMetaData(targetKey, upDatingMetaKey2);
     }
   }

@@ -8,15 +8,10 @@ import { Group } from "./share/utils";
 type ViewLinkDialogProps = {
   isShow: boolean;
   onCancel: () => void;
-  referedIllusts: string[];
-  referIllusts: string[];
+  linkedKeys: string[];
+  linkedByKes: string[];
   selfKey: string;
   onKeySelected: (key: string) => void;
-};
-
-type illustReferences = {
-  key: string;
-  referes: string[];
 };
 
 //ここのソートもいじれるようにする?(今じゃなくても良い)
@@ -28,16 +23,16 @@ export const ViewLinkDialog: FC<ViewLinkDialogProps> = props => {
       <>
         <div className="viewLinkDialogContainer">
           <h3 style={{ userSelect: "none" }}>関連する図</h3>
-          <div className="referedItemMenu">
-            {props.referedIllusts
+          <div className="linkedItemMenu">
+            {props.linkedKeys
               .filter(item => item !== props.selfKey)
               .map((item: string, index: number) => {
                 const sourceKey = item.split("/")[4];
                 return (
-                  <div key={index} className="referedItemContainer">
+                  <div key={index} className="linkedItemContainer">
                     <img
                       key={index}
-                      className="referedItem"
+                      className="linkedItem"
                       alt={item}
                       title={item}
                       src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${sourceKey}`}
@@ -50,15 +45,15 @@ export const ViewLinkDialog: FC<ViewLinkDialogProps> = props => {
                   </div>
                 );
               })}
-            {props.referIllusts
+            {props.linkedByKes
               .filter(item => item !== props.selfKey)
               .map((item: string, index: number) => {
                 const sourceKey = item.split("/")[4];
                 return (
-                  <div key={index} className="referedItemContainer">
+                  <div key={index} className="linkedItemContainer">
                     <img
                       key={index}
-                      className="referedItem"
+                      className="linkedItem"
                       alt={item}
                       title={item}
                       src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${sourceKey}`}

@@ -1,5 +1,5 @@
 //アップロードするSVGを作る
-import { HyperIllust } from "../../../share/model";
+import { HyperIllust, HyperIllustUser } from "../../../share/model";
 import { Group, Stroke } from "./utils";
 
 export const formDataCreator = (svg: SVGElement): FormData => {
@@ -38,11 +38,11 @@ export const uploadSVG = async (
 };
 
 //メタデータのダウンロード
-export const loadMetaData = async (key: string) :Promise<HyperIllust> => {
+export const loadMetaData = async (key: string): Promise<HyperIllust> => {
   const request = await fetch(
     `https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${key}`
   );
-  return  await request.json();
+  return await request.json();
 };
 
 //メタデータのアップロード用
@@ -62,6 +62,7 @@ export const uploadMetaData = async (
   }
 };
 
+//メタデータの更新用
 export const updateMetaData = async (
   key: string,
   meta: HyperIllust
@@ -75,6 +76,40 @@ export const updateMetaData = async (
 
   if (request) {
     return (await request.json()) as HyperIllust;
+  }
+};
+
+//メタデータの削除用
+
+//ユーザーを新規登録する関数
+export const registerUser = async (key: string, userData: HyperIllustUser) => {
+  const options = {
+    method: "POST",
+    body: jsonFormDataConvertor(JSON.stringify(userData))
+  };
+  const request = await fetch(`/api/createuser/${key}`, options);
+  if (request) {
+    return await request.json();
+  }
+};
+
+//既存ユーザーを取得する関数
+export const getUser = async (key: string): Promise<HyperIllustUser> => {
+  const request = await fetch(`/api/getuser/${key}`);
+  if (request) {
+    return await request.json();
+  }
+};
+
+//ユーザー情報を更新する関数
+export const updateUser = async (key: string, userData: HyperIllustUser) => {
+  const options = {
+    method: "POST",
+    body: jsonFormDataConvertor(JSON.stringify(userData))
+  };
+  const request = await fetch(`/api/updateuser/${key}`, options);
+  if (request) {
+    return await request.json();
   }
 };
 
@@ -98,10 +133,8 @@ export const deleteSVG = async (fileKey: string) => {
   const options = {
     method: "DELETE"
   };
-
-  let result;
   const request = await fetch(`/api/delete/${encodeURI(fileKey)}`, options);
-  result = await request.json();
+  const result = await request.json();
   if (result) {
     console.log(result);
     return true;
