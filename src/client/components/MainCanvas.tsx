@@ -637,6 +637,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       //selectedな要素をクリアーする
       setSelectedElms([]);
       //引用情報を追加する
+      console.dir(item);
       addRefer(item.id);
     } else {
       console.log("要素が選択されていません");

@@ -39,9 +39,7 @@ export const uploadSVG = async (
 
 //メタデータのダウンロード
 export const loadMetaData = async (key: string): Promise<HyperIllust> => {
-  const request = await fetch(
-    `https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${key}`
-  );
+  const request = await fetch(`/api/getmeta/${key}`);
   return await request.json();
 };
 
