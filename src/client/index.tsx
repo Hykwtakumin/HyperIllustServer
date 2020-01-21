@@ -19,22 +19,38 @@ parseSVGFromString(serializedHydratedSVG)
   .then(result => {
     console.dir(result);
 
-    const serializedMeta = JSON.parse(hydratedMetaData) as HyperIllust;
-    console.dir(serializedMeta);
+    if (hydratedMetaData) {
+      const serializedMeta = JSON.parse(hydratedMetaData) as HyperIllust;
+      console.dir(serializedMeta);
+      render(
+        <ModalProvider>
+          <MainCanvas
+            loadedStrokes={result.loadedStrokes}
+            loadedGroups={result.loadedGroups}
+            loadedLinked={serializedMeta.linkedList}
+            loadedLinkedBy={serializedMeta.linkedByList}
+            loadedImported={serializedMeta.importedList}
+            loadedImportedBy={serializedMeta.importedByList}
+          />
+        </ModalProvider>,
+        rootElement
+      );
+    } else {
+      render(
+        <ModalProvider>
+          <MainCanvas
+            loadedStrokes={result.loadedStrokes}
+            loadedGroups={result.loadedGroups}
+            loadedLinked={result.loadedLinked}
+            loadedLinkedBy={result.loadedLinkedBy}
+            loadedImported={result.loadedImported}
+            loadedImportedBy={result.loadedImportedBy}
+          />
+        </ModalProvider>,
+        rootElement
+      );
+    }
 
-    render(
-      <ModalProvider>
-        <MainCanvas
-          loadedStrokes={result.loadedStrokes}
-          loadedGroups={result.loadedGroups}
-          loadedLinked={serializedMeta.linkedList}
-          loadedLinkedBy={serializedMeta.linkedByList}
-          loadedImported={serializedMeta.importedList}
-          loadedImportedBy={serializedMeta.importedByList}
-        />
-      </ModalProvider>,
-      rootElement
-    );
   })
   .catch(error => {
     console.log(error);
