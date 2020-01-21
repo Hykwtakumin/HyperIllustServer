@@ -23,8 +23,7 @@ export const BaseLayout: FC<layoutProps> = (props: layoutProps) => {
       </head>
       <body>
         <div id="root" />
-        <div id="hydration-data" style={{display: "none"}} data-data={hydratedSVG} data-meta-data={hydratedMeta} >
-        </div>
+        <div id="hydration-data" style={{display: "none"}} data-data={hydratedSVG} data-meta-data={hydratedMeta} />
         <script type="text/javascript" src="/dist/index.js" />
       </body>
     </html>
