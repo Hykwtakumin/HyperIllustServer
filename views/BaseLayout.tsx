@@ -4,10 +4,11 @@ import { FC } from "react";
 export type layoutProps = {
   title: string;
   hydratedSVG?: SVGElement;
+  hydratedMeta?: string;
 };
 
 export const BaseLayout: FC<layoutProps> = (props: layoutProps) => {
-  const { title, hydratedSVG } = props;
+  const { title, hydratedSVG, hydratedMeta } = props;
   return (
     <html>
       <head>
@@ -22,7 +23,7 @@ export const BaseLayout: FC<layoutProps> = (props: layoutProps) => {
       </head>
       <body>
         <div id="root" />
-        <div id="hydration-data" style={{display: "none"}} data-data={hydratedSVG} >
+        <div id="hydration-data" style={{display: "none"}} data-data={hydratedSVG} data-meta-data={hydratedMeta} >
         </div>
         <script type="text/javascript" src="/dist/index.js" />
       </body>

@@ -92,15 +92,24 @@ export const Router = (io: socketIo.Server): express.Router => {
         }
       );
 
-      //これはBufferで返ってくる
-      //const result = await promiseGetFile(imageKey);
-      const svg = await result.text();
+      //メタデータも取得する
+      const metaData = await fetch(
+        `https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${imageKey}`,
+        {
+          method: "GET",
+          mode: "cors"
+        }
+      );
 
-      if (result) {
+      //これはBufferで返ってくる
+      const svg = await result.text();
+      const metaJson = await metaData.json();
+
+      if (result && metaData) {
         res
           .header("content-type", "text/html")
           .send(
-            renderToString(<BaseLayout title={"DrawWiki"} hydratedSVG={svg} />)
+            renderToString(<BaseLayout title={"DrawWiki"} hydratedSVG={svg} hydratedMeta={JSON.stringify(metaJson)} />)
           )
           .end();
       } else {
