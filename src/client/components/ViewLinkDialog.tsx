@@ -27,7 +27,7 @@ export const ViewLinkDialog: FC<ViewLinkDialogProps> = props => {
             {props.linkedKeys
               .filter(item => item !== props.selfKey)
               .map((item: string, index: number) => {
-                const sourceKey = item.split("/")[4];
+                // const sourceKey = item.split("/")[4];
                 return (
                   <div key={index} className="linkedItemContainer">
                     <img
@@ -35,11 +35,11 @@ export const ViewLinkDialog: FC<ViewLinkDialogProps> = props => {
                       className="linkedItem"
                       alt={item}
                       title={item}
-                      src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${sourceKey}`}
+                      src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}.svg`}
                       width={200}
                       draggable={false}
                       onClick={() => {
-                        props.onKeySelected(sourceKey);
+                        props.onKeySelected(item);
                       }}
                     />
                   </div>
@@ -48,7 +48,7 @@ export const ViewLinkDialog: FC<ViewLinkDialogProps> = props => {
             {props.linkedByKes
               .filter(item => item !== props.selfKey)
               .map((item: string, index: number) => {
-                const sourceKey = item.split("/")[4];
+                // const sourceKey = item.split("/")[4];
                 return (
                   <div key={index} className="linkedItemContainer">
                     <img
@@ -56,11 +56,11 @@ export const ViewLinkDialog: FC<ViewLinkDialogProps> = props => {
                       className="linkedItem"
                       alt={item}
                       title={item}
-                      src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${sourceKey}`}
+                      src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}.svg`}
                       width={200}
                       draggable={false}
                       onClick={() => {
-                        props.onKeySelected(sourceKey);
+                        props.onKeySelected(item);
                       }}
                     />
                   </div>

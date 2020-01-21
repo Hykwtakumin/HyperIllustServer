@@ -56,7 +56,7 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                               className="linkedItem"
                               alt={item}
                               title={item}
-                              src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
+                              src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}.svg`}
                               draggable={false}
                               // onClick={ev => {
                               //   props.onSelected(props.sourceKey);
@@ -80,7 +80,7 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                               className="linkedItem"
                               alt={item}
                               title={item}
-                              src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
+                              src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}.svg`}
                               draggable={false}
                               // onClick={ev => {
                               //   props.onSelected(props.sourceKey);
@@ -102,7 +102,7 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                     }}
                     alt={sourceKey}
                     title={sourceKey}
-                    src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${sourceKey}`}
+                    src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${sourceKey}.svg`}
                     // onClick={ev => {
                     //   props.onSelected(props.sourceKey);
                     // }}

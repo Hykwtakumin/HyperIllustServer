@@ -177,6 +177,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
     if (user) {
       /*設定されている*/
       setUser(user);
+
       if (location.href.split("/")[3] !== user.name) {
         //これは他のユーザーのギャラリーにアクセスしたということなのでなんとかする
         //window.history.replaceState(null, null, `/${user.name}`);
@@ -187,7 +188,14 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       } else {
         //メタデータも上書きしてから/localイラストをロードする
         getUser(user.name).then(result => {
-          user.illustList = result.illustList;
+          const nullFiltered = result.illustList.filter(item => item !== null);
+          console.dir(nullFiltered);
+          user.illustList = nullFiltered;
+          updateUser(user.name, user).then(
+           result => {
+             saveToLocalStorage<HyperIllustUser>(`draw-wiki-user`, user);
+           }
+          );
           const loadedList = loadIllustsFromUser(user.name);
           setLocalIllustList(loadedList);
         });
@@ -288,14 +296,14 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
   //グループを編集したときもアップロードする
   useEffect(() => {
     //引用したイラストのリストを設定する
-    setLinkedList(
-      groups.reduce((prev, curr, index) => {
-        if (curr.href) {
-          prev.push(curr.href);
-        }
-        return prev;
-      }, [])
-    );
+    // setLinkedList(
+    //   groups.reduce((prev, curr, index) => {
+    //     if (curr.href) {
+    //       prev.push(curr.href);
+    //     }
+    //     return prev;
+    //   }, [])
+    // );
 
     if (groups.length > 0 && editorMode === "edit") {
       console.log(`groups updated! : ${groups.length}`);
@@ -517,6 +525,9 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
           //それが問題である
           const updateTarget = localIllustList.find(item => item.id == selfKey);
           if (updateTarget) {
+
+            console.dir(linkedList);
+
             updateTarget.linkedList = linkedList;
             updateTarget.linkedByList = linkedByList;
             updateTarget.importedList = importedList;

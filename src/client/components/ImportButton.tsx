@@ -54,9 +54,11 @@ export function loadIllustsFromUser(userName: string): Array<HyperIllust> {
   getUser(userName).then(result => {
     if (result && result.illustList && result.illustList.length > 0) {
       result.illustList.forEach(async (item, index) => {
-        const loaded = await loadMetaData(item);
-        if (loaded) {
-          localHyperIllusts.push(loaded);
+        if (item && item !== null) {
+          const loaded = await loadMetaData(item);
+          if (loaded) {
+            localHyperIllusts.push(loaded);
+          }
         }
       });
     }
