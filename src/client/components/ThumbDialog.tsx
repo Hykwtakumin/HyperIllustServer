@@ -47,7 +47,7 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                     .map((item, index) => {
                       return (
                         <a
-                          href={`https://draw-wiki.herokuapp.com/${userName}/${item}`}
+                          href={`/${userName}/${item}`}
                           key={index}
                           className="linkedItemContainer"
                         >
@@ -72,7 +72,7 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
                     .map((item, index) => {
                       return (
                         <a
-                          href={`https://draw-wiki.herokuapp.com/${userName}/${item}`}
+                          href={`/${userName}/${item}`}
                           key={index}
                         >
                           <div key={index} className="linkedItemContainer">
@@ -93,8 +93,7 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
               </div>
 
               <div className="thumbnailContainer">
-                <a
-                  href={`https://draw-wiki.herokuapp.com/${userName}/${sourceKey}`}
+                <a href={`/${userName}/${sourceKey}`}
                 >
                   <img
                     style={{
