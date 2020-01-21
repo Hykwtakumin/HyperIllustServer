@@ -45,6 +45,7 @@ import { addLinkedInfo, deleteLinkedInfo } from "./share/referController";
 import { ContextRect } from "./Graphics/ContextRect";
 import { createGroup } from "./Graphics/GroupController";
 import { ShareDialog } from "./ShareDialog";
+import {isTouchOk} from "./share/EventHandler";
 
 export type MainCanvasProps = {
   loadedStrokes?: Stroke[];
@@ -86,6 +87,9 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
   const [isLocalListModalOpen, setIsLocalListModalOpen] = useState<boolean>(
     false
   );
+
+  //タッチによる描画を許可するか否か
+  const [allowTouch, setAllowTouch] = useState<boolean>(false);
 
   //共有モーダルの表示
   const [isShareDialogOpen, setIsShareDialogOpen] = useState<boolean>(false);
@@ -360,7 +364,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
     //PointerDownしたときの初期座標を設定
     setInitialPoint({ x: Math.floor(now.x), y: Math.floor(now.y) });
 
-    if (editorMode === "draw") {
+    if (editorMode === "draw" && isTouchOk(event.pointerType, allowTouch)) {
       const newPoint: drawPoint = {
         x: Math.floor(now.x),
         y: Math.floor(now.y)
@@ -391,7 +395,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
     //タイマーをリセットする
     //pointsのgetBoundingBoxが一定サイズ以下の場合に限りタイマーをリセットする
     if (isDragging) {
-      if (editorMode === "draw") {
+      if (editorMode === "draw" && isTouchOk(event.pointerType, allowTouch)) {
         const now = getPoint(event.pageX, event.pageY, canvasRef.current);
         const newPoint: drawPoint = {
           x: Math.floor(now.x),
@@ -430,7 +434,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
   const handleUp = (event: React.PointerEvent<SVGSVGElement>) => {
     console.log("onPointerUp!");
     setIsDragging(false);
-    if (editorMode === "draw") {
+    if (editorMode === "draw" && isTouchOk(event.pointerType, allowTouch)) {
       const newStroke: Stroke = {
         id: `${Math.floor(event.pageX)}-${Math.floor(event.pageY)}`,
         points: points,
@@ -832,6 +836,14 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
               />
             </ButtonComponent>
           </div>
+
+          <div style={{ padding: "3px" }}>
+            <img  src={"../icons/touch_app-24px.svg"} draggable={false}  />
+            <input type={"checkbox"} onChange={event => {
+              setAllowTouch(event.target.checked)
+            }} />
+          </div>
+
           <ResetDialog
             isShow={isClearModalOpen}
             onOk={handleAllClear}
