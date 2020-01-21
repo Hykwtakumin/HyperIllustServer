@@ -27,7 +27,7 @@ import {
 } from "./share/localStorage";
 import { loadUserInfo, setUserInfo } from "./share/UserSetting";
 import {
-  deleteSVG,
+  deleteSVG, getUser,
   updateMetaData,
   updateSVG,
   updateUser,
@@ -185,12 +185,12 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
         const loadedList = loadIllustsFromUser(otherUser);
         setLocalIllustList(loadedList);
       } else {
-        //localイラストをロードする
-        //loadHyperIllusts();
-        //resetLocalIllusts();
-        //resetLocalIllusts();
-        const loadedList = loadIllustsFromUser(user.name);
-        setLocalIllustList(loadedList);
+        //メタデータも上書きしてから/localイラストをロードする
+        getUser(user.name).then(result => {
+          user.illustList = result.illustList;
+          const loadedList = loadIllustsFromUser(user.name);
+          setLocalIllustList(loadedList);
+        });
       }
     } else {
       /*設定されていない*/
@@ -459,61 +459,80 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
   };
 
   const handleUpSert = async () => {
-    if (!selfKey) {
-      console.log("新規作成");
-      //アップロードする
-      console.dir(user);
-      const result = await uploadSVG(canvasRef.current, user.name);
+    if (user) {
+      if (!selfKey) {
+        console.log("新規作成");
+        //アップロードする
+        console.dir(user);
+        const result = await uploadSVG(canvasRef.current, user.name);
 
-      console.log("result");
-      console.dir(result);
+        console.log("result");
+        console.dir(result);
 
-      //再設定
-      //setLocalIllustList(loadHyperIllusts());
-      setLocalIllustList([...localIllustList, result]);
-      //itemURLを設定
-      setSelfKey(result.id);
-      //URLを変更する
-      window.history.replaceState(null, null, `/${user.name}/${result.id}`);
-      //ここでやるべきことは
-      //ユーザーメタデータに新規イラストIDを追加する
-      if (user.illustList && !user.illustList.includes(result.id)) {
-        user.illustList.push(result.id);
-        updateUser(user.name, user).then(result => {
-          saveToLocalStorage<HyperIllustUser>(`draw-wiki-user`, user);
-        });
-      }
-    } else {
-      //既にSVGはあるので上書きさせる
-      console.log(`上書き: ${selfKey}`);
-      //インポートした画像をここで打ち込む
-      //ここでやるべきことは、
-      //localListの更新?(updatedAt)
-      //メタデータのアップロード
+        //再設定
+        //setLocalIllustList(loadHyperIllusts());
+        setLocalIllustList([...localIllustList, result]);
+        //itemURLを設定
+        setSelfKey(result.id);
+        //URLを変更する
+        window.history.replaceState(null, null, `/${user.name}/${result.id}`);
+        //ここでやるべきことは
+        //ユーザーメタデータに新規イラストIDを追加する
+        const cloudUser = await getUser(user.name) as HyperIllustUser;
 
-      const result = await updateSVG(canvasRef.current, selfKey);
+        console.log("ユーザーメタデータに新規イラストIDを追加します");
+        //重複確認はクラウド側で行う
+        if (cloudUser && cloudUser.illustList.length > 0 && !cloudUser.illustList.includes(result.id)) {
+          user.illustList.push(result.id);
+          updateUser(user.name, user).then(result => {
+            console.dir(result);
+            saveToLocalStorage<HyperIllustUser>(`draw-wiki-user`, user);
+          }).catch(error => {
+            console.dir(error);
+          });
+        } else {
+          user.illustList = [];
+          user.illustList.push(result.id);
 
-      if (result) {
-        //アップロード時に全てをかえるか
-        //useEffectで全てを制御するか
-        //それが問題である
-        const updateTarget = localIllustList.find(item => item.id == selfKey);
-        if (updateTarget) {
-          updateTarget.linkedList = linkedList;
-          updateTarget.linkedByList = linkedByList;
-          updateTarget.importedList = importedList;
-          updateTarget.importedByList = importedByList;
-          updateTarget.updatedAt = new Date().toISOString();
-          updateMetaData(updateTarget.id, updateTarget).then(result => {
-            if (result) {
-              console.log("メタデータの更新に成功しました!");
-              console.dir(result);
-              //localIllustListも更新するべきだろうか?
-            }
+          updateUser(user.name, user).then(result => {
+            console.dir(result);
+            saveToLocalStorage<HyperIllustUser>(`draw-wiki-user`, user);
+          }).catch(error => {
+            console.dir(error);
           });
         }
       } else {
-        console.log("アップロードに問題が発生しました");
+        //既にSVGはあるので上書きさせる
+        console.log(`上書き: ${selfKey}`);
+        //インポートした画像をここで打ち込む
+        //ここでやるべきことは、
+        //localListの更新?(updatedAt)
+        //メタデータのアップロード
+
+        const result = await updateSVG(canvasRef.current, selfKey);
+
+        if (result) {
+          //アップロード時に全てをかえるか
+          //useEffectで全てを制御するか
+          //それが問題である
+          const updateTarget = localIllustList.find(item => item.id == selfKey);
+          if (updateTarget) {
+            updateTarget.linkedList = linkedList;
+            updateTarget.linkedByList = linkedByList;
+            updateTarget.importedList = importedList;
+            updateTarget.importedByList = importedByList;
+            updateTarget.updatedAt = new Date().toISOString();
+            updateMetaData(updateTarget.id, updateTarget).then(result => {
+              if (result) {
+                console.log("メタデータの更新に成功しました!");
+                console.dir(result);
+                //localIllustListも更新するべきだろうか?
+              }
+            });
+          }
+        } else {
+          console.log("アップロードに問題が発生しました");
+        }
       }
     }
   };
@@ -626,7 +645,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
         selectedElms,
         strokes,
         `https://draw-wiki.herokuapp.com/${item.sourceKey.split("_")[1] ||
-          user.name}/${item.sourceKey}`
+          user.name}/${item.id}`
       );
       setGroups([...groups, newGroup]);
       //selectedにある要素をstrokesから削除する
