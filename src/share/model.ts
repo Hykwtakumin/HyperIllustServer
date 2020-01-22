@@ -16,6 +16,8 @@ export function unwrapDate(date: string | Date) {
 
 export type DateLike = string | Date | null;
 
+//これはメタデータにあたる
+//こっちもS3に挙げると一石二鳥
 export type HyperIllust = {
   id: string;
   name?: string;
@@ -23,13 +25,15 @@ export type HyperIllust = {
   sourceKey: string;
   sourceURL: string;
   size?: number;
-  referredIllusts?: string[];
-  referIllusts?: string[];
-  importedIllsts?: string[];
-  importIllusts?: string[];
+  linkedList?: string[];
+  linkedByList?: string[];
+  importedList?: string[];
+  importedByList?: string[];
   createdAt: DateLike;
   updatedAt: DateLike;
   owner: string;
+  projectName?: string;
+  serializedPath?: string[];
   isForked: boolean;
   origin?: string;
   version: number;
@@ -38,6 +42,7 @@ export type HyperIllust = {
 export type HyperIllustUser = {
   id: string;
   name: string;
+  illustList: string[];
   createdAt: DateLike;
   updatedAt: DateLike;
 };
@@ -48,11 +53,13 @@ export type HyperIllustParams = {
   name: string;
   desc?: string;
   size?: number;
-  referredIllusts?: string[];
-  referreIllusts?: string[];
-  importedIllsts?: string[];
-  importIllusts?: string[];
-  owner: HyperIllustUser;
+  linkedList?: string[];
+  linkedByList?: string[];
+  importedList?: string[];
+  importedByList?: string[];
+  owner: string;
+  projectName?: string;
+  serializedPath?: string[];
   isForked: boolean;
   origin?: string;
 };

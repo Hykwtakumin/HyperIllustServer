@@ -1,3 +1,7 @@
+import { DateLike, HyperIllust } from "../../../share/model";
+import * as day from "dayjs";
+import * as moment from "moment";
+
 export type Points = {
   x: number;
   y: number;
@@ -15,6 +19,53 @@ export const getPoint = (
   x = pageX - dx;
   y = pageY - dy;
   return { x, y };
+};
+
+//独自形式からDateに変換する
+
+export const dateConverter = (createdAt: DateLike): Date => {
+  return moment(createdAt, "YYYY-MM-DD-HH-mm-ss").toDate();
+};
+
+//古い順にソート
+export const sortImagesByCreatedAtAscend = (
+  list: HyperIllust[]
+): HyperIllust[] => {
+  return list.sort((a, b) => {
+    return dateConverter(a.createdAt) > dateConverter(b.createdAt) ? 1 : -1;
+  });
+};
+
+//新しい順にソート
+export const sortImagesByCreatedAtDescend = (
+  list: HyperIllust[]
+): HyperIllust[] => {
+  return list.sort((a, b) => {
+    return dateConverter(a.createdAt) < dateConverter(b.createdAt) ? 1 : -1;
+  });
+};
+
+//引用数順(linkedList)にソート
+//いろんなイラストをリンクしているハブ的な画像が出てくる?
+export const sortImageByLinked = (list: HyperIllust[]): HyperIllust[] => {
+  return list.sort((a, b) => {
+    return a.linkedList < b.linkedList ? 1 : -1;
+  });
+};
+
+//更新日順にソート
+export const sortImageByUpdated = (list: HyperIllust[]): HyperIllust[] => {
+  return list.sort((a, b) => {
+    return a.updatedAt < b.updatedAt ? 1 : -1;
+  });
+};
+
+//被引用数順(linkedByList)にソート
+//いろんなイラストからリンクされている便利画像が出てくる?
+export const sortImageByLinkedBy = (list: HyperIllust[]): HyperIllust[] => {
+  return list.sort((a, b) => {
+    return a.linkedByList < b.linkedByList ? 1 : -1;
+  });
 };
 
 export type titleImageMap = {
@@ -67,4 +118,4 @@ export type OpeStacks = {
   desc: Object;
 };
 
-export type DrawPreset = "normal" | "bold" | "shadow" | "highLight";
+export type DrawPreset = "normal" | "bold" | "shadow" | "highLight" | "eraser";

@@ -8,16 +8,13 @@ import { Group } from "./share/utils";
 type ViewLinkDialogProps = {
   isShow: boolean;
   onCancel: () => void;
-  referedIllusts: string[];
-  referIllusts: string[];
+  linkedKeys: string[];
+  linkedByKes: string[];
   selfKey: string;
   onKeySelected: (key: string) => void;
 };
 
-type illustReferences = {
-  key: string;
-  referes: string[];
-};
+//ここのソートもいじれるようにする?(今じゃなくても良い)
 
 //シンプルなダイアログ用コンポーネント
 export const ViewLinkDialog: FC<ViewLinkDialogProps> = props => {
@@ -25,48 +22,58 @@ export const ViewLinkDialog: FC<ViewLinkDialogProps> = props => {
     <>
       <>
         <div className="viewLinkDialogContainer">
-          <h3 style={{ userSelect: "none" }}>関連する図</h3>
-          <div className="referedItemMenu">
-            {props.referedIllusts
+          <h3
+            style={{
+              userSelect: "none",
+              pointerEvents: "none",
+              marginLeft: "5px"
+            }}
+          >
+            関連画像
+          </h3>
+          <div className="linkedItemMenu">
+            {props.linkedKeys
               .filter(item => item !== props.selfKey)
               .map((item: string, index: number) => {
-                const sourceKey = item.split("/")[4];
                 return (
-                  <div key={index} className="referedItemContainer">
+                  <div key={index} className="linkedItemContainer">
                     <img
                       key={index}
-                      className="referedItem"
+                      className="linkedItem"
                       alt={item}
                       title={item}
-                      src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${sourceKey}`}
+                      src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}.svg`}
                       width={200}
                       draggable={false}
                       onClick={() => {
-                        props.onKeySelected(sourceKey);
+                        props.onKeySelected(item);
                       }}
                     />
                   </div>
                 );
               })}
-            {props.referIllusts.filter(item => item !== props.selfKey).map((item: string, index: number) => {
-              const sourceKey = item.split("/")[4];
-              return (
-                <div key={index} className="referedItemContainer">
-                  <img
-                    key={index}
-                    className="referedItem"
-                    alt={item}
-                    title={item}
-                    src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${sourceKey}`}
-                    width={200}
-                    draggable={false}
-                    onClick={() => {
-                      props.onKeySelected(sourceKey);
-                    }}
-                  />
-                </div>
-              );
-            })}
+          </div>
+          <div className="linkedByItemMenu">
+            {props.linkedByKes
+              .filter(item => item !== props.selfKey)
+              .map((item: string, index: number) => {
+                return (
+                  <div key={index} className="linkedItemContainer">
+                    <img
+                      key={index}
+                      className="linkedItem"
+                      alt={item}
+                      title={item}
+                      src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}.svg`}
+                      width={200}
+                      draggable={false}
+                      onClick={() => {
+                        props.onKeySelected(item);
+                      }}
+                    />
+                  </div>
+                );
+              })}
           </div>
         </div>
       </>

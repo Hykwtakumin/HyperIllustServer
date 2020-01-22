@@ -35,9 +35,9 @@ export const parseSVGFromString = async (
   return {
     loadedStrokes: desilializedStroke,
     loadedGroups: desilializedGroup,
-    loadedReferred: desilializedReferred,
-    loadedRefer: desilializedRefer,
+    loadedLinked: desilializedReferred,
+    loadedLinkedBy: desilializedRefer,
     loadedImported: desilializedImported,
-    loadedImport: desilializedImport
+    loadedImportedBy: desilializedImport
   };
 };

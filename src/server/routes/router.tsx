@@ -5,18 +5,20 @@ import { app, wrap } from "../index";
 import { BaseLayout } from "../../../views/BaseLayout";
 import {
   asyncReadFile,
+  asyncReadJSON,
   asyncUnLink,
   promiseDeleteFile,
   promiseGetFile,
-  promisePutFile
+  promisePutFile,
+  promisePutMetadata
 } from "../services/s3";
 import * as fetchBase64 from "fetch-base64";
 import * as multer from "multer";
 import * as path from "path";
 import * as AWS from "aws-sdk";
 import * as dotenv from "dotenv";
+import * as day from "dayjs";
 import * as moment from "moment";
-import * as fs from "fs";
 import { promisify } from "util";
 const shortid = require("shortid");
 import * as socketIo from "socket.io";
@@ -53,6 +55,17 @@ export const Router = (io: socketIo.Server): express.Router => {
     res.redirect(`/${shortid.generate().toString()}`);
   });
 
+  //プロジェクト名を与えるとそこから取りに行く
+  router.get(
+    "/p/:projectName",
+    async (req: express.Request, res: express.Response) => {
+      res
+        .header("content-type", "text/html")
+        .send(renderToString(<BaseLayout title={"DrawWiki"} />))
+        .end();
+    }
+  );
+
   /*TopページにGetでアクセスするとエディタのJSXを返す*/
   router.get(
     "/:userName",
@@ -71,9 +84,16 @@ export const Router = (io: socketIo.Server): express.Router => {
       //
       const username = decodeURIComponent(req.params.userName);
       const imageKey = decodeURIComponent(req.params.fileKey);
-      debug(`imageKey: ${imageKey}`);
-
       const result = await fetch(
+        `https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${imageKey}.svg`,
+        {
+          method: "GET",
+          mode: "cors"
+        }
+      );
+
+      //メタデータも取得する
+      const metaData = await fetch(
         `https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${imageKey}`,
         {
           method: "GET",
@@ -82,14 +102,20 @@ export const Router = (io: socketIo.Server): express.Router => {
       );
 
       //これはBufferで返ってくる
-      //const result = await promiseGetFile(imageKey);
       const svg = await result.text();
+      const metaJson = await metaData.json();
 
-      if (result) {
+      if (result && metaData) {
         res
           .header("content-type", "text/html")
           .send(
-            renderToString(<BaseLayout title={"DrawWiki"} hydratedSVG={svg} />)
+            renderToString(
+              <BaseLayout
+                title={"DrawWiki"}
+                hydratedSVG={svg}
+                hydratedMeta={JSON.stringify(metaJson)}
+              />
+            )
           )
           .end();
       } else {
@@ -106,17 +132,8 @@ export const Router = (io: socketIo.Server): express.Router => {
     }
   );
 
-  // //イラストidを拡張子付で指定された場合はS3のURLを直に返す?
-  // //これで表示できるんだろうか?
-  // router.get(
-  //   "/illust/:illustId.svg",
-  //   async (req: express.Request, res: express.Response) => {
-  //     const illust = await getHyperIllust(req.params.illustId);
-  //     res.send(JSON.stringify(illust.sourceURL));
-  //   }
-  // );
-
   //HyperIllustのkeyを単に指定された場合はHyperIllustの素のSVGを返す
+  //ここは末尾に拡張子をつける?
   router.get(
     "/api/illust/:illustKey",
     async (req: express.Request, res: express.Response) => {
@@ -189,11 +206,9 @@ export const Router = (io: socketIo.Server): express.Router => {
     uploader.single("file"),
     async (req: express.Request, res: express.Response) => {
       const now = moment().format("YYYY-MM-DD-HH-mm-ss");
-      const fileName = `hyperillust_${req.params.userName}_${now}_.svg`;
+      const fileName = `hyperillust_${req.params.userName}_${now}.svg`;
       const mime: string = "image/svg+xml";
-
       const rawData = await asyncReadFile(req.file.path);
-
       try {
         const result = await promisePutFile(fileName, rawData, mime);
         debug(result);
@@ -204,26 +219,34 @@ export const Router = (io: socketIo.Server): express.Router => {
         //アップロード時にClientはユーザー情報も上げるものとする
 
         //HyperIllustのデータを作成
+
+        const metaKey = `hyperillust_${req.params.userName}_${now}`;
         const newIllust: HyperIllust = {
-          id: fileName,
+          id: metaKey,
           sourceKey: svgKey,
           sourceURL: svgURL,
           name: fileName,
           desc: "",
           size: req.file.size,
           owner: req.params.userName,
-          referredIllusts: [],
-          referIllusts: [],
+          linkedList: [],
+          linkedByList: [],
           isForked: false,
           origin: "",
           version: 1,
           createdAt: now,
           updatedAt: now
         };
-        //サーバー側は何もせずにただClientにHyperIllustを返すだけ!簡単
+        //このメタデータをクライアントに返すだけでなくS3にも保存する
 
         //アップロードしたらローカルの一時ファイルは削除
         await asyncUnLink(req.file.path);
+
+        const uploadedMeta = await promisePutMetadata(
+          metaKey,
+          JSON.stringify(newIllust),
+          `application/json`
+        );
 
         //CORSを全許可にして返す?
         res.setHeader("Access-Control-Allow-Origin", "*");
@@ -231,6 +254,108 @@ export const Router = (io: socketIo.Server): express.Router => {
       } catch (e) {
         res.send(e);
       }
+    }
+  );
+
+  router.get(
+    `/api/getmeta/:metakey`,
+    async (req: express.Request, res: express.Response) => {
+      const metaKey = req.params.metakey;
+      const result = await fetch(
+        `https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${metaKey}`
+      );
+      const loadedMeta = await result.json();
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.send(JSON.stringify(loadedMeta));
+    }
+  );
+
+  router.post(
+    `/api/updatemeta/:metaKey`,
+    uploader.single("file"),
+    async (req: express.Request, res: express.Response) => {
+      const metaKey = req.params.metaKey;
+      const rawJSON = await asyncReadJSON(req.file.path);
+      const uploadedMeta = await promisePutFile(
+        metaKey,
+        rawJSON,
+        `application/json`
+      );
+      await asyncUnLink(req.file.path);
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.send(JSON.stringify(uploadedMeta.Location));
+    }
+  );
+
+  //メタデータを削除するAPI
+  router.delete(
+    `/api/deletemeta/:metakey`,
+    async (req: express.Request, res: express.Response) => {
+      const metaKey = req.params.metaKey;
+      const result = await promiseDeleteFile(metaKey);
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.send(JSON.stringify(result));
+    }
+  );
+
+  //ユーザーメタデータを生成するAPI
+  //これは更新APIと同じでも良いかも
+  router.post(
+    `/api/createuser/:username`,
+    uploader.single("file"),
+    async (req: express.Request, res: express.Response) => {
+      //ファイル名は"user-hykwtakumin"みたいな感じになる
+      const userKey = `user-${req.params.username}`;
+      const rawJSON = await asyncReadJSON(req.file.path);
+      const uploadedMeta = await promisePutFile(
+        userKey,
+        rawJSON,
+        `application/json`
+      );
+      await asyncUnLink(req.file.path);
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.send(JSON.stringify(uploadedMeta));
+    }
+  );
+
+  //既存のユーザーメタデータを取得するAPI
+  router.get(
+    `/api/getuser/:username`,
+    async (req: express.Request, res: express.Response) => {
+      const userKey = `user-${req.params.username}`;
+      const result = await fetch(
+        `https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${userKey}`
+      );
+      const loadedUser = await result.json();
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.send(JSON.stringify(loadedUser));
+    }
+  );
+  //既存のユーザーメタデータを更新するAPI
+  router.post(
+    `/api/updateuser/:username`,
+    uploader.single("file"),
+    async (req: express.Request, res: express.Response) => {
+      const userKey = `user-${req.params.username}`;
+      const rawJSON = await asyncReadJSON(req.file.path);
+      const uploadedMeta = await promisePutFile(
+        userKey,
+        rawJSON,
+        `application/json`
+      );
+      await asyncUnLink(req.file.path);
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.send(JSON.stringify(uploadedMeta.Location));
+    }
+  );
+  //既存のユーザーメタデータを削除するAPI
+  router.delete(
+    `/api/deleteuser/:username`,
+    async (req: express.Request, res: express.Response) => {
+      const userKey = `user-${req.params.username}`;
+      const result = await promiseDeleteFile(userKey);
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.send(JSON.stringify(result));
     }
   );
 
@@ -242,7 +367,7 @@ export const Router = (io: socketIo.Server): express.Router => {
       try {
         const mime: string = "image/svg+xml";
         const rawData = await asyncReadFile(req.file.path);
-        const fileName = req.params.key;
+        const fileName = `${req.params.key}.svg`;
         const result = await promisePutFile(fileName, rawData, mime);
         //アップロードしたらローカルの一時ファイルは削除
         await asyncUnLink(req.file.path);

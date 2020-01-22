@@ -23,6 +23,10 @@ export const asyncReadFile = (path: string): Promise<Buffer> => {
   return promisify(fs.readFile)(path);
 };
 
+export const asyncReadJSON = (path: string): Promise<any> => {
+  return promisify(fs.readFile)(path, "utf8");
+};
+
 //S3にアップロードを済ませた一時ファイルの削除用
 export const asyncUnLink = (path: string): Promise<void> => {
   return promisify(fs.unlink)(path);
@@ -30,6 +34,17 @@ export const asyncUnLink = (path: string): Promise<void> => {
 
 //バケットにSVGをアップロード
 export async function promisePutFile(
+  Key: string,
+  Body: any,
+  ContentType: string
+): Promise<ManagedUpload.SendData> {
+  return await bucket
+    .upload({ Bucket, Key, Body, ContentType, ACL: "public-read" })
+    .promise();
+}
+
+//バケットにJSONをアップロードする
+export async function promisePutMetadata(
   Key: string,
   Body: any,
   ContentType: string

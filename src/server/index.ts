@@ -3,8 +3,6 @@ import { ErrorRequestHandler } from "express";
 import { createServer, Server } from "http";
 import * as cors from "cors";
 import * as path from "path";
-import * as dotenv from "dotenv";
-import * as multer from "multer";
 import { configuredS3 } from "./aws";
 import * as bodyParser from "body-parser";
 import * as cookieParser from "cookie-parser";
@@ -13,6 +11,7 @@ import { Router } from "./routes/router";
 import { createSocketIOServer, socketIOHandler } from "./services/socket";
 import { logger } from "../share/logger";
 import { Simulate } from "react-dom/test-utils";
+import { setUpClient } from "./services/db";
 const { debug } = logger("index:index");
 
 export const app: express.Express = express();
@@ -43,17 +42,13 @@ const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   res.status(status).json({ error: err.name, message: err.message });
 };
 
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(cookieParser());
+
 server.listen(port, () => {
   debug(`server listening at port : ${port}`);
 });
-
-app.use(bodyParser.json());
-app.use(
-  bodyParser.urlencoded({
-    extended: true
-  })
-);
-app.use(cookieParser());
 
 app.use("/", Router(io));
 app.use(errorHandler);

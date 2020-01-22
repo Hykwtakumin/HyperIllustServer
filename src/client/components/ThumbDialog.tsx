@@ -1,119 +1,108 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { FC, useEffect, useState } from "react";
-import { getRefersAndImports, refersAndImports } from "./share/referController";
-import { parseSVGFromURL } from "./share/SVGParser";
+import { loadMetaData } from "./share/API";
 
 type ThumbDialogProps = {
   isShow: boolean;
   onCancel: () => void;
   selfKey: string;
+  userName: string;
   // onSelected: (key: string) => void;
   sourceKey: string;
 };
 
 //シンプルなダイアログ用コンポーネント
 export const ThumbDialog: FC<ThumbDialogProps> = props => {
-  const [referredKeys, setReferredKeys] = useState<string[]>([]);
-  const [referKeys, setReferKeys] = useState<string[]>([]);
+  const { isShow, onCancel, sourceKey, selfKey, userName } = props;
+
+  const [linkedKeys, setLinkedKeys] = useState<string[]>([]);
+  const [linkedByKeys, setLinkedByKeys] = useState<string[]>([]);
   const [importedKeys, setImportedKeys] = useState<string[]>([]);
-  const [importKeys, setImportKeys] = useState<string[]>([]);
+  const [importedByKeys, setImportedByKeys] = useState<string[]>([]);
 
+  //こっちでも被引用リストを表示する
   useEffect(() => {
-    if (props.sourceKey) {
-      parseSVGFromURL(props.sourceKey).then(result => {
-        setReferredKeys(
-          result.loadedGroups.map(group => group.href.split("/")[4])
-        );
-      });
-
-      getRefersAndImports(props.sourceKey).then((list: refersAndImports) => {
-        console.dir(list);
-        //setReferredKeys(list.referredKeys);
-        setReferKeys(list.referKeys);
-        setImportedKeys(list.importedKeys);
-        setImportKeys(list.importKeys);
+    if (isShow && sourceKey) {
+      loadMetaData(props.sourceKey).then(result => {
+        if (result) {
+          setLinkedKeys(result.linkedList);
+          setLinkedByKeys(result.linkedByList);
+          setImportedKeys(result.importedList);
+          setImportedByKeys(result.importedByList);
+        }
       });
     }
-  }, [props.sourceKey]);
+  }, [sourceKey]);
 
   return ReactDOM.createPortal(
     <>
-      {props.isShow && (
+      {isShow && (
         <>
           <section className="overLay" onClick={props.onCancel}>
             <div className="thumbDialogContainer">
-              <div className="thumbDialogReferredContainer">
-                {referredKeys &&
-                  referredKeys
-                    .filter(item => item !== props.selfKey)
-                    .map((item, index) => {
-                      return (
-                        <a
-                          href={`https://draw-wiki.herokuapp.com/${
-                            item.split("_")[1]
-                          }/${item}`}
-                          key={index}
-                          className="referedItemContainer"
-                        >
-                          <div key={index} className="referedItemContainer">
-                            <img
-                              className="referedItem"
-                              alt={item}
-                              title={item}
-                              src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
-                              draggable={false}
-                              // onClick={ev => {
-                              //   props.onSelected(props.sourceKey);
-                              // }}
-                            />
-                          </div>
-                        </a>
-                      );
-                    })}
-                {referKeys &&
-                  referKeys
-                    .filter(item => item !== props.selfKey)
-                    .map((item, index) => {
-                      return (
-                        <a
-                          href={`https://draw-wiki.herokuapp.com/${
-                            item.split("_")[1]
-                          }/${item}`}
-                          key={index}
-                        >
-                          <div key={index} className="referedItemContainer">
-                            <img
-                              className="referedItem"
-                              alt={item}
-                              title={item}
-                              src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}`}
-                              draggable={false}
-                              // onClick={ev => {
-                              //   props.onSelected(props.sourceKey);
-                              // }}
-                            />
-                          </div>
-                        </a>
-                      );
-                    })}
+              <div className="thumbDialogSideContainer">
+                <div className="thumbDialogLinkedContainer">
+                  {linkedKeys &&
+                    linkedKeys
+                      .filter(item => item !== selfKey)
+                      .map((item, index) => {
+                        return (
+                          <a
+                            href={`/${userName}/${item}`}
+                            key={index}
+                            className="linkedItemContainer"
+                          >
+                            <div key={index} className="linkedItemContainer">
+                              <img
+                                className="linkedItem"
+                                alt={item}
+                                title={item}
+                                src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}.svg`}
+                                draggable={false}
+                                // onClick={ev => {
+                                //   props.onSelected(props.sourceKey);
+                                // }}
+                              />
+                            </div>
+                          </a>
+                        );
+                      })}
+                </div>
+                <div className="thumbDialogLinkedByContainer">
+                  {linkedByKeys &&
+                    linkedByKeys
+                      .filter(item => item !== selfKey)
+                      .map((item, index) => {
+                        return (
+                          <a href={`/${userName}/${item}`} key={index}>
+                            <div key={index} className="linkedItemContainer">
+                              <img
+                                className="linkedItem"
+                                alt={item}
+                                title={item}
+                                src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}.svg`}
+                                draggable={false}
+                                // onClick={ev => {
+                                //   props.onSelected(props.sourceKey);
+                                // }}
+                              />
+                            </div>
+                          </a>
+                        );
+                      })}
+                </div>
               </div>
 
               <div className="thumbnailContainer">
-                <a
-                  href={`https://draw-wiki.herokuapp.com/${
-                    props.sourceKey.split("_")[1]
-                  }/${props.sourceKey}`}
-                >
+                <a href={`/${userName}/${sourceKey}`}>
                   <img
                     style={{
                       maxWidth: "100%"
                     }}
-                    alt={props.sourceKey}
-                    title={props.sourceKey}
-                    src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${
-                      props.sourceKey
-                    }`}
+                    alt={sourceKey}
+                    title={sourceKey}
+                    src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${sourceKey}.svg`}
                     // onClick={ev => {
                     //   props.onSelected(props.sourceKey);
                     // }}

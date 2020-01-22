@@ -33,7 +33,7 @@ export const AddInnerLinkButton: FC<AddInnerLinkButtonProps> = (
           return (
             <img
               key={index}
-              className={"referedItem"}
+              className="linkedItem"
               alt={item.id}
               title={item.id}
               src={item.sourceURL}

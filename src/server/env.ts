@@ -9,7 +9,7 @@ let {
   NODE_ENV,
   HIC_MONGODB_HOST,
   HIC_MONGODB_PORT,
-  HIC_MONGODB_ENDPOINT,
+  DW_MONGODB_ENDPOINT,
   HIC_PORT
 } = process.env;
 
@@ -21,6 +21,6 @@ process.env["NODE_ENV"] = NODE_ENV;
 
 export const mongoDBHost = HIC_MONGODB_HOST;
 export const mongoDBPort = HIC_MONGODB_PORT;
-export const mongoDBEndpoint = HIC_MONGODB_ENDPOINT;
+export const mongoDBEndpoint = DW_MONGODB_ENDPOINT;
 export const port = HIC_PORT;
 export const nodeEnv = NODE_ENV;
