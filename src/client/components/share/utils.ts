@@ -45,9 +45,28 @@ export const sortImagesByCreatedAtDescend = (
   });
 };
 
-//日毎に分割する
+//引用数順(linkedList)にソート
+//いろんなイラストをリンクしているハブ的な画像が出てくる?
+export const sortImageByLinked = (list: HyperIllust[]): HyperIllust[] => {
+  return list.sort((a, b) => {
+    return a.linkedList < b.linkedList ? 1 : -1;
+  });
+};
 
-//月ごとに分割する
+//更新日順にソート
+export const sortImageByUpdated = (list: HyperIllust[]): HyperIllust[] => {
+  return list.sort((a, b) => {
+    return a.updatedAt < b.updatedAt ? 1 : -1;
+  });
+};
+
+//被引用数順(linkedByList)にソート
+//いろんなイラストからリンクされている便利画像が出てくる?
+export const sortImageByLinkedBy = (list: HyperIllust[]): HyperIllust[] => {
+  return list.sort((a, b) => {
+    return a.linkedByList < b.linkedByList ? 1 : -1;
+  });
+};
 
 export type titleImageMap = {
   title: string;

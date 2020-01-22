@@ -9,25 +9,55 @@ import {
 } from "./share/utils";
 import * as day from "dayjs";
 import * as moment from "moment";
+import { useState } from "react";
 
 type ImportDialogProps = {
   isShow: boolean;
   onCancel: () => void;
+  onSortModified: () => void;
+  onSortNewer: () => void;
+  onSortLinked: () => void;
+  onSortLinkedBy: () => void;
   onSelected: (item: HyperIllust) => void;
   localIllustList: HyperIllust[];
 };
 
 //シンプルなダイアログ用コンポーネント
 export const ImportDialog: FC<ImportDialogProps> = props => {
-  const { isShow, onCancel, onSelected, localIllustList } = props;
+  const {
+    isShow,
+    onCancel,
+    onSelected,
+    localIllustList,
+    onSortModified,
+    onSortNewer,
+    onSortLinked,
+    onSortLinkedBy
+  } = props;
 
-  // useEffect(() => {
-  //   const lists = localIllustList;
-  //   console.dir(sortImagesByCreatedAtAscend(lists).map(item => item.createdAt));
-  //   console.dir(
-  //     sortImagesByCreatedAtDescend(lists).map(item => item.createdAt)
-  //   );
-  // }, []);
+  const handleSortLinked = (event: React.PointerEvent<HTMLInputElement>) => {
+    event.stopPropagation();
+    onCancel();
+    onSortLinked();
+  };
+
+  const handleSortLinkedBy = (event: React.PointerEvent<HTMLInputElement>) => {
+    event.stopPropagation();
+    onCancel();
+    onSortLinkedBy();
+  };
+
+  const handleSortModified = (event: React.PointerEvent<HTMLInputElement>) => {
+    event.stopPropagation();
+    onCancel();
+    onSortModified();
+  };
+
+  const handleNewer = (event: React.PointerEvent<HTMLInputElement>) => {
+    event.stopPropagation();
+    onCancel();
+    onSortNewer();
+  };
 
   return ReactDOM.createPortal(
     <>
@@ -35,15 +65,43 @@ export const ImportDialog: FC<ImportDialogProps> = props => {
         <>
           <section className="overLay" onClick={onCancel}>
             <div className="importDialogContainer">
-              <h2>他のイラストと紐付けます</h2>
+              <div className="localListContainerControlPane">
+                <h2>他のメモ・イラストをリンクさせます</h2>
+                <div className="sortButtonContainer">
+                  <input
+                    type="button"
+                    value="作成日順"
+                    className="sortButton"
+                    onClick={handleNewer}
+                  />
+                  <input
+                    type="button"
+                    value="更新日時順"
+                    className="sortButton"
+                    onClick={handleSortModified}
+                  />
+                  <input
+                    type="button"
+                    value="引用数順"
+                    className="sortButton"
+                    onClick={handleSortLinked}
+                  />
+                  <input
+                    type="button"
+                    value="被引用数順"
+                    className="sortButton"
+                    onClick={handleSortLinkedBy}
+                  />
+                </div>
+              </div>
 
               <div className="ImportModalMenuContainer">
                 <div className="ImportModalMenu">
-                  {sortImagesByCreatedAtAscend(localIllustList).map(
-                    (item: HyperIllust, index: number) => {
-                      return (
+                  {localIllustList.map((item: HyperIllust, index: number) => {
+                    return (
+                      <div key={`c-${item.id}`} className="linkedItemContainer">
                         <img
-                          key={index}
+                          key={item.id}
                           className="linkedItem"
                           alt={item.id}
                           title={item.id}
@@ -54,9 +112,9 @@ export const ImportDialog: FC<ImportDialogProps> = props => {
                             onSelected(item);
                           }}
                         />
-                      );
-                    }
-                  )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>

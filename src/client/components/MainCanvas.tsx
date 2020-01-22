@@ -9,7 +9,12 @@ import {
   Stroke,
   drawPoint,
   Size,
-  DrawPreset
+  DrawPreset,
+  sortImagesByCreatedAtAscend,
+  sortImagesByCreatedAtDescend,
+  sortImageByLinked,
+  sortImageByLinkedBy,
+  sortImageByUpdated
 } from "./share/utils";
 import { PathDrawer } from "./Graphics/PathDrawer";
 import { ModeSelector } from "./ModeSelector";
@@ -27,7 +32,8 @@ import {
 } from "./share/localStorage";
 import { loadUserInfo, setUserInfo } from "./share/UserSetting";
 import {
-  deleteSVG, getUser,
+  deleteSVG,
+  getUser,
   updateMetaData,
   updateSVG,
   updateUser,
@@ -45,7 +51,7 @@ import { addLinkedInfo, deleteLinkedInfo } from "./share/referController";
 import { ContextRect } from "./Graphics/ContextRect";
 import { createGroup } from "./Graphics/GroupController";
 import { ShareDialog } from "./ShareDialog";
-import {isTouchOk} from "./share/EventHandler";
+import { isTouchOk } from "./share/EventHandler";
 
 export type MainCanvasProps = {
   loadedStrokes?: Stroke[];
@@ -141,6 +147,10 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
     location.href.split("/")[4] || ""
   );
 
+  //関連画像から選択したのか直接リンクをクリックしたのかのboolean
+  //これはBADなのでもちろん後で直す
+  const [isFromSideView, setIsFromSideView] = useState<boolean>(false);
+
   //一度UserIdを発行されたら基本的にそれを使い続ける感じで
   const [user, setUser] = useState<HyperIllustUser>(null);
 
@@ -184,20 +194,22 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
         const otherUser = location.href.split("/")[3];
         //resetLocalIllusts();
         const loadedList = loadIllustsFromUser(otherUser);
-        setLocalIllustList(loadedList);
+        //基本は更新日順でソート
+        const sorted = sortImageByUpdated(loadedList);
+        setLocalIllustList(sorted);
       } else {
         //メタデータも上書きしてから/localイラストをロードする
         getUser(user.name).then(result => {
           const nullFiltered = result.illustList.filter(item => item !== null);
           console.dir(nullFiltered);
           user.illustList = nullFiltered;
-          updateUser(user.name, user).then(
-           result => {
-             saveToLocalStorage<HyperIllustUser>(`draw-wiki-user`, user);
-           }
-          );
+          updateUser(user.name, user).then(result => {
+            saveToLocalStorage<HyperIllustUser>(`draw-wiki-user`, user);
+          });
           const loadedList = loadIllustsFromUser(user.name);
-          setLocalIllustList(loadedList);
+          //基本は更新日順でソート
+          const sorted = sortImageByUpdated(loadedList);
+          setLocalIllustList(sorted);
         });
       }
     } else {
@@ -207,7 +219,9 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
       if (newUser) {
         setUser(newUser);
         const loadedList = loadIllustsFromUser(newUser.name);
-        setLocalIllustList(loadedList);
+        //基本は更新日順でソート
+        const sorted = sortImageByUpdated(loadedList);
+        setLocalIllustList(sorted);
         window.history.replaceState(null, null, `/${newUser.name}`);
       }
     }
@@ -328,7 +342,11 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
         const key = selectedGroup.href.split("/")[4];
         console.log(`そしてそのKeyは${key}です。`);
         setSelectedItemKey(key);
-        setIsThumbOpen(true);
+        if (!isFromSideView) {
+          setIsThumbOpen(true);
+        } else {
+          console.log("サイドビュー経由はダイアログを表示しない");
+        }
       }
     }
   }, [selectedGroup]);
@@ -337,11 +355,17 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
   //グループ要素をハイライトする仕組みはあとで考える
   useEffect(() => {
     if (selectedItemKey) {
+      console.log(`次のキーが選択されています。 : ${selectedItemKey}`);
       const selectedGroup = groups.filter(group =>
         group.href.includes(selectedItemKey)
       );
-      selectedGroup && setSelectedGroup(selectedGroup[0]);
-      setIsThumbOpen(true);
+      //selectedGroup && setSelectedGroup(selectedGroup[0]);
+      if (selectedGroup && selectedGroup.length > 0) {
+        setSelectedGroup(selectedGroup[0]);
+      } else {
+        //もしもgroup内になければ、そればlinkedByのKeyなはずなのでダイアログを開く
+        setIsThumbOpen(true);
+      }
     } else {
       setSelectedGroup(null);
     }
@@ -389,6 +413,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
     //selectedListが設定されている場合はリセットする
     setSelectedElms([]);
     setSelectedGroup(null);
+    setIsFromSideView(false);
     const now = getPoint(event.pageX, event.pageY, canvasRef.current);
     setInRectSize({
       left: Math.floor(now.x),
@@ -486,28 +511,36 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
         window.history.replaceState(null, null, `/${user.name}/${result.id}`);
         //ここでやるべきことは
         //ユーザーメタデータに新規イラストIDを追加する
-        const cloudUser = await getUser(user.name) as HyperIllustUser;
+        const cloudUser = (await getUser(user.name)) as HyperIllustUser;
 
         console.log("ユーザーメタデータに新規イラストIDを追加します");
         //重複確認はクラウド側で行う
-        if (cloudUser && cloudUser.illustList.length > 0 && !cloudUser.illustList.includes(result.id)) {
+        if (
+          cloudUser &&
+          cloudUser.illustList.length > 0 &&
+          !cloudUser.illustList.includes(result.id)
+        ) {
           user.illustList.push(result.id);
-          updateUser(user.name, user).then(result => {
-            console.dir(result);
-            saveToLocalStorage<HyperIllustUser>(`draw-wiki-user`, user);
-          }).catch(error => {
-            console.dir(error);
-          });
+          updateUser(user.name, user)
+            .then(result => {
+              console.dir(result);
+              saveToLocalStorage<HyperIllustUser>(`draw-wiki-user`, user);
+            })
+            .catch(error => {
+              console.dir(error);
+            });
         } else {
           user.illustList = [];
           user.illustList.push(result.id);
 
-          updateUser(user.name, user).then(result => {
-            console.dir(result);
-            saveToLocalStorage<HyperIllustUser>(`draw-wiki-user`, user);
-          }).catch(error => {
-            console.dir(error);
-          });
+          updateUser(user.name, user)
+            .then(result => {
+              console.dir(result);
+              saveToLocalStorage<HyperIllustUser>(`draw-wiki-user`, user);
+            })
+            .catch(error => {
+              console.dir(error);
+            });
         }
       } else {
         //既にSVGはあるので上書きさせる
@@ -525,7 +558,6 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
           //それが問題である
           const updateTarget = localIllustList.find(item => item.id == selfKey);
           if (updateTarget) {
-
             console.dir(linkedList);
 
             updateTarget.linkedList = linkedList;
@@ -697,6 +729,10 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
   //選択された要素からグループを作成する
   //グループの中にグループがある場合はどうする?
 
+  // const blinkModal = () => {
+  //   setIsLocalListModalOpen(true);
+  // };
+
   //BoundingBoxを消す処理
   const clearBB = () => {
     //選択された要素群をリセット
@@ -820,7 +856,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
             <ButtonComponent
               type={"primary"}
               onClick={event => {
-                //setIsShareDialogOpen(true);
+                setIsShareDialogOpen(true);
               }}
             >
               <img
@@ -868,10 +904,13 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
           </div>
 
           <div style={{ padding: "3px" }}>
-            <img  src={"../icons/touch_app-24px.svg"} draggable={false}  />
-            <input type={"checkbox"} onChange={event => {
-              setAllowTouch(event.target.checked)
-            }} />
+            <img src={"../icons/touch_app-24px.svg"} draggable={false} />
+            <input
+              type={"checkbox"}
+              onChange={event => {
+                setAllowTouch(event.target.checked);
+              }}
+            />
           </div>
 
           <ResetDialog
@@ -887,6 +926,24 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
             onSelected={item => {
               handleAddLink(item);
               setIsImportModalOpen(false);
+            }}
+            onSortModified={() => {
+              const olderSortedList = sortImageByUpdated(localIllustList);
+              setLocalIllustList(olderSortedList);
+            }}
+            onSortNewer={() => {
+              const newerSortedList = sortImagesByCreatedAtDescend(
+                localIllustList
+              );
+              setLocalIllustList(newerSortedList);
+            }}
+            onSortLinked={() => {
+              const linkedSortedList = sortImageByLinked(localIllustList);
+              setLocalIllustList(linkedSortedList);
+            }}
+            onSortLinkedBy={() => {
+              const linkedBySortedList = sortImageByLinkedBy(localIllustList);
+              setLocalIllustList(linkedBySortedList);
             }}
             localIllustList={localIllustList}
             onCancel={() => {
@@ -905,7 +962,8 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
             linkedByKes={linkedByList}
             onKeySelected={key => {
               setSelectedItemKey(key);
-              setIsThumbOpen(true);
+              setIsFromSideView(true);
+              //setIsThumbOpen(true);
             }}
           />
 
@@ -915,6 +973,24 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
             userName={user ? user.name : ""}
             onCancel={() => {
               setIsLocalListModalOpen(false);
+            }}
+            onSortModified={() => {
+              const olderSortedList = sortImageByUpdated(localIllustList);
+              setLocalIllustList(olderSortedList);
+            }}
+            onSortNewer={() => {
+              const newerSortedList = sortImagesByCreatedAtDescend(
+                localIllustList
+              );
+              setLocalIllustList(newerSortedList);
+            }}
+            onSortLinked={() => {
+              const linkedSortedList = sortImageByLinked(localIllustList);
+              setLocalIllustList(linkedSortedList);
+            }}
+            onSortLinkedBy={() => {
+              const linkedBySortedList = sortImageByLinkedBy(localIllustList);
+              setLocalIllustList(linkedBySortedList);
             }}
             onDeleted={handleLocalImageDelete}
             onSelected={() => {}}
@@ -932,6 +1008,7 @@ export const MainCanvas: FC<MainCanvasProps> = (props: MainCanvasProps) => {
             isShow={isThumbOpen}
             onCancel={() => {
               setSelectedItemKey("");
+              setIsFromSideView(false);
               setIsThumbOpen(false);
             }}
             userName={user ? user.name : ""}

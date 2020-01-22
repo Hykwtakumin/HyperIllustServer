@@ -22,12 +22,19 @@ export const ViewLinkDialog: FC<ViewLinkDialogProps> = props => {
     <>
       <>
         <div className="viewLinkDialogContainer">
-          <h3 style={{ userSelect: "none" }}>関連する図</h3>
+          <h3
+            style={{
+              userSelect: "none",
+              pointerEvents: "none",
+              marginLeft: "5px"
+            }}
+          >
+            関連画像
+          </h3>
           <div className="linkedItemMenu">
             {props.linkedKeys
               .filter(item => item !== props.selfKey)
               .map((item: string, index: number) => {
-                // const sourceKey = item.split("/")[4];
                 return (
                   <div key={index} className="linkedItemContainer">
                     <img
@@ -50,7 +57,6 @@ export const ViewLinkDialog: FC<ViewLinkDialogProps> = props => {
             {props.linkedByKes
               .filter(item => item !== props.selfKey)
               .map((item: string, index: number) => {
-                // const sourceKey = item.split("/")[4];
                 return (
                   <div key={index} className="linkedItemContainer">
                     <img

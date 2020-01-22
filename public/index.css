@@ -206,7 +206,7 @@
   align-content: flex-start;
   scroll-behavior: auto;
   user-select: none;
-  background-color: rgba(0,0,0,0.1);
+  background-color: rgba(0,0,0,0.2);
 }
 
 .linkedItem {
@@ -331,11 +331,31 @@
   position: absolute;
 }
 
+/*タイトルとかソートボタンの領域*/
+.localListContainerControlPane {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+}
+
+.sortButtonContainer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  align-content: center;
+  user-select: none;
+}
+
+.sortButton {
+  font-size: 1rem;
+}
+
 /*共有モーダル*/
 .shareDialogContainer {
-  width: 60%;
-  height: 60%;
-  background-color: white;
+  max-width: 40%;
+  background-color: rgba(233,233,233,1);
   border: none;
   box-shadow: 0px 5px 5px rgba(0,0,0,0.4);
   position: absolute;
@@ -343,15 +363,19 @@
 
 /*要素をクリックしたときにサムネを表示する(ThumbDialog.tsx)*/
 .thumbDialogContainer {
-  width: 50%;
-  max-height: 70%;
-  background-color: rgba(255,255,255,0.5);
+  width: 60%;
+  max-height: 60%;
   border: none;
   box-shadow: 0px 5px 5px rgba(0,0,0,0.4);
   position: absolute;
   display: flex;
   flex-direction: row;
+}
 
+.thumbDialogSideContainer {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
 }
 
 /*サムネ本体*/
@@ -365,7 +389,12 @@
 }
 
 /*ThumbDialogの中の関連イラストリスト*/
-.thumbDialogReferredContainer {
+
+.thumbDialogLinkedContainer {
+  background-color: transparent;
+}
+
+.thumbDialogLinkedByContainer {
   background-color: rgba(0, 0, 0, 0.15);
 }
 

@@ -21,6 +21,7 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
   const [importedKeys, setImportedKeys] = useState<string[]>([]);
   const [importedByKeys, setImportedByKeys] = useState<string[]>([]);
 
+  //こっちでも被引用リストを表示する
   useEffect(() => {
     if (isShow && sourceKey) {
       loadMetaData(props.sourceKey).then(result => {
@@ -40,61 +41,61 @@ export const ThumbDialog: FC<ThumbDialogProps> = props => {
         <>
           <section className="overLay" onClick={props.onCancel}>
             <div className="thumbDialogContainer">
-              <div className="thumbDialogReferredContainer">
-                {linkedKeys &&
-                  linkedKeys
-                    .filter(item => item !== selfKey)
-                    .map((item, index) => {
-                      return (
-                        <a
-                          href={`/${userName}/${item}`}
-                          key={index}
-                          className="linkedItemContainer"
-                        >
-                          <div key={index} className="linkedItemContainer">
-                            <img
-                              className="linkedItem"
-                              alt={item}
-                              title={item}
-                              src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}.svg`}
-                              draggable={false}
-                              // onClick={ev => {
-                              //   props.onSelected(props.sourceKey);
-                              // }}
-                            />
-                          </div>
-                        </a>
-                      );
-                    })}
-                {linkedByKeys &&
-                  linkedByKeys
-                    .filter(item => item !== selfKey)
-                    .map((item, index) => {
-                      return (
-                        <a
-                          href={`/${userName}/${item}`}
-                          key={index}
-                        >
-                          <div key={index} className="linkedItemContainer">
-                            <img
-                              className="linkedItem"
-                              alt={item}
-                              title={item}
-                              src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}.svg`}
-                              draggable={false}
-                              // onClick={ev => {
-                              //   props.onSelected(props.sourceKey);
-                              // }}
-                            />
-                          </div>
-                        </a>
-                      );
-                    })}
+              <div className="thumbDialogSideContainer">
+                <div className="thumbDialogLinkedContainer">
+                  {linkedKeys &&
+                    linkedKeys
+                      .filter(item => item !== selfKey)
+                      .map((item, index) => {
+                        return (
+                          <a
+                            href={`/${userName}/${item}`}
+                            key={index}
+                            className="linkedItemContainer"
+                          >
+                            <div key={index} className="linkedItemContainer">
+                              <img
+                                className="linkedItem"
+                                alt={item}
+                                title={item}
+                                src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}.svg`}
+                                draggable={false}
+                                // onClick={ev => {
+                                //   props.onSelected(props.sourceKey);
+                                // }}
+                              />
+                            </div>
+                          </a>
+                        );
+                      })}
+                </div>
+                <div className="thumbDialogLinkedByContainer">
+                  {linkedByKeys &&
+                    linkedByKeys
+                      .filter(item => item !== selfKey)
+                      .map((item, index) => {
+                        return (
+                          <a href={`/${userName}/${item}`} key={index}>
+                            <div key={index} className="linkedItemContainer">
+                              <img
+                                className="linkedItem"
+                                alt={item}
+                                title={item}
+                                src={`https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${item}.svg`}
+                                draggable={false}
+                                // onClick={ev => {
+                                //   props.onSelected(props.sourceKey);
+                                // }}
+                              />
+                            </div>
+                          </a>
+                        );
+                      })}
+                </div>
               </div>
 
               <div className="thumbnailContainer">
-                <a href={`/${userName}/${sourceKey}`}
-                >
+                <a href={`/${userName}/${sourceKey}`}>
                   <img
                     style={{
                       maxWidth: "100%"
