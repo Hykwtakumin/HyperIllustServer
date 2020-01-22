@@ -109,7 +109,13 @@ export const Router = (io: socketIo.Server): express.Router => {
         res
           .header("content-type", "text/html")
           .send(
-            renderToString(<BaseLayout title={"DrawWiki"} hydratedSVG={svg} hydratedMeta={JSON.stringify(metaJson)} />)
+            renderToString(
+              <BaseLayout
+                title={"DrawWiki"}
+                hydratedSVG={svg}
+                hydratedMeta={JSON.stringify(metaJson)}
+              />
+            )
           )
           .end();
       } else {
@@ -251,16 +257,18 @@ export const Router = (io: socketIo.Server): express.Router => {
     }
   );
 
-  router.get(`/api/getmeta/:metakey`, async (req: express.Request, res: express.Response) => {
-    const metaKey = req.params.metakey;
-    const result = await fetch(
-      `https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${metaKey}`
-    );
-    const loadedMeta = await result.json();
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.send(JSON.stringify(loadedMeta));
-
-  });
+  router.get(
+    `/api/getmeta/:metakey`,
+    async (req: express.Request, res: express.Response) => {
+      const metaKey = req.params.metakey;
+      const result = await fetch(
+        `https://s3.us-west-1.amazonaws.com/hyper-illust-creator/${metaKey}`
+      );
+      const loadedMeta = await result.json();
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.send(JSON.stringify(loadedMeta));
+    }
+  );
 
   router.post(
     `/api/updatemeta/:metaKey`,

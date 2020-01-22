@@ -3,7 +3,7 @@ import { render } from "react-dom";
 import { MainCanvas } from "./components/MainCanvas";
 import { ModalProvider } from "./components/share";
 import { parseSVGFromString } from "./components/share/SVGParser";
-import {HyperIllust} from "../share/model";
+import { HyperIllust } from "../share/model";
 
 //ここらへんの処理を
 const rootElement = document.getElementById("root");
@@ -12,7 +12,9 @@ const serializedHydratedSVG: string = document
   .getElementById("hydration-data")
   .getAttribute("data-data");
 
-const hydratedMetaData: string = document.getElementById("hydration-data").getAttribute("data-meta-data");
+const hydratedMetaData: string = document
+  .getElementById("hydration-data")
+  .getAttribute("data-meta-data");
 
 //SVG本体を取得する
 parseSVGFromString(serializedHydratedSVG)
@@ -50,7 +52,6 @@ parseSVGFromString(serializedHydratedSVG)
         rootElement
       );
     }
-
   })
   .catch(error => {
     console.log(error);
