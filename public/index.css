@@ -181,6 +181,7 @@
   transition: 0.1s;
 }
 
+/*引用しているイラストリスト*/
 .linkedItemMenu {
   width: 100%;
   display: flex;
@@ -191,6 +192,21 @@
   align-content: flex-start;
   scroll-behavior: auto;
   user-select: none;
+  background-color: rgba(0,0,0,0);
+}
+
+/*自分を引用しているイラストリスト*/
+.linkedByItemMenu {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: stretch;
+  align-content: flex-start;
+  scroll-behavior: auto;
+  user-select: none;
+  background-color: rgba(0,0,0,0.1);
 }
 
 .linkedItem {

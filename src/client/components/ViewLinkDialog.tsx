@@ -45,6 +45,8 @@ export const ViewLinkDialog: FC<ViewLinkDialogProps> = props => {
                   </div>
                 );
               })}
+          </div>
+          <div className="linkedByItemMenu">
             {props.linkedByKes
               .filter(item => item !== props.selfKey)
               .map((item: string, index: number) => {
