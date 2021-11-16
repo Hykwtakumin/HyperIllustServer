@@ -37,7 +37,7 @@
     "@types/react-dom": "^16.8.4",
     "@types/uuid": "^3.4.4",
     "aphrodite": "^2.4.0",
-    "aws-sdk": "^2.453.0",
+    "aws-sdk": "^2.814.0",
     "babel-core": "^6.26.3",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-runtime": "^6.26.0",
