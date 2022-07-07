@@ -56,7 +56,7 @@
     "fetch-base64": "^2.1.2",
     "helmet": "^3.21.1",
     "jest": "^24.8.0",
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "mongodb": "^3.3.3",
     "multer": "^1.4.1",
     "node-fetch": "^2.6.0",
